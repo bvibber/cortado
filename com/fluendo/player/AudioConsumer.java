@@ -31,9 +31,7 @@ public class AudioConsumer implements Runnable, DataConsumer
   private AudioStream as;
   private boolean ready;
   private Clock clock;
-  //private static final int MAX_BUFFER = Integer.MAX_VALUE;
   private static final int MAX_BUFFER = 20;
-  //private static final int MAX_BUFFER = 1;
   private boolean stopping = false;
   private long start;
   private long prev;
@@ -50,6 +48,7 @@ public class AudioConsumer implements Runnable, DataConsumer
   private float[][][] _pcmf = new float[1][][];
   private int[] _index;
 
+  /* muLaw header */
   private static final byte[] header = 
                          { 0x2e, 0x73, 0x6e, 0x64, 		// header in be
                            0x00, 0x00, 0x00, 0x18,              // offset

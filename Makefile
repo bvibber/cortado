@@ -1,11 +1,11 @@
 all: 
-	javac -O -target 1.1 com/jcraft/jogg/*.java
-	javac -O -target 1.1 com/jcraft/jorbis/*.java
-	javac -O -target 1.1 com/fluendo/codecs/*.java
-	javac -O -target 1.1 com/fluendo/player/*.java
-	javac -O -target 1.1 com/fluendo/examples/*.java
-	javac -O -target 1.1 com/fluendo/utils/*.java
-	javac -O -target 1.1 com/fluendo/jheora/*.java
+	jikes-classpath -cp stubs -O -target 1.1 com/jcraft/jogg/*.java
+	jikes-classpath -cp stubs -O -target 1.1 com/jcraft/jorbis/*.java
+	jikes-classpath -cp stubs -O -target 1.1 com/fluendo/codecs/*.java
+	jikes-classpath -cp stubs -O -target 1.1 com/fluendo/player/*.java
+	jikes-classpath -cp stubs -O -target 1.1 com/fluendo/examples/*.java
+	jikes-classpath -cp stubs -O -target 1.1 com/fluendo/utils/*.java
+	jikes-classpath -cp stubs -O -target 1.1 com/fluendo/jheora/*.java
 
 clean:
 	rm -f com/jcraft/jogg/*.class
@@ -15,6 +15,7 @@ clean:
 	rm -f com/fluendo/examples/*.class
 	rm -f com/fluendo/utils/*.class
 	rm -f com/fluendo/jheora/*.class
+	rm -f stubs/sun/audio/*.class
 	rm -f cortado.jar 
 	rm -f cortado.tgz 
 
