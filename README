@@ -27,6 +27,18 @@ https://www.fluendo.com/tracker
 
 Make sure to choose the "cortado" component.
 
+BUILDING
+--------
+
+Example build on Fedora Core 2 with jikes installed:
+
+- build the applet with Ogg, Vorbis and Theora:
+CLASSPATH=/usr/share/java/libgcj-3.4.0.jar make ovt
+
+- build the applet with Multipart, Mulaw, JPEG and smoke:
+CLASSPATH=/usr/share/java/libgcj-3.4.0.jar make mmjs
+
+
 USAGE
 -----
 
@@ -78,12 +90,52 @@ parameters:
 
   password:   password for basic authentication.
 	      
-BUILDING
---------
-Example build on Fedora Core 2 with jikes installed:
 
-- build the applet with Ogg, Vorbis and Theora:
-CLASSPATH=/usr/share/java/libgcj-3.4.0.jar make ovt
+Using javascript
+----------------
 
-- build the applet with Multipart, Mulaw, JPEG and smoke:
-CLASSPATH=/usr/share/java/libgcj-3.4.0.jar make mmjs
+The applet parameters can be changed from javascript by calling the setParam(key, value)
+on the applet. After setting the new parameters in the applet it needs to be restarted
+with the restart() method for the changes to take effect.
+
+The following piece of HTML demonstrates switching URLs with an without sound using 
+javascript:
+
+<html>
+ <head>
+ </head>
+ <body>
+   <script language="javascript">
+     function restart() {
+       document.applets[0].restart(); 
+     }
+     function loadUrl(uri, audio) {
+       document.applets[0].setParam("audio", audio); 
+       document.applets[0].setParam("url", uri); 
+       restart();
+     }
+   </script>
+   <applet archive="cortado.jar" code="com.fluendo.player.Cortado.class" width="320" height="240"> 
+     <param name="url" value="http://localhost:8800"/>
+     <param name="local" value="false"/>
+     <param name="framerate" value="5.0"/>
+     <param name="keepaspect" value="true"/>
+     <param name="video" value="true"/>
+     <param name="audio" value="true"/>
+   </applet>
+
+   <br/>
+   <br/>
+
+   <button onClick="restart()">
+    Restart
+   </button>
+   <button onClick="loadUrl('http://localhost:8800', 'true')">
+    With Audio
+   </button>
+   <button onClick="loadUrl('http://localhost:8802', 'false')">
+    Without Audio
+   </button>
+   
+ </body>
+</html>
