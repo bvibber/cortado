@@ -26,7 +26,9 @@ import java.net.*;
 import java.util.*;
 import com.fluendo.utils.*;
 
-public class Cortado extends Applet implements ImageTarget, PreBufferNotify, Runnable, 
+public class Cortado extends Applet implements ImageTarget,
+                PreBufferNotify,
+                Runnable, 
 		MouseMotionListener,
 		MouseListener
 {
