@@ -23,16 +23,50 @@
     <mkdir dir="${build}"/>
   </target>
 
-  <target name="compile" depends="init"
-        description="compile the source " >
+  <target name="configure">
+    <exec dir="${basedir}" executable="./gen-Configure">
+      <arg line="Built using ant." />
+    </exec>
+  </target>
+
+  <target name="compile" depends="compile-jikes,configure" />
+
+<!-- sun java build -->
+  <target name="compile-sun" depends="init"
+        description="compile the source using sun java (set JAVA_HOME)" >
     <!-- Compile the java code from ${src} into ${build} -->
     <!-- using our stubs as classpath, and with a 1.1 target -->
-    <javac srcdir="${src}" destdir="${build}" 
+
+    <javac 
            classpath="stubs"
+           srcdir="${src}" destdir="${build}" 
            target="1.1" />
   </target>
 
-  <target name="jar" depends="compile"
+ 
+<!-- jikes build -->
+  <target name="compile-jikes" depends="init"
+        description="compile the source " >
+    <!-- Compile the java code from ${src} into ${build} -->
+    <!-- using our stubs as classpath, and with a 1.1 target -->
+
+    <javac 
+           compiler="jikes" 
+           classpath="stubs"
+           srcdir="${src}" destdir="${build}" 
+           target="1.1">
+      <compilerarg line="-target 1.1" />
+    </javac>
+  </target>
+
+  <!-- generate plugins.ini -->
+  <target name="ini" description="generate plugins.ini">
+    <copy todir="${build}">
+      <fileset file="plugins.ini" />
+    </copy>
+  </target>
+
+  <target name="jar" depends="compile,ini"
         description="generate the jar file">
     <!-- Create the distribution directory -->
     <mkdir dir="${dist}/applet"/>

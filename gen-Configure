@@ -1,0 +1,15 @@
+#!/bin/bash
+
+DATE=`date`
+
+cat > com/fluendo/player/Configure.java <<EOF
+package com.fluendo.player;
+
+class Configure
+{
+  public String buildInfo = "I was built on $DATE.\n$*";
+
+  public Configure() {
+  }
+}
+EOF

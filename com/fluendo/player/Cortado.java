@@ -60,6 +60,7 @@ public class Cortado extends Applet implements ImageTarget,
   private PopupMenu menu;
   private boolean stopping;
   private Hashtable params = new Hashtable();
+  private Configure configure;
 
   public String getAppletInfo() {
     return "Title: Fluendo media player \nAuthor: Wim Taymans \nA Java based network multimedia player.";
@@ -112,8 +113,12 @@ public class Cortado extends Applet implements ImageTarget,
     bufferSize = Integer.valueOf(getParam("bufferSize","100")).intValue();
     userId = getParam("userId",  null);
     password = getParam("password",  null);
+    configure = new Configure();
+    System.out.println("build info: " + configure.buildInfo);
+    
 
     setBackground(Color.black);
+    setForeground(Color.white);
 
     status = new Status(this);
     status.setVisible(true);
