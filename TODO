@@ -1,9 +1,13 @@
 TODO for cortado
 
-- Fix OutOfMemError by not caching decoded frames but by decoding at the last moment.
-- Make java2 audio backend
 - possibly use java2 image functions
 - make applet smaller/faster
 - solve warnings on console
+
+- only start buffering after the preroll is done.
+- network speed
+- disable sound option
+
+
 
 wim
