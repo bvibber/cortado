@@ -43,10 +43,14 @@ public class Cortado extends Applet implements ImageTarget,
   private int bufferSize;
   private String userId;
   private String password;
+  private boolean usePrebuffer;
+  private PreBuffer preBuffer;
+  private int bufferLow;
+  private int bufferHigh;
 
-  private double aspect = 0.;
+  private double aspect;
 
-  private Image image = null;
+  private Image image;
   private Thread videoThread;
   private Thread audioThread;
   private Thread mainThread;
@@ -54,11 +58,6 @@ public class Cortado extends Applet implements ImageTarget,
   private VideoConsumer videoConsumer;
   private AudioConsumer audioConsumer;
   private Demuxer demuxer;
-
-  private boolean usePrebuffer;
-  private PreBuffer preBuffer;
-  private int bufferLow;
-  private int bufferHigh;
 
   private InputStream is;
   private Clock clock;
@@ -96,20 +95,27 @@ public class Cortado extends Applet implements ImageTarget,
     params.put(name, value);
   }
 
+  public void restart() {
+    stop();
+    init();
+    start();
+  }
+
   public String getParam(String name, String def)
   {
-    String result = null;
-    try {
-      result = getParameter(name);
-    }
-    catch (Exception e) { 
-    }
+    String result;
+
+    result = (String) params.get(name);
 
     if (result == null) {
-      result = (String) params.get(name);
-      if (result == null) {
-        result = def;
+      try {
+        result = getParameter(name);
       }
+      catch (Exception e) { 
+      }
+    }
+    if (result == null) {
+      result = def;
     }
     return result;
   }
@@ -122,6 +128,12 @@ public class Cortado extends Applet implements ImageTarget,
   
   public void init() {
     cortado = this;
+
+    image = null;
+    aspect = 0.0;
+    is = null;
+    clock = null;
+    preBuffer = null;
 
     urlString = getParam("url", null);
     local = String.valueOf(getParam("local", "false")).equals("true");
@@ -146,7 +158,6 @@ public class Cortado extends Applet implements ImageTarget,
 
     status = new Status(this);
     status.setVisible(true);
-    status.setHavePercent (usePrebuffer);
     status.setHaveAudio (audio);
 
     menu = new PopupMenu();
@@ -322,135 +333,141 @@ public class Cortado extends Applet implements ImageTarget,
     Plugin plugin = null;
 
     status.setMessage("Opening "+urlString+"...");
-try {
     try {
-      if (local) {
-        System.out.println("reading from file "+urlString);
-        is = new FileInputStream (urlString);
+      try {
+        if (local) {
+          System.out.println("reading from file "+urlString);
+          is = new FileInputStream (urlString);
+        }
+        else {
+          System.out.println("reading from url "+urlString);
+          URL url = new URL(urlString);
+          System.out.println("trying to open "+url);
+  	  URLConnection uc = url.openConnection();
+	  if (userId != null && password != null) {
+	    String userPassword = userId + ":" + password;
+	    String encoding = Base64Converter.encode (userPassword.getBytes());
+	    uc.setRequestProperty ("Authorization", "Basic " + encoding);
+	  }
+	  String mime = uc.getContentType();
+	  int extraPos = mime.indexOf(';');
+          if (extraPos != -1) {
+	    mime = mime.substring(0, extraPos);
+  	  }
+	  System.out.println ("got stream mime: "+mime);
+	  plugin = Plugin.makeByMime(mime);
+	  if (plugin == null) {
+            status.setMessage("Unknown stream "+urlString+"...");
+            return;
+  	  }
+          is = uc.getInputStream();
+          System.out.println("opened "+url);
+        }
+      }
+      catch (SecurityException e) {
+        e.printStackTrace();
+        status.setMessage("Not allowed "+urlString+"...");
+        return;
+      }
+      catch (Exception e) {
+        e.printStackTrace();
+        status.setMessage("Failed opening "+urlString+"...");
+        return;
+      }
+      status.setMessage("Loading media...");
+
+      clock = new Clock();
+      QueueManager.reset();
+      addMouseMotionListener(this);
+      addMouseListener(this);
+
+      if (video) {
+        videoConsumer = new VideoConsumer(clock, this, framerate);
+        videoThread = new Thread(videoConsumer);
+      }
+      if (audio) {
+        audioConsumer = new AudioConsumer(clock);
+        audioThread = new Thread(audioConsumer);
+      }
+
+      if (plugin == null) {
+        plugin = Plugin.makeByMime("application/ogg");
+      }
+
+      InputStream dis;
+      if (usePrebuffer) {
+        preBuffer = new PreBuffer (is, 1024 * bufferSize, bufferLow, bufferHigh, this);
+        dis = preBuffer;
       }
       else {
-        System.out.println("reading from url "+urlString);
-        URL url = new URL(urlString);
-        System.out.println("trying to open "+url);
-	URLConnection uc = url.openConnection();
-	if (userId != null && password != null) {
-	  String userPassword = userId + ":" + password;
-	  String encoding = Base64Converter.encode (userPassword.getBytes());
-	  uc.setRequestProperty ("Authorization", "Basic " + encoding);
-	}
-	String mime = uc.getContentType();
-	int extraPos = mime.indexOf(';');
-        if (extraPos != -1) {
-	  mime = mime.substring(0, extraPos);
-	}
-	System.out.println ("got stream mime: "+mime);
-	plugin = Plugin.makeByMime(mime);
-	if (plugin == null) {
-          status.setMessage("Unknown stream "+urlString+"...");
-          return;
-	}
-        is = uc.getInputStream();
-        System.out.println("opened "+url);
+        dis = is;
       }
-    }
-    catch (Exception e) {
-      e.printStackTrace();
-      status.setMessage("Failed opening "+urlString+"...");
-      return;
-    }
-    status.setMessage("Loading media...");
+      demuxer = new Demuxer(dis, plugin, this, audioConsumer, videoConsumer);
+      mainThread = new Thread(demuxer);
 
-    clock = new Clock();
-    QueueManager.reset();
-    addMouseMotionListener(this);
-    addMouseListener(this);
+      statusThread = new Thread(this);
+      statusThread.start();
 
-    if (video) {
-      videoConsumer = new VideoConsumer(clock, this, framerate);
-      videoThread = new Thread(videoConsumer);
-    }
-    if (audio) {
-      audioConsumer = new AudioConsumer(clock);
-      audioThread = new Thread(audioConsumer);
-    }
-
-    if (plugin == null) {
-      plugin = Plugin.makeByMime("application/ogg");
-    }
-
-    InputStream dis;
-    if (usePrebuffer) {
-      preBuffer = new PreBuffer (is, 1024 * bufferSize, bufferLow, bufferHigh, this);
-      dis = preBuffer;
-    }
-    else {
-      dis = is;
-    }
-    demuxer = new Demuxer(dis, plugin, this, audioConsumer, videoConsumer);
-    mainThread = new Thread(demuxer);
-
-    statusThread = new Thread(this);
-    statusThread.start();
-
-    if (audio) {
-      audioThread.start();
-    }
-    if (video) {
-      videoThread.start();
-    }
-
-    try {
-      synchronized (Thread.currentThread()) {
-        mainThread.start();
+      if (audio) {
+        audioThread.start();
+      }
+      if (video) {
+        videoThread.start();
       }
 
-      synchronized (clock) {
-        boolean ready;
+      try {
+        synchronized (Thread.currentThread()) {
+          mainThread.start();
+        }
 
-        havePreroll = false;
-        System.out.println("waiting for preroll...");
-        do {
-	  ready = true;
-	  if (video) {
-	    ready &= videoConsumer.isReady();
-	  }
-	  if (audio) {
-	    ready &= audioConsumer.isReady();
-	  }
-	  if (!ready) {
-	    synchronized (this) {
-              clock.wait(100);	
+        synchronized (clock) {
+          boolean ready;
+
+          havePreroll = false;
+          System.out.println("waiting for preroll...");
+          do {
+	    ready = true;
+	    if (video) {
+	      ready &= videoConsumer.isReady();
+	    }
+	    if (audio) {
+	      ready &= audioConsumer.isReady();
+	    }
+	    if (!ready) {
+	      synchronized (this) {
+                clock.wait(100);	
+	      }
+	    }
+          } while (!ready);
+        }
+        havePreroll = true;
+        if (preBuffer != null) {
+          synchronized (preBuffer) {
+            System.out.println("consumers ready");
+  	    System.out.println("preroll done, starting...");
+            status.setHavePercent (usePrebuffer);
+	    preBuffer.startBuffer();
+	    if (preBuffer.isFilled()) {
+	      clock.play();
+	    }
+	    else {
+	      System.out.println("not buffered, not starting yet "+preBuffer.getFilled());
 	    }
 	  }
-        } while (!ready);
-      }
-      havePreroll = true;
-      if (preBuffer != null) {
-        synchronized (preBuffer) {
+        }
+        else {
           System.out.println("consumers ready");
   	  System.out.println("preroll done, starting...");
-	  preBuffer.startBuffer();
-	  if (preBuffer.isFilled()) {
-	    clock.play();
-	  }
-	  else {
-	    System.out.println("not buffered, not starting yet "+preBuffer.getFilled());
-	  }
-	}
+	  status.setVisible(false);
+	  status.setMessage("Playing...");
+  	  clock.play();
+        }
       }
-      else {
-        System.out.println("consumers ready");
-  	System.out.println("preroll done, starting...");
-	status.setVisible(false);
-	status.setMessage("Playing...");
-	clock.play();
+      catch (Exception e) {
+        e.printStackTrace();
       }
     }
-    catch (Exception e) {
-      e.printStackTrace();
-    }
-}
-catch (Throwable e) {
+    catch (Throwable e) {
       e.printStackTrace();
       status.setMessage("Failed opening "+urlString+"...");
       stop();
@@ -474,14 +491,17 @@ catch (Throwable e) {
     try {
       if (video)
         videoThread.interrupt();
+    } catch (Exception e) { }
+    try {
       if (audio)
         audioThread.interrupt();
+    } catch (Exception e) { }
+    try {
       mainThread.interrupt();
+    } catch (Exception e) { }
+    try {
       statusThread.interrupt();
-    }
-    catch (Exception e) {
-      e.printStackTrace();
-    }
+    } catch (Exception e) { }
     try {
       is.close();
       if (video)
