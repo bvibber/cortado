@@ -107,6 +107,7 @@ public class AudioConsumer implements Runnable, DataConsumer, ClockProvider
           clock.updateAdjust(adjust);
         }
       }
+      /*
       System.out.println("sync: clock="+clockTime+
                            " sampleTime="+sampleTime+
                            " diff="+diff+
@@ -114,6 +115,7 @@ public class AudioConsumer implements Runnable, DataConsumer, ClockProvider
                            " samplediff="+(sampleCount-line.getFramePosition())+
                            " adjust="+clock.getAdjust()+
 			   " line="+line.getFramePosition());
+			   */
 
       nextSampleCount = sampleCount + plugin.rate;
     }

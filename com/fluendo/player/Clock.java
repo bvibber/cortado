@@ -34,7 +34,7 @@ public class Clock {
     if (!paused) {
       paused = true;
       lastMedia = getMediaTime() - adjust;
-      System.out.println("pause "+lastMedia);
+      //System.out.println("pause "+lastMedia);
       notifyAll();
     }
   }
@@ -58,7 +58,7 @@ public class Clock {
       gap = media - lastMedia;
     
       paused = false;
-      System.out.println("play "+startTime+" "+now+" "+gap+" "+lastMedia+" "+media);
+      //System.out.println("play "+startTime+" "+now+" "+gap+" "+lastMedia+" "+media);
       startTime += gap;  
       notifyAll();
     }
@@ -73,13 +73,13 @@ public class Clock {
   }
 
   public synchronized void updateAdjust(long newAdjust) {
-    System.out.println("clock update adjust "+newAdjust);
+    //System.out.println("clock update adjust "+newAdjust);
     adjust += newAdjust;
     notifyAll();
   }
 
   public synchronized void setAdjust(long newAdjust) {
-    System.out.println("clock set adjust "+newAdjust);
+    //System.out.println("clock set adjust "+newAdjust);
     adjust = newAdjust;
     notifyAll();
   }

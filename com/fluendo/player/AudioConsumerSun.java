@@ -196,7 +196,7 @@ public class AudioConsumerSun implements Runnable, DataConsumer, ClockProvider
       return res;
     }
     public synchronized int read(byte[] bytes) throws IOException {
-      System.out.println("******** read "+bytes.length);  
+      //System.out.println("******** read "+bytes.length);  
       if (started)
         checkClockAdjust();
       int read = super.read(bytes);
@@ -204,7 +204,7 @@ public class AudioConsumerSun implements Runnable, DataConsumer, ClockProvider
       return read;
     }
     public synchronized int read(byte[] bytes, int offset, int len) throws IOException {
-      System.out.println("******** read "+offset+" "+len);  
+      //System.out.println("******** read "+offset+" "+len);  
       if (started)
         checkClockAdjust();
       int read = super.read(bytes, offset, len);
@@ -220,9 +220,7 @@ public class AudioConsumerSun implements Runnable, DataConsumer, ClockProvider
 
       while (free < samples) {
         try {
-	  System.out.println("free "+free);
           wait();
-	  System.out.println("free now "+free);
 	}
 	catch (Exception e) {}
       }
@@ -329,6 +327,7 @@ public class AudioConsumerSun implements Runnable, DataConsumer, ClockProvider
         clock.updateAdjust(adjust);
       }
     }
+    /*
     System.out.println("sync: clock="+clockTime+
                            " sampleTime="+sampleTime+
                            " diff="+diff+
@@ -336,6 +335,7 @@ public class AudioConsumerSun implements Runnable, DataConsumer, ClockProvider
                            " samplediff="+(sampleCount-audioBuffer.getFramePosition())+
                            " adjust="+clock.getAdjust()+
 			   " line="+audioBuffer.getFramePosition());
+			   */
   }
 
   private void handlePrequeue (MediaBuffer buf) 
