@@ -194,7 +194,10 @@ public class AudioConsumer implements Runnable, DataConsumer
 
   public void stop() {
     stopping = true;
+    System.out.println("stopping audio device");
+    QueueManager.unRegisterQueue(queueid);
     AudioPlayer.player.stop(as);
+    as = null;
   }
 
   public void run() {

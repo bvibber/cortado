@@ -35,6 +35,16 @@ public class QueueManager {
     numqueues++;
     return freequeue;
   }
+
+  public static void unRegisterQueue(int id) {
+    Object sync = syncs[id];
+    queues[id] = null;
+    syncs[id] = null;
+    synchronized (sync) {
+      sync.notify();
+    }
+  }
+
   public static void reset() {
     numqueues = 0;
   }
@@ -90,6 +100,9 @@ public class QueueManager {
     Object sync = syncs[id];
     Vector queue = queues[id];
     Object result = null;
+    if (sync == null)
+      return null;
+
     //System.out.println("sync "+sync+" queue "+queue);
     try {
       synchronized (sync) {
@@ -99,6 +112,8 @@ public class QueueManager {
 	  //System.out.println("others adjusted");
           sync.wait();
 	  //System.out.println("queue "+id+" empty done");
+	  if (syncs[id] == null)
+	    return null;
         }
         result = queue.elementAt(0);
         queue.removeElementAt(0);
