@@ -7,7 +7,7 @@ package com.fluendo.player;
 
 class Configure
 {
-  public String buildInfo = "I was built on $DATE.\n$*";
+  public String buildInfo = "I was built on $DATE. $*";
 
   public Configure() {
   }
