@@ -41,6 +41,7 @@ public class Cortado extends Applet implements ImageTarget, PreBufferNotify, Run
   private Thread videoThread;
   private Thread audioThread;
   private Thread mainThread;
+  private Thread statusThread;
   private VideoConsumer videoConsumer;
   private AudioConsumer audioConsumer;
   private Demuxer demuxer;
@@ -54,6 +55,8 @@ public class Cortado extends Applet implements ImageTarget, PreBufferNotify, Run
   private Clock clock;
   private boolean havePreroll;
   private Status status;
+  private PopupMenu menu;
+  private boolean stopping;
 
   /* Prebuffer in K */
   private int bufferSize = 200;
@@ -83,6 +86,10 @@ public class Cortado extends Applet implements ImageTarget, PreBufferNotify, Run
 
     status = new Status(this);
     status.setVisible(true);
+
+    menu = new PopupMenu();
+    menu.add("About...");
+    this.add (menu);
   }
 
   public void setUrl (String url) {
@@ -100,7 +107,8 @@ public class Cortado extends Applet implements ImageTarget, PreBufferNotify, Run
   }
 
   public void run() {
-    while (true) {
+    System.out.println("entering status thread");
+    while (!stopping) {
       try {
         int percent = (preBuffer.getFilled() * 100) /
 	           (1024 * bufferSize);
@@ -111,9 +119,11 @@ public class Cortado extends Applet implements ImageTarget, PreBufferNotify, Run
         Thread.currentThread().sleep(500);
       }
       catch (Exception e) {
-        e.printStackTrace();
+        if (!stopping)
+          e.printStackTrace();
       }
     }
+    System.out.println("exit status thread");
   }
 
   public void paint(Graphics g) {
@@ -216,8 +226,15 @@ public class Cortado extends Applet implements ImageTarget, PreBufferNotify, Run
   {
     status.setVisible(false);
   }
-  public void mousePressed(MouseEvent e) {}
-  public void mouseReleased(MouseEvent e) {}
+  public void mousePressed(MouseEvent e) 
+  {
+    if (e.getButton() == MouseEvent.BUTTON3) {
+      menu.show(this, e.getX(), e.getY());
+    }
+  }
+  public void mouseReleased(MouseEvent e) 
+  {
+  }
 
   public void mouseDragged(MouseEvent e){}
   public void mouseMoved(MouseEvent e)
@@ -234,6 +251,7 @@ public class Cortado extends Applet implements ImageTarget, PreBufferNotify, Run
 
   public void start() 
   {
+    stopping = false;
     Plugin plugin = null;
 
     status.setMessage("Opening "+urlString+"...");
@@ -262,6 +280,11 @@ public class Cortado extends Applet implements ImageTarget, PreBufferNotify, Run
 	}
 	System.out.println ("got stream mime: "+mime);
 	plugin = Plugin.makeByMime(mime);
+	if (plugin == null) {
+          status.setMessage("Unknown stream "+urlString+"...");
+          repaint();
+          return;
+	}
         is = uc.getInputStream();
         System.out.println("opened "+url);
       }
@@ -280,17 +303,14 @@ public class Cortado extends Applet implements ImageTarget, PreBufferNotify, Run
     addMouseListener(this);
 
     if (video) {
-      System.out.println("creating video consumer");
       videoConsumer = new VideoConsumer(clock, this, framerate);
       videoThread = new Thread(videoConsumer);
     }
     if (audio) {
-      System.out.println("creating audio consumer");
       audioConsumer = new AudioConsumer(clock);
       audioThread = new Thread(audioConsumer);
     }
 
-    System.out.println("creating main thread");
     preBuffer = new PreBuffer (is, 1024 * bufferSize, this);
     if (plugin == null) {
       plugin = Plugin.makeByMime("application/ogg");
@@ -298,22 +318,19 @@ public class Cortado extends Applet implements ImageTarget, PreBufferNotify, Run
     demuxer = new Demuxer(preBuffer, plugin, this, audioConsumer, videoConsumer);
     mainThread = new Thread(demuxer);
 
-    new Thread(this).start();
+    statusThread = new Thread(this);
+    statusThread.start();
 
     if (audio) {
-      System.out.println("starting audio thread");
       audioThread.start();
     }
     if (video) {
-      System.out.println("starting video thread");
       videoThread.start();
     }
 
     try {
       synchronized (Thread.currentThread()) {
-        System.out.println("starting main thread");
         mainThread.start();
-        System.out.println("started main thread");
       }
 
       synchronized (clock) {
@@ -357,7 +374,8 @@ public class Cortado extends Applet implements ImageTarget, PreBufferNotify, Run
   public void stop() {
     demuxer.stop();
     try {
-      is.close();
+      stopping = true;
+      preBuffer.stop();
       if (video)
         videoConsumer.stop();
       if (audio)
@@ -371,16 +389,20 @@ public class Cortado extends Applet implements ImageTarget, PreBufferNotify, Run
         videoThread.interrupt();
       if (audio)
         audioThread.interrupt();
+      mainThread.interrupt();
+      statusThread.interrupt();
     }
     catch (Exception e) {
       e.printStackTrace();
     }
     try {
+      is.close();
       if (video)
         videoThread.join();
       if (audio)
         audioThread.join();
       mainThread.join();
+      statusThread.join();
     }
     catch (Exception e) {
       e.printStackTrace();

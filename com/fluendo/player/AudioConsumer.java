@@ -70,9 +70,15 @@ public class AudioConsumer implements Runnable, DataConsumer
         return -1;
 
       if (current == null) {
-        current = (byte[]) QueueManager.dequeue(queueid);
+        try {
+          current = (byte[]) QueueManager.dequeue(queueid);
+	}
+	catch (InterruptedException ie) {
+	  current = null;
+	}
 	if (current == null)
 	  return -1;
+
 	pos = 0;
       }
       res = current[pos];
@@ -164,6 +170,7 @@ public class AudioConsumer implements Runnable, DataConsumer
       as = new AudioStream(new MyIS());
       start = System.currentTimeMillis();
       AudioPlayer.player.start(as);
+      System.out.println("exit audio thread");
     }
     catch (Exception e) {
       e.printStackTrace();
@@ -180,7 +187,11 @@ public class AudioConsumer implements Runnable, DataConsumer
      
     byte[] bytes = plugin.decodeAudio (data, offset, len);
     if (bytes != null) {
-      QueueManager.enqueue(queueid, bytes);
+      try {
+        QueueManager.enqueue(queueid, bytes);
+      }
+      catch (InterruptedException ie) {
+      }
     }
   }
 }

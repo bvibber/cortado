@@ -65,7 +65,10 @@ public class VideoConsumer implements DataConsumer, Runnable
       System.arraycopy (data, offset, imgData, 0, length);
       QueueManager.enqueue(queueid, imgData);
     }
-    catch (Exception e) { e.printStackTrace();}
+    catch (Exception e) { 
+      if (!stopping)
+        e.printStackTrace();
+    }
   }
 
   public void stop() {
@@ -77,7 +80,15 @@ public class VideoConsumer implements DataConsumer, Runnable
     System.out.println("entering video thread");
     while (!stopping) {
       //System.out.println("dequeue image");
-      byte[] imgData = (byte[]) QueueManager.dequeue(queueid);
+      byte[] imgData = null;
+      try {
+        imgData = (byte[]) QueueManager.dequeue(queueid);
+      }
+      catch (InterruptedException ie) {
+        if (!stopping)
+	  ie.printStackTrace();
+	continue;
+      }
       //System.out.println("dequeued image");
 
       Image image = plugin.decodeVideo (imgData, 0, imgData.length);
@@ -111,12 +122,14 @@ public class VideoConsumer implements DataConsumer, Runnable
 	}
       }
       catch (Exception e) {
-        e.printStackTrace();
+        if (!stopping)
+          e.printStackTrace();
       }
       if (image != null) {
         target.setImage(image, framerate, aspect);
         framenr++;
       }
     }
+    System.out.println("exit video thread");
   }
 }

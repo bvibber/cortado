@@ -77,26 +77,21 @@ public class QueueManager {
       }
     }
   }
-  public static void enqueue(int id, Object object) {
+  public static void enqueue(int id, Object object) throws InterruptedException {
     Object sync = syncs[id];
     Vector queue = queues[id];
-    try {
-      synchronized (sync) {
-        while (queue.size() > sizes[id]) {
-	  //System.out.println("queue "+id+" filled");
-          sync.wait();
-	  //System.out.println("queue "+id+" filled done");
-        }
-        queue.addElement(object);
-        sync.notify();
+    synchronized (sync) {
+      while (queue.size() > sizes[id]) {
+	//System.out.println("queue "+id+" filled");
+        sync.wait();
+	//System.out.println("queue "+id+" filled done");
       }
-    }
-    catch (Exception e) {
-      e.printStackTrace();
+      queue.addElement(object);
+      sync.notify();
     }
   }
 
-  public static Object dequeue(int id) {
+  public static Object dequeue(int id) throws InterruptedException {
     Object sync = syncs[id];
     Vector queue = queues[id];
     Object result = null;
@@ -104,25 +99,20 @@ public class QueueManager {
       return null;
 
     //System.out.println("sync "+sync+" queue "+queue);
-    try {
-      synchronized (sync) {
-        while (queue.size() == 0) {
-	  //System.out.println("queue "+id+" empty");
-	  //adjustOthers(id, 1);
-	  //System.out.println("others adjusted");
-          sync.wait();
-	  //System.out.println("queue "+id+" empty done");
-	  if (syncs[id] == null)
-	    return null;
-        }
-        result = queue.elementAt(0);
-        queue.removeElementAt(0);
-	//adjustThis(id, -1);
-        sync.notify();
+    synchronized (sync) {
+      while (queue.size() == 0) {
+	//System.out.println("queue "+id+" empty");
+	//adjustOthers(id, 1);
+	//System.out.println("others adjusted");
+        sync.wait();
+	//System.out.println("queue "+id+" empty done");
+	if (syncs[id] == null)
+	  return null;
       }
-    }
-    catch (Throwable e) {
-      e.printStackTrace();
+      result = queue.elementAt(0);
+      queue.removeElementAt(0);
+      //adjustThis(id, -1);
+      sync.notify();
     }
     return result;
   }

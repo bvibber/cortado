@@ -92,12 +92,9 @@ public class Clock {
         break;
 
       synchronized (this) {
-        try {
-          //System.out.print("waiting now="+now+" time="+time+" interval="+interval+"...");
-          wait (interval);
-          //System.out.println("done");
-	}
-	catch (Exception e) { e.printStackTrace();}
+        //System.out.print("waiting now="+now+" time="+time+" interval="+interval+"...");
+        wait (interval);
+        //System.out.println("done");
       }
     }
   }

@@ -47,7 +47,19 @@ public class PreBuffer extends InputStream implements Runnable {
     thread.start();
   }
 
+  public void stop() {
+    stopping = true;
+    thread.interrupt();
+    try {
+      thread.join();
+    }
+    catch (Exception e) {
+      e.printStackTrace();
+    }
+  }
+
   public void run() {
+    System.out.println("entering preroll thread");
     while (!stopping) {
       try {
         int b = inputStream.read();
@@ -55,8 +67,10 @@ public class PreBuffer extends InputStream implements Runnable {
       }
       catch (Exception e) {
         e.printStackTrace();
+	stopping = true;
       }
     }
+    System.out.println("exit preroll thread");
   }
 
   public synchronized boolean isEmpty() {
@@ -85,8 +99,12 @@ public class PreBuffer extends InputStream implements Runnable {
 	wait (1000);
       }
       catch (InterruptedException ie) {
+        if (stopping)
+          return;
         ie.printStackTrace();
       }
+      if (stopping)
+        return;
     }
     if (in < 0) {
       in = 0;
@@ -117,8 +135,12 @@ public class PreBuffer extends InputStream implements Runnable {
 	wait (1000);
       }
       catch (InterruptedException ie) {
+        if (stopping)
+          return -1;
         ie.printStackTrace();
       }
+      if (stopping)
+        return -1;
     }
     int ret = buffer[out++] & 0xff;
     if (out >= buffer.length) {

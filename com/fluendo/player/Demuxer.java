@@ -43,20 +43,20 @@ public class Demuxer implements Runnable
   }
 
   public void run() {
-    System.out.println("started demuxer");
-
+    System.out.println("entering demuxer thread");
     try {
       while (!stopping) {
         stopping = plugin.demux();
       }
     }
     catch (Exception e) {
-      e.printStackTrace();
+      if (!stopping)
+        e.printStackTrace();
       stopping = true;
     }
-    
-    System.out.println("demuxer done");
+    System.out.println("exit demuxer thread");
   }
+
   public void stop() {
     plugin.stop();
     stopping = true;

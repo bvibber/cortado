@@ -80,8 +80,6 @@ public class OggPlugin extends Plugin
     streams = new Vector();
     stopping = false;
 
-    System.out.println("started ogg reader");
-
     og = new Page();
     op = new Packet();
   }
@@ -135,7 +133,7 @@ public class OggPlugin extends Plugin
           if(res == -1) { 
 	    // missing or corrupt data at this page position
             // no reason to complain; already complained above
-	    System.out.println("packetout "+res);
+	    System.out.println("ogg error: packetout gave "+res);
           }
           else {
             // we have a packet.  Decode it
