@@ -152,12 +152,12 @@ public class PreBuffer extends InputStream implements Runnable {
       }
     }
     if (readerBlocked)
-      notifyAll();
+      notify();
   }
 
   public synchronized int read() {
     /* buffer empty */
-    while (state == PreBufferNotify.STATE_BUFFER || in < 0) {
+    while ((state == PreBufferNotify.STATE_BUFFER  && in != out)|| in < 0) {
       if (eos)
         return -1;
 
@@ -181,7 +181,7 @@ public class PreBuffer extends InputStream implements Runnable {
     }
     if (in == out) {
       in = -1;
-      filled = -1;
+      filled = 0;
     }
     else {
       filled--;
@@ -194,7 +194,7 @@ public class PreBuffer extends InputStream implements Runnable {
       }
     }
     if (writerBlocked)
-      notifyAll();
+      notify();
 
     return ret;
   }

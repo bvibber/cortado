@@ -55,8 +55,8 @@ public class Cortado extends Applet implements ImageTarget,
   private Thread audioThread;
   private Thread mainThread;
   private Thread statusThread;
-  private VideoConsumer videoConsumer;
-  private AudioConsumer audioConsumer;
+  private DataConsumer videoConsumer;
+  private DataConsumer audioConsumer;
   private Demuxer demuxer;
 
   private InputStream is;
@@ -386,7 +386,15 @@ public class Cortado extends Applet implements ImageTarget,
         videoThread = new Thread(videoConsumer);
       }
       if (audio) {
-        audioConsumer = new AudioConsumer(clock);
+        try {
+	  Class.forName("javax.sound.sampled.AudioSystem");
+	  System.out.println("using high quality javax.sound.* as audio backend");
+          audioConsumer = new AudioConsumer(clock);
+	}
+	catch (ClassNotFoundException e) {
+	  System.out.println("using low quality sun.audio.* as audio backend");
+          audioConsumer = new AudioConsumerSun(clock);
+	}
         audioThread = new Thread(audioConsumer);
 	//clock.setProvider(audioConsumer);
       }

@@ -157,8 +157,9 @@ public class VorbisPlugin extends Plugin
 	     else if (val < -32768)
 	       val = -32768;
 
-             result.data[k++] = (byte) (val >> 8);
-             result.data[k++] = (byte) (val % 256);
+             result.data[k] = (byte) ((val >> 8) & 0xff);
+             result.data[k+1] = (byte) (val & 0xff);
+	     k+=2;
 	  }
         }
         //System.out.println ("decoded "+samples+" samples");

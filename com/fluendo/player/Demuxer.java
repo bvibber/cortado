@@ -32,7 +32,7 @@ public class Demuxer implements Runnable
 
   private boolean stopping;
 
-  public Demuxer (InputStream is, Plugin pl, Component comp, AudioConsumer ac, VideoConsumer vc) {
+  public Demuxer (InputStream is, Plugin pl, Component comp, DataConsumer ac, DataConsumer vc) {
     inputStream = is;
     audioConsumer = ac;
     videoConsumer = vc;

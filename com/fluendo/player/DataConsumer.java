@@ -20,9 +20,11 @@ package com.fluendo.player;
 
 import com.fluendo.plugin.*;
 
-public interface DataConsumer
+public interface DataConsumer extends Runnable
 {
   public void setPlugin (Plugin plugin);
   public void consume(MediaBuffer buffer);
   public long getQueuedTime();
+  public boolean isReady();
+  public void stop();
 }
