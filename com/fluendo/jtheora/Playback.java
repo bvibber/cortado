@@ -43,7 +43,6 @@ public class Playback
   int           PostProcessingLevel;    /* Perform post processing */
 
   /* Frame Info */
-  CodingMode   	codingMode;
   byte 		FrameType;
   byte 		KeyFrameType;
   int           QualitySetting;

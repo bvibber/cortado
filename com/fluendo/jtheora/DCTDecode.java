@@ -148,13 +148,14 @@ public class DCTDecode
     int    MvModMask;          /* Mask to determine whether 1/2
                                         pixel is used */
     short[] dequant_coeffs;
+    CodingMode codingMode;
 
     /* Get coding mode for this block */
     if (pbi.getFrameType() == Constants.BASE_FRAME ){
-      pbi.codingMode = CodingMode.CODE_INTRA;
+      codingMode = CodingMode.CODE_INTRA;
     }else{
       /* Get Motion vector and mode for this block. */
-      pbi.codingMode = pbi.FragCodingMethod[FragmentNumber];
+      codingMode = pbi.FragCodingMethod[FragmentNumber];
     }
 
     /* Select the appropriate inverse Q matrix and line stride */
@@ -164,7 +165,7 @@ public class DCTDecode
       MvModMask = 0x00000001;
 
       /* Select appropriate dequantiser matrix. */
-      if ( pbi.codingMode == CodingMode.CODE_INTRA )
+      if ( codingMode == CodingMode.CODE_INTRA )
         dequant_coeffs = pbi.dequant_Y_coeffs;
       else
         dequant_coeffs = pbi.dequant_Inter_coeffs;
@@ -174,7 +175,7 @@ public class DCTDecode
       MvModMask = 0x00000003;
 
       /* Select appropriate dequantiser matrix. */
-      if ( pbi.codingMode == CodingMode.CODE_INTRA )
+      if ( codingMode == CodingMode.CODE_INTRA )
         dequant_coeffs = pbi.dequant_UV_coeffs;
       else
         dequant_coeffs = pbi.dequant_Inter_coeffs;
@@ -206,7 +207,7 @@ public class DCTDecode
     ReconPixelIndex = pbi.recon_pixel_index_table[FragmentNumber];
 
     /* Action depends on decode mode. */
-    if ( pbi.codingMode == CodingMode.CODE_INTER_NO_MV ){
+    if ( codingMode == CodingMode.CODE_INTER_NO_MV ){
       /* Inter with no motion vector */
       /* Reconstruct the pixel data using the last frame reconstruction
          and change data when the motion vector is (0,0), the recon is
@@ -215,7 +216,7 @@ public class DCTDecode
                 pbi.LastFrameRecon, ReconPixelIndex,
                 ReconDataBuffer, ReconPixelsPerLine );
 
-    }else if (ModeUsesMC[pbi.codingMode.getValue()] != 0) {
+    }else if (ModeUsesMC[codingMode.getValue()] != 0) {
       /* The mode uses a motion vector. */
       /* Get vector from list */
       int dir;
@@ -252,7 +253,7 @@ public class DCTDecode
       int LastFrameRecOffset = ReconPixelIndex + MVOffset;
 
       /* Set up the first of the two reconstruction buffer pointers. */
-      if ( pbi.codingMode==CodingMode.CODE_GOLDEN_MV ) {
+      if ( codingMode==CodingMode.CODE_GOLDEN_MV ) {
         LastFrameRecPtr = pbi.GoldenFrame;
       }else{
         LastFrameRecPtr = pbi.LastFrameRecon;
@@ -281,7 +282,7 @@ public class DCTDecode
 			    LastFrameRecPtr, LastFrameRecOffset+ReconPtr2Offset,
                             ReconDataBuffer, ReconPixelsPerLine );
       }
-    } else if ( pbi.codingMode == CodingMode.CODE_USING_GOLDEN ){
+    } else if ( codingMode == CodingMode.CODE_USING_GOLDEN ){
       /* Golden frame with motion vector */
       /* Reconstruct the pixel data using the golden frame
          reconstruction and change data */
@@ -584,46 +585,32 @@ public class DCTDecode
         Token = Token - Huffman.LOW_VAL_TOKENS;
   
         /* Extra bit determines sign */
-        if ( ExtraBits != 0)
-          ExpandedBlock[CoeffIndex[FragIndex]] = (short)-(Token + Huffman.DCT_VAL_CAT2_MIN);
-        else
-          ExpandedBlock[CoeffIndex[FragIndex]] = (short) (Token + Huffman.DCT_VAL_CAT2_MIN);
+        ExpandedBlock[CoeffIndex[FragIndex]] = (short) ((Token + Huffman.DCT_VAL_CAT2_MIN) * 
+	   	               -(((ExtraBits)<<1)-1));
       } else if ( Token == Huffman.DCT_VAL_CATEGORY3 ) {
         /* Bit 1 determines sign, Bit 0 the value */
-        if ((ExtraBits & 0x02) != 0 )
-          ExpandedBlock[CoeffIndex[FragIndex]] = (short) -(Huffman.DCT_VAL_CAT3_MIN + (ExtraBits & 0x01));
-        else
-          ExpandedBlock[CoeffIndex[FragIndex]] = (short) (Huffman.DCT_VAL_CAT3_MIN + (ExtraBits & 0x01));
+        ExpandedBlock[CoeffIndex[FragIndex]] = (short) ((Huffman.DCT_VAL_CAT3_MIN + (ExtraBits & 0x01)) *
+	                       -(((ExtraBits&0x02))-1));
       } else if ( Token == Huffman.DCT_VAL_CATEGORY4 ) {
         /* Bit 2 determines sign, Bit 0-1 the value */
-        if ((ExtraBits & 0x04) != 0 )
-          ExpandedBlock[CoeffIndex[FragIndex]] = (short) -(Huffman.DCT_VAL_CAT4_MIN + (ExtraBits & 0x03));
-        else
-          ExpandedBlock[CoeffIndex[FragIndex]] = (short) (Huffman.DCT_VAL_CAT4_MIN + (ExtraBits & 0x03));
+        ExpandedBlock[CoeffIndex[FragIndex]] = (short) ((Huffman.DCT_VAL_CAT4_MIN + (ExtraBits & 0x03)) *
+	                       -(((ExtraBits&0x04)>>1)-1));
       } else if ( Token == Huffman.DCT_VAL_CATEGORY5 ) {
         /* Bit 3 determines sign, Bit 0-2 the value */
-        if ((ExtraBits & 0x08) != 0 )
-          ExpandedBlock[CoeffIndex[FragIndex]] = (short) -(Huffman.DCT_VAL_CAT5_MIN + (ExtraBits & 0x07));
-        else
-          ExpandedBlock[CoeffIndex[FragIndex]] = (short) (Huffman.DCT_VAL_CAT5_MIN + (ExtraBits & 0x07));
+        ExpandedBlock[CoeffIndex[FragIndex]] = (short) ((Huffman.DCT_VAL_CAT5_MIN + (ExtraBits & 0x07)) *
+	                       -(((ExtraBits&0x08)>>2)-1));
       } else if ( Token == Huffman.DCT_VAL_CATEGORY6 ) {
         /* Bit 4 determines sign, Bit 0-3 the value */
-        if ((ExtraBits & 0x10) != 0 )
-          ExpandedBlock[CoeffIndex[FragIndex]] = (short) -(Huffman.DCT_VAL_CAT6_MIN + (ExtraBits & 0x0F));
-        else
-          ExpandedBlock[CoeffIndex[FragIndex]] = (short) (Huffman.DCT_VAL_CAT6_MIN + (ExtraBits & 0x0F));
+        ExpandedBlock[CoeffIndex[FragIndex]] = (short) ((Huffman.DCT_VAL_CAT6_MIN + (ExtraBits & 0x0F)) *
+	                       -(((ExtraBits&0x10)>>3)-1));
       } else if ( Token == Huffman.DCT_VAL_CATEGORY7 ) {
         /* Bit 5 determines sign, Bit 0-4 the value */
-        if ((ExtraBits & 0x20) != 0 )
-          ExpandedBlock[CoeffIndex[FragIndex]] = (short) -(Huffman.DCT_VAL_CAT7_MIN + (ExtraBits & 0x1F));
-        else
-          ExpandedBlock[CoeffIndex[FragIndex]] = (short) (Huffman.DCT_VAL_CAT7_MIN + (ExtraBits & 0x1F));
+        ExpandedBlock[CoeffIndex[FragIndex]] = (short) ((Huffman.DCT_VAL_CAT7_MIN + (ExtraBits & 0x1F)) *
+	                       -(((ExtraBits&0x20)>>4)-1));
       } else if ( Token == Huffman.DCT_VAL_CATEGORY8 ) {
         /* Bit 9 determines sign, Bit 0-8 the value */
-        if ((ExtraBits & 0x200) != 0 )
-          ExpandedBlock[CoeffIndex[FragIndex]] = (short) -(Huffman.DCT_VAL_CAT8_MIN + (ExtraBits & 0x1FF));
-        else
-          ExpandedBlock[CoeffIndex[FragIndex]] = (short) (Huffman.DCT_VAL_CAT8_MIN + (ExtraBits & 0x1FF));
+        ExpandedBlock[CoeffIndex[FragIndex]] = (short) ((Huffman.DCT_VAL_CAT8_MIN + (ExtraBits & 0x1FF)) *
+	                       -(((ExtraBits&0x200)>>8)-1));
       }
   
       /* Step on the coefficient index. */

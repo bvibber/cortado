@@ -38,28 +38,28 @@ public class YUVBuffer
   private int[] pixels;
   private int pix_size;
 
-  private void prepareRGBData ()
+  private void prepareRGBData (int x, int y, int width, int height)
   {
-    int size = y_width * y_height;
+    int size = width * height;
     if (size != pix_size) {
       pixels = new int[size];
       pix_size = size;
     }
-    YUVtoRGB();
+    YUVtoRGB(x, y, width, height);
   }
 
   public int[] getAsRGBData ()
   {
-    prepareRGBData();
+    prepareRGBData(0, 0, y_width, y_height);
     return pixels;
   }
 
-  public Image getAsImage (Toolkit toolkit)
+  public Image getAsImage (Toolkit toolkit, int x, int y, int width, int height)
   {
-    prepareRGBData();
+    prepareRGBData(x, y, width, height);
 
     MemoryImageSource source =
-      new MemoryImageSource (y_width, y_height, pixels, 0, y_width);
+      new MemoryImageSource (width, height, pixels, 0, width);
 
     return toolkit.createImage (source);
   }
@@ -110,7 +110,7 @@ public class YUVBuffer
     }
   }
 
-  private void YUVtoRGB () 
+  private void YUVtoRGB (int x, int y, int width, int height) 
   {
     int UFactor;
     int VFactor;
@@ -119,21 +119,21 @@ public class YUVBuffer
     int BVal;
 
     // Set up starting values for YUV pointers
-    int YPtr = y_offset;
-    int YPtr2 = y_offset + y_stride;
-    int UPtr = u_offset;
-    int VPtr = v_offset;
+    int YPtr = y_offset + x + y*(y_stride);
+    int YPtr2 = YPtr + y_stride;
+    int UPtr = u_offset + x/2 + (y/2)*(uv_stride);
+    int VPtr = v_offset + x/2 + (y/2)*(uv_stride);
     int RGBPtr = 0;
-    int RGBPtr2 = y_width;
+    int RGBPtr2 = width;
 
     // Set the line step for the Y and UV planes and YPtr2
-    int YStep = y_stride*2 - (y_width/2)*2;
-    int UVStep = uv_stride - (y_width/2);
-    int RGBStep = y_width;
+    int YStep = y_stride*2 - (width/2)*2;
+    int UVStep = uv_stride - (width/2);
+    int RGBStep = width;
 
-    for (int i=0; i < y_height / 2; i++)
+    for (int i=0; i < height / 2; i++)
     {
-      for (int j=0; j < y_width / 2; j++) {
+      for (int j=0; j < width / 2; j++) {
 	// groups of four pixels
 	UFactor = data[UPtr++] - 128;
 	VFactor = data[VPtr++] - 128;

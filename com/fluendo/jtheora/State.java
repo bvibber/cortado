@@ -21,7 +21,6 @@ import com.jcraft.jogg.*;
 
 public class State 
 {
-  //Info i;
   long granulepos;
 
   private Playback pbi;
@@ -67,7 +66,6 @@ public class State
 	  need_keyframe = false;
 	}
 	else {
-	System.out.println("drop");
 	  return 0;
 	}
       }
