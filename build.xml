@@ -67,7 +67,8 @@ Cortado ANT build file
     <echo>Generating ${build}/includes</echo>
   </target>
 
-  <target name="includes-delete">
+  <target name="includes-delete" depends="init">
+    <touch file="${build}/includes" />
     <delete file="${build}/includes" />
     <echo file="${build}/includes" append="true"
 >fluendo/player/*
@@ -111,7 +112,7 @@ fluendo/utils/*
   <target name="include-Ogg" unless="plugin.Ogg.false">
     <echo>Including Ogg</echo>
     <echo file="${build}/includes" append="true"
->jcraft/ogg/*
+>jcraft/jogg/*
 fluendo/plugin/Ogg*
 </echo>
     <echo file="${build}/plugins.ini" append="true"
@@ -153,16 +154,16 @@ fluendo/plugin/Vorbis*
   </target>
 
 <!-- compilation steps -->
-  <target name="compile" depends="compile-jikes,configure,includes" />
+  <target name="compile" depends="init,includes,configure,compile-jikes" />
 
 <!-- sun java build -->
-  <target name="compile-sun" depends="init"
+  <target name="compile-sun"
         description="compile the source using sun java (set JAVA_HOME)" >
     <!-- Compile the java code from ${src} into ${build} -->
-    <!-- using our stubs as classpath, and with a 1.1 target -->
+    <!-- with a 1.1 target -->
 
     <javac 
-           classpath="stubs"
+           compiler="modern"
            srcdir="${src}" destdir="${build}" 
            target="1.1"
            includesfile="${build}/includes" />
@@ -170,10 +171,12 @@ fluendo/plugin/Vorbis*
 
  
 <!-- jikes build -->
-  <target name="compile-jikes" depends="init,includes"
+  <target name="compile-jikes"
         description="compile the source " >
     <!-- Compile the java code from ${src} into ${build} -->
     <!-- using our stubs as classpath, and with a 1.1 target -->
+<!--
+-->
 
     <javac 
            compiler="jikes" 

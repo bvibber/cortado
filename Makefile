@@ -1,3 +1,5 @@
+VERSION = 0.0.1
+
 configure:
 	@./gen-Configure "Built using make."
 
@@ -32,3 +34,14 @@ cortado.tar.gz:
 	mkdir cortado
 	cp --parents com/jcraft/jogg/*.java com/jcraft/jorbis/*.java com/fluendo/player/*.java com/fluendo/utils/*.java com/fluendo/jheora/*.java com/fluendo/codecs/*.java com/fluendo/examples/*.java Makefile LICENSE.cortado LICENSE.jheora LICENSE.smoke TODO play cortado/
 	tar cvzf cortado.tgz cortado/
+
+cortado-ovt-$(VERSION).jar:
+	ant -Dexclude=MultiPart,JPEG,Smoke,Mulaw jar
+	cp dist/applet/cortado.jar $@
+
+cortado-mmjs-$(VERSION).jar:
+	ant -Dexclude=Ogg,Theora,Vorbis jar
+	cp dist/applet/cortado.jar $@
+
+ovt:	cortado-ovt-$(VERSION).jar
+mmjs:	cortado-mmjs-$(VERSION).jar

@@ -1,9 +1,9 @@
 package sun.audio;
 
-public class AudioPlayer
+public class AudioPlayer extends java.lang.Thread
 {
   public static final AudioPlayer player = new AudioPlayer();
 
-  public void stop(AudioStream as) {}
-  public void start(AudioStream as) {}
+  public synchronized void stop(java.io.InputStream as) {}
+  public synchronized void start(java.io.InputStream as) {}
 }

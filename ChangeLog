@@ -1,3 +1,14 @@
+2004-11-30  Thomas Vander Stichele  <thomas at apestaart dot org>
+
+	* Makefile:
+	* build.xml:
+	  add targets for two kinds of applets and version
+
+	* stubs/sun/audio/AudioPlayer.java:
+	* stubs/sun/audio/AudioStream.java:
+	  Fix stubs by decompiling the sun java class files
+	  Fix stubs
+
 2004-11-19  Thomas Vander Stichele  <thomas at apestaart dot org>
 
 	* com/fluendo/player/Cortado.java:
