@@ -103,8 +103,14 @@ public class VideoConsumer implements DataConsumer, Runnable
             ts.decodeInit(ti);
 
             System.out.println("theora dimension: "+ti.width+"x"+ti.height);
-            System.out.println("theora aspect: "+ti.aspect_numerator+"x"+ti.aspect_denominator);
-            System.out.println("theora framerate: "+ti.fps_numerator+"x"+ti.fps_denominator);
+	    if (ti.aspect_denominator == 0) {
+	      ti.aspect_numerator = 1;
+	      ti.aspect_denominator = 1;
+	    }
+            System.out.println("theora offset: "+ti.offset_x+","+ti.offset_y);
+            System.out.println("theora frame: "+ti.frame_width+","+ti.frame_height);
+            System.out.println("theora aspect: "+ti.aspect_numerator+"/"+ti.aspect_denominator);
+            System.out.println("theora framerate: "+ti.fps_numerator+"/"+ti.fps_denominator);
             setFramerate(ti.fps_numerator/(double)ti.fps_denominator);
             aspect = ti.aspect_numerator/(double)ti.aspect_denominator;
           }
@@ -118,7 +124,7 @@ public class VideoConsumer implements DataConsumer, Runnable
             System.err.println("Error getting the picture.");
 	    return;
 	  }
-	  newImage = yuv.getAsImage(toolkit);
+	  newImage = yuv.getAsImage(toolkit, ti.offset_x, ti.offset_y, ti.frame_width, ti.frame_height);
 	}
 	packet++;
       }
