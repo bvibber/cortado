@@ -1,4 +1,6 @@
 VERSION = 0.1.0
+NV = cortado-$(VERSION)
+TARBALL = $(NV).tar.gz
 
 configure:
 	@./gen-Configure "Built using make."
@@ -29,13 +31,16 @@ clean:
 jar:
 	jar cvf cortado.jar com/jcraft/jogg/*.class com/jcraft/jorbis/*.class com/fluendo/player/*.class com/fluendo/utils/*.class com/fluendo/jheora/*.class com/fluendo/codecs/*.class plugins.ini
 
-dist:
-	rm -f cortado-$(VERSION).tar.gz
-	make cortado-$(VERSION).tar.gz
+dist: $(TARBALL)
 
-cortado-$(VERSION).tar.gz:
-	rm -rf cortado-$(VERSION)
-	mkdir cortado-$(VERSION)
+release:
+	rm -f $(TARBALL)
+	make dist
+	md5sum $(TARBALL) > $(TARBALL).md5
+
+$(TARBALL):
+	rm -rf $(NV)
+	mkdir $(NV)
 	cp --parents \
 		com/jcraft/jogg/*.java com/jcraft/jorbis/*.java \
 		com/fluendo/player/*.java com/fluendo/utils/*.java \
@@ -47,9 +52,9 @@ cortado-$(VERSION).tar.gz:
 		Makefile build.xml gen-Configure \
 		LICENSE.cortado LICENSE.jheora LICENSE.smoke \
 		ChangeLog README TODO play \
-		cortado-$(VERSION)/
-	tar cvzf $@ cortado-$(VERSION)
-	rm -rf cortado-$(VERSION)
+		$(NV)/
+	tar cvzf $@ $(NV)
+	rm -rf $(NV)
 
 cortado-ovt-$(VERSION).jar:
 	ant -Dexclude=MultiPart,JPEG,Smoke,Mulaw jar
