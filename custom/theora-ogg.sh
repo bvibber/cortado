@@ -7,6 +7,7 @@ EOF
 
 cd ..
 cp --parents com/fluendo/player/*.class com/fluendo/utils/*.class com/fluendo/jheora/*.class  com/fluendo/plugin/TheoraPlugin.class com/fluendo/plugin/Ogg*.class com/jcraft/jogg/*.class custom/theora-ogg/
-cd custom
+cd custom/theora-ogg
 
-jar cvf theora-ogg/cortado.jar theora-ogg/*
+jar cvf cortado.jar com/* plugins.ini
+cd ..

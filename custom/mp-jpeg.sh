@@ -7,6 +7,7 @@ EOF
 
 cd ..
 cp --parents com/fluendo/player/*.class com/fluendo/utils/*.class com/fluendo/plugin/JPEGPlugin.class com/fluendo/plugin/MultiPart*.class custom/mp-jpeg/
-cd custom
+cd custom/mp-jpeg
 
-jar cvf mp-jpeg/cortado.jar mp-jpeg/*
+jar cvf cortado.jar com/* plugins.ini
+cd ..
