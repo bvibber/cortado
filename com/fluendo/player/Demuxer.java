@@ -43,6 +43,14 @@ public class Demuxer implements Runnable
   }
 
   public void run() {
+    try {
+      realRun();
+    }
+    catch (Throwable t) {
+      Cortado.shutdown(t.getMessage());
+    }
+  }
+  private void realRun() {
     System.out.println("entering demuxer thread");
     try {
       while (!stopping) {

@@ -75,6 +75,15 @@ public class VideoConsumer implements DataConsumer, Runnable
   }
 
   public void run() {
+    try {
+      realRun();
+    }
+    catch (Throwable t) {
+      Cortado.shutdown(t.getMessage());
+    }
+  }
+
+  private void realRun() {
     System.out.println("entering video thread");
     while (!stopping) {
       //System.out.println("dequeue image");

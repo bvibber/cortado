@@ -163,6 +163,14 @@ public class AudioConsumer implements Runnable, DataConsumer
 
   public void run() {
     try {
+      realRun();
+    }
+    catch (Throwable t) {
+      Cortado.shutdown(t.getMessage());
+    }
+  }
+  private void realRun() {
+    try {
       System.out.println("entering audio thread");
       as = new AudioStream(new MyIS());
       AudioPlayer.player.start(as);

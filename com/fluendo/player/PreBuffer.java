@@ -61,6 +61,15 @@ public class PreBuffer extends InputStream implements Runnable {
   }
 
   public void run() {
+    try {
+      realRun();
+    }
+    catch (Throwable t) {
+      Cortado.shutdown(t.getMessage()); 
+    }
+  }
+
+  private void realRun() {
     System.out.println("entering preroll thread");
     while (!stopping) {
       try {

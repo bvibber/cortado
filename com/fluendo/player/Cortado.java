@@ -32,6 +32,8 @@ public class Cortado extends Applet implements ImageTarget,
 		MouseMotionListener,
 		MouseListener
 {
+  private static Cortado cortado;
+
   private String urlString;
   private boolean local;
   private double framerate;
@@ -102,8 +104,15 @@ public class Cortado extends Applet implements ImageTarget,
     }
     return result;
   }
+
+  public static void shutdown(String error) {
+    System.out.println("shutting down: reason: "+error);
+    cortado.stop();
+  }
   
   public void init() {
+    cortado = this;
+
     urlString = getParam("url", null);
     local = String.valueOf(getParam("local", "false")).equals("true");
     framerate = Double.valueOf(getParam("framerate", "5.0")).doubleValue();
@@ -137,6 +146,14 @@ public class Cortado extends Applet implements ImageTarget,
   }
 
   public void run() {
+    try {
+      realRun();
+    }
+    catch (Throwable t) {
+      Cortado.shutdown(t.getMessage());
+    }
+  }
+  private void realRun() {
     System.out.println("entering status thread");
     while (!stopping) {
       try {
