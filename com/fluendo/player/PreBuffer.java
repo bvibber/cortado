@@ -31,12 +31,16 @@ public class PreBuffer extends InputStream implements Runnable {
   private Thread thread;
   private boolean stopping = false;
   private int filled = 0;
+  private int low;
+  private int high;
   private PreBufferNotify notify;
   private boolean eos;
+  private boolean readerBlocked;
+  private boolean writerBlocked;
 
   private int state = PreBufferNotify.STATE_START;
 
-  public PreBuffer (InputStream is, int bufSize, PreBufferNotify pbn) {
+  public PreBuffer (InputStream is, int bufSize, int bufLow, int bufHigh, PreBufferNotify pbn) {
     inputStream = is;
     bufferSize = bufSize;
     buffer = new short[bufferSize];
@@ -44,6 +48,12 @@ public class PreBuffer extends InputStream implements Runnable {
     out = 0;
     notify = pbn;
     filled = 0;
+    low = (bufSize * bufLow/100);
+    if (low <= 0)
+      low = 1;
+    high = (bufSize * bufHigh/100);
+    if (high >= bufSize)
+      high = bufSize-1;
     eos = false;
     thread = new Thread (this);
     thread.start();
@@ -65,7 +75,7 @@ public class PreBuffer extends InputStream implements Runnable {
       realRun();
     }
     catch (Throwable t) {
-      Cortado.shutdown(t.getMessage()); 
+      Cortado.shutdown(t); 
     }
   }
 
@@ -89,11 +99,11 @@ public class PreBuffer extends InputStream implements Runnable {
   }
 
   public synchronized boolean isEmpty() {
-    return filled < (bufferSize * 10/100);
+    return filled < low;
   }
 
   public synchronized boolean isFilled() {
-    return filled >= (bufferSize * 70/100);
+    return filled >= high;
   }
 
   public synchronized int getFilled() {
@@ -109,9 +119,10 @@ public class PreBuffer extends InputStream implements Runnable {
       if (notify != null)
         notify.preBufferNotify (PreBufferNotify.STATE_OVERFLOW);
 
-      notifyAll();
       try {
-	wait (1000);
+        writerBlocked = true;
+	wait ();
+        writerBlocked = false;
       }
       catch (InterruptedException ie) {
         if (stopping)
@@ -140,6 +151,8 @@ public class PreBuffer extends InputStream implements Runnable {
 	  notify.preBufferNotify (state);
       }
     }
+    if (readerBlocked)
+      notifyAll();
   }
 
   public synchronized int read() {
@@ -148,9 +161,10 @@ public class PreBuffer extends InputStream implements Runnable {
       if (eos)
         return -1;
 
-      notifyAll();
       try {
-	wait (1000);
+        readerBlocked = true;
+	wait ();
+        readerBlocked = false;
       }
       catch (InterruptedException ie) {
         if (stopping)
@@ -179,6 +193,9 @@ public class PreBuffer extends InputStream implements Runnable {
 	  notify.preBufferNotify (state);
       }
     }
+    if (writerBlocked)
+      notifyAll();
+
     return ret;
   }
 }

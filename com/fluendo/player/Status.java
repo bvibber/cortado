@@ -31,6 +31,8 @@ public class Status extends Component
   private Rectangle r;
   private Component component;
   private Font font = new Font("SansSerif", Font.PLAIN, 10);
+  private boolean haveAudio;
+  private boolean havePercent;
 
   private String speaker =
   "\0\0\0\0\0\357\0\0\357U\27" +
@@ -80,11 +82,15 @@ public class Status extends Component
     g2.setColor(Color.black);
     g2.fillRect(1, 1, r.width-2, r.height-2);
     g2.setColor(Color.white);
-    g2.drawString(""+bufferPercent+"%", r.width-38, r.height-2);
+    if (havePercent) {
+      g2.drawString(""+bufferPercent+"%", r.width-38, r.height-2);
+    }
     if (message != null) {
       g2.drawString(message, 2, r.height-2);
     }
-    g2.drawImage(speakerImg,r.width-12,r.height-11,null);
+    if (haveAudio) {
+      g2.drawImage(speakerImg,r.width-12,r.height-11,null);
+    }
     g.drawImage(img,r.x,r.y,null);
     img.flush();
   }
@@ -100,5 +106,13 @@ public class Status extends Component
     message = m;
     if (isVisible())
       component.repaint();
+  }
+  public void setHaveAudio(boolean a)
+  {
+    haveAudio = a;
+  }
+  public void setHavePercent(boolean p)
+  {
+    havePercent = p;
   }
 }

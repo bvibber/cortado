@@ -24,6 +24,8 @@ public class QueueManager {
   private static final int MAX_QUEUES = 4;
   private static Vector[] queues = new Vector[MAX_QUEUES];
   private static Object[] syncs = new Object[MAX_QUEUES];
+  private static boolean[] readWait = new boolean[MAX_QUEUES];
+  private static boolean[] writeWait = new boolean[MAX_QUEUES];
   private static int[] sizes = new int[MAX_QUEUES];
   private static int numqueues = 0;
 
@@ -32,6 +34,8 @@ public class QueueManager {
     queues[freequeue] = new Vector();
     syncs[freequeue] = new Object();
     sizes[freequeue] = maxSize;
+    readWait[freequeue] = false;
+    writeWait[freequeue] = false;
     numqueues++;
     return freequeue;
   }
@@ -41,7 +45,7 @@ public class QueueManager {
     queues[id] = null;
     syncs[id] = null;
     synchronized (sync) {
-      sync.notify();
+      sync.notifyAll();
     }
   }
 
@@ -83,11 +87,14 @@ public class QueueManager {
     synchronized (sync) {
       while (queue.size() > sizes[id]) {
 	//System.out.println("queue "+id+" filled");
+	writeWait[id] = true;
         sync.wait();
+	writeWait[id] = false;
 	//System.out.println("queue "+id+" filled done");
       }
       queue.addElement(object);
-      sync.notify();
+      if (readWait[id])
+        sync.notify();
     }
   }
 
@@ -104,7 +111,9 @@ public class QueueManager {
 	//System.out.println("queue "+id+" empty");
 	//adjustOthers(id, 1);
 	//System.out.println("others adjusted");
+	readWait[id] = true;
         sync.wait();
+	readWait[id] = false;
 	//System.out.println("queue "+id+" empty done");
 	if (syncs[id] == null)
 	  return null;
@@ -112,7 +121,8 @@ public class QueueManager {
       result = queue.elementAt(0);
       queue.removeElementAt(0);
       //adjustThis(id, -1);
-      sync.notify();
+      if (writeWait[id])
+        sync.notify();
     }
     return result;
   }

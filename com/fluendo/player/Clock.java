@@ -29,8 +29,8 @@ public class Clock {
       paused = true;
       lastMedia = getMediaTime();
       //System.out.println("pause "+lastMedia);
+      notifyAll();
     }
-    notifyAll();
   }
 
   public synchronized void play() {
@@ -49,8 +49,8 @@ public class Clock {
       paused = false;
       //System.out.println("play "+startTime+" "+now+" "+gap+" "+lastMedia+" "+media);
       startTime += gap;  
+      notifyAll();
     }
-    notifyAll();
   }
 
   public synchronized long getElapsedTime() {

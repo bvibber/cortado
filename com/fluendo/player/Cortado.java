@@ -54,7 +54,12 @@ public class Cortado extends Applet implements ImageTarget,
   private VideoConsumer videoConsumer;
   private AudioConsumer audioConsumer;
   private Demuxer demuxer;
+
+  private boolean usePrebuffer;
   private PreBuffer preBuffer;
+  private int bufferLow;
+  private int bufferHigh;
+
   private InputStream is;
   private Clock clock;
   private boolean havePreroll;
@@ -77,7 +82,10 @@ public class Cortado extends Applet implements ImageTarget,
       {"audio",      "boolean", "Enable audio playback (default true)"},
       {"video",      "boolean", "Enable video playback (default true)"},
       {"keepAspect", "boolean", "Use aspect ratio of video (default true)"},
+      {"preBuffer",  "boolean", "Use Prebuffering (default = true)"},
       {"bufferSize", "int",     "The size of the prebuffer in Kbytes (default 100)"},
+      {"bufferLow",  "int",     "Percent of empty buffer (default 10)"},
+      {"bufferHigh", "int",     "Percent of full buffer (default 70)"},
       {"userId",     "string",  "userId for basic authentication (default null)"},
       {"password",   "string",  "password for basic authentication (default null)"},
     };
@@ -106,8 +114,9 @@ public class Cortado extends Applet implements ImageTarget,
     return result;
   }
 
-  public static void shutdown(String error) {
-    System.out.println("shutting down: reason: "+error);
+  public static void shutdown(Throwable error) {
+    System.out.println("shutting down: reason: "+error.getMessage());
+    error.printStackTrace();
     cortado.stop();
   }
   
@@ -120,7 +129,10 @@ public class Cortado extends Applet implements ImageTarget,
     audio = String.valueOf(getParam("audio","true")).equals("true");
     video = String.valueOf(getParam("video","true")).equals("true");
     keepAspect = String.valueOf(getParam("keepAspect","true")).equals("true");
-    bufferSize = Integer.valueOf(getParam("bufferSize","100")).intValue();
+    usePrebuffer = String.valueOf(getParam("preBuffer","true")).equals("true");
+    bufferSize = Integer.valueOf(getParam("bufferSize","200")).intValue();
+    bufferLow = Integer.valueOf(getParam("bufferLow","10")).intValue();
+    bufferHigh = Integer.valueOf(getParam("bufferHigh","70")).intValue();
     userId = getParam("userId",  null);
     password = getParam("password",  null);
     configure = new Configure();
@@ -134,6 +146,8 @@ public class Cortado extends Applet implements ImageTarget,
 
     status = new Status(this);
     status.setVisible(true);
+    status.setHavePercent (usePrebuffer);
+    status.setHaveAudio (audio);
 
     menu = new PopupMenu();
     menu.add("About...");
@@ -153,17 +167,21 @@ public class Cortado extends Applet implements ImageTarget,
       realRun();
     }
     catch (Throwable t) {
-      Cortado.shutdown(t.getMessage());
+      Cortado.shutdown(t);
     }
   }
   private void realRun() {
     System.out.println("entering status thread");
     while (!stopping) {
       try {
-        int percent = (preBuffer.getFilled() * 100) /
+        if (preBuffer != null) {
+          int percent = (preBuffer.getFilled() * 100) /
 	           (1024 * bufferSize);
 
-        status.setBufferPercent(percent);
+          if (status.isVisible()) {
+            status.setBufferPercent(percent);
+	  }
+	}
 
         Thread.sleep(500);
       }
@@ -176,6 +194,9 @@ public class Cortado extends Applet implements ImageTarget,
   }
 
   public void paint(Graphics g) {
+    if (appletDimension == null) {
+      appletDimension = getSize();
+    }
     int dwidth = appletDimension.width;
     int dheight = appletDimension.height;
     int x = 0, y = 0;
@@ -231,7 +252,7 @@ public class Cortado extends Applet implements ImageTarget,
         getGraphics().clearRect(0, 0, dwidth, dheight);
         status.setMessage("Buffering...");
       }
-      repaint((long)(1000/(framerate * 2)));
+      repaint();
     }
   }
 
@@ -240,7 +261,6 @@ public class Cortado extends Applet implements ImageTarget,
 
     synchronized (preBuffer) {
       if (!havePreroll && state != STATE_BUFFER) {
-        System.out.println("no preroll yet, not starting");
         return;
       }
       switch (state) {
@@ -354,11 +374,19 @@ try {
       audioThread = new Thread(audioConsumer);
     }
 
-    preBuffer = new PreBuffer (is, 1024 * bufferSize, this);
     if (plugin == null) {
       plugin = Plugin.makeByMime("application/ogg");
     }
-    demuxer = new Demuxer(preBuffer, plugin, this, audioConsumer, videoConsumer);
+
+    InputStream dis;
+    if (usePrebuffer) {
+      preBuffer = new PreBuffer (is, 1024 * bufferSize, bufferLow, bufferHigh, this);
+      dis = preBuffer;
+    }
+    else {
+      dis = is;
+    }
+    demuxer = new Demuxer(dis, plugin, this, audioConsumer, videoConsumer);
     mainThread = new Thread(demuxer);
 
     statusThread = new Thread(this);
@@ -396,17 +424,26 @@ try {
 	  }
         } while (!ready);
       }
-      synchronized (preBuffer) {
+      havePreroll = true;
+      if (preBuffer != null) {
+        synchronized (preBuffer) {
+          System.out.println("consumers ready");
+  	  System.out.println("preroll done, starting...");
+	  preBuffer.startBuffer();
+	  if (preBuffer.isFilled()) {
+	    clock.play();
+	  }
+	  else {
+	    System.out.println("not buffered, not starting yet "+preBuffer.getFilled());
+	  }
+	}
+      }
+      else {
         System.out.println("consumers ready");
-	System.out.println("preroll done, starting...");
-	preBuffer.startBuffer();
-	havePreroll = true;
-	if (preBuffer.isFilled()) {
-	  clock.play();
-	}
-	else {
-	  System.out.println("not buffered, not starting yet "+preBuffer.getFilled());
-	}
+  	System.out.println("preroll done, starting...");
+	status.setVisible(false);
+	status.setMessage("Playing...");
+	clock.play();
       }
     }
     catch (Exception e) {
@@ -424,7 +461,8 @@ catch (Throwable e) {
     demuxer.stop();
     try {
       stopping = true;
-      preBuffer.stop();
+      if (preBuffer != null)
+        preBuffer.stop();
       if (video)
         videoConsumer.stop();
       if (audio)

@@ -166,7 +166,7 @@ public class AudioConsumer implements Runnable, DataConsumer
       realRun();
     }
     catch (Throwable t) {
-      Cortado.shutdown(t.getMessage());
+      Cortado.shutdown(t);
     }
   }
   private void realRun() {

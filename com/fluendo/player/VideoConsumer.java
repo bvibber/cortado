@@ -79,7 +79,7 @@ public class VideoConsumer implements DataConsumer, Runnable
       realRun();
     }
     catch (Throwable t) {
-      Cortado.shutdown(t.getMessage());
+      Cortado.shutdown(t);
     }
   }
 
@@ -111,8 +111,8 @@ public class VideoConsumer implements DataConsumer, Runnable
       aspect = plugin.aspect_numerator/(double)plugin.aspect_denominator;
 
       try {
-	if (framenr == 0) {
-	  if (image != null) {
+        if (image != null) {
+	  if (framenr == 0) {
             target.setImage(image, framerate, aspect);
 	    // first frame, wait for signal
 	    synchronized (clock) {
@@ -122,19 +122,18 @@ public class VideoConsumer implements DataConsumer, Runnable
 	      System.out.println("video preroll go!");
 	    }
 	  }
-	}
-	else {
-	  //System.out.println("wait for "+framenr+" "+(framenr * frameperiod));
-	  clock.waitForMediaTime((long) (framenr * frameperiod));
+	  else {
+	    //System.out.println("wait for "+framenr+" "+(framenr * frameperiod));
+	    clock.waitForMediaTime((long) (framenr * frameperiod));
+
+            target.setImage(image, framerate, aspect);
+          }
+          framenr++;
 	}
       }
       catch (Exception e) {
         if (!stopping)
           e.printStackTrace();
-      }
-      if (image != null) {
-        target.setImage(image, framerate, aspect);
-        framenr++;
       }
     }
     System.out.println("exit video thread");
