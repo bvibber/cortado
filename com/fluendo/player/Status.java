@@ -28,7 +28,7 @@ public class Status extends Component
 {
   private int bufferPercent;
   private String message;
-  private Rectangle r = new Rectangle();
+  private Rectangle r;
   private Component component;
   private Font font = new Font("SansSerif", Font.PLAIN, 10);
 
@@ -69,7 +69,7 @@ public class Status extends Component
     if (!isVisible())
       return;
 
-    getBounds(r);
+    r = getBounds();
 
     Image img = component.createImage(r.width, r.height); 
     Graphics g2 = img.getGraphics();

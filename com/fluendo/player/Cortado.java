@@ -63,6 +63,7 @@ public class Cortado extends Applet implements ImageTarget,
   private boolean stopping;
   private Hashtable params = new Hashtable();
   private Configure configure;
+  private Dimension appletDimension;
 
   public String getAppletInfo() {
     return "Title: Fluendo media player \nAuthor: Wim Taymans \nA Java based network multimedia player.";
@@ -124,7 +125,9 @@ public class Cortado extends Applet implements ImageTarget,
     password = getParam("password",  null);
     configure = new Configure();
     System.out.println("build info: " + configure.buildInfo);
-    
+
+    /* FIXME: this needs to be redone in resize callbacks */
+    appletDimension = getSize();
 
     setBackground(Color.black);
     setForeground(Color.white);
@@ -173,9 +176,8 @@ public class Cortado extends Applet implements ImageTarget,
   }
 
   public void paint(Graphics g) {
-    Dimension d = getSize();
-    int dwidth = d.width;
-    int dheight = d.height;
+    int dwidth = appletDimension.width;
+    int dheight = appletDimension.height;
     int x = 0, y = 0;
     int width = dwidth;
     
@@ -224,7 +226,9 @@ public class Cortado extends Applet implements ImageTarget,
       this.framerate = framerate;
       this.aspect = aspect;
       if (!havePreroll) {
-        getGraphics().clearRect(0,0,getWidth(), getHeight());
+    	int dwidth = appletDimension.width;
+    	int dheight = appletDimension.height;
+        getGraphics().clearRect(0, 0, dwidth, dheight);
         status.setMessage("Buffering...");
       }
       repaint((long)(1000/(framerate * 2)));
@@ -283,7 +287,7 @@ public class Cortado extends Applet implements ImageTarget,
   public void mouseMoved(MouseEvent e)
   {
     if (status != null) {
-      if (e.getY() > getHeight()-12) {
+      if (e.getY() > appletDimension.height-12) {
         status.setVisible(true);
       }
       else {
@@ -298,6 +302,7 @@ public class Cortado extends Applet implements ImageTarget,
     Plugin plugin = null;
 
     status.setMessage("Opening "+urlString+"...");
+try {
     try {
       if (local) {
         System.out.println("reading from file "+urlString);
@@ -406,6 +411,12 @@ public class Cortado extends Applet implements ImageTarget,
     }
     catch (Exception e) {
       e.printStackTrace();
+    }
+}
+catch (Throwable e) {
+      e.printStackTrace();
+      status.setMessage("Failed opening "+urlString+"...");
+      stop();
     }
   }
 
