@@ -22,7 +22,9 @@ clean:
 jar:
 	jar cvf cortado.jar com/jcraft/jogg/*.class com/jcraft/jorbis/*.class com/fluendo/player/*.class com/fluendo/utils/*.class com/fluendo/jheora/*.class com/fluendo/codecs/*.class
 
-dist:
+dist: cortado.tar.gz
+
+cortado.tar.gz:
 	rm -rf cortado/
 	mkdir cortado
 	cp --parents com/jcraft/jogg/*.java com/jcraft/jorbis/*.java com/fluendo/player/*.java com/fluendo/utils/*.java com/fluendo/jheora/*.java com/fluendo/codecs/*.java com/fluendo/examples/*.java Makefile LICENSE.cortado LICENSE.jheora LICENSE.smoke TODO play cortado/
