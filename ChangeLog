@@ -1,3 +1,11 @@
+=== release 0.1.0 ===
+
+2004-12-24  Thomas Vander Stichele  <thomas at apestaart dot org>
+
+	* Makefile:
+	* README:
+	  more notes and fixes
+
 2004-12-24  Thomas Vander Stichele  <thomas at apestaart dot org>
 
 	* Makefile:

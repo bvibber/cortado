@@ -1,3 +1,32 @@
+WHAT IT IS
+----------
+
+This is the first public release of the source code for Fluendo's
+"Cortado" Java media player.  The player can be used as an applet to play
+back files and network streams.  It was created to integrate with
+the Flumotion Streaming Server.
+
+This first release has support for
+- local files and network streams
+- Ogg and Multipart containers
+- Theora, JPEG and Smoke video codecs
+- Vorbis and MuLaw audio codecs
+- 1.1 javasound API
+- 1.4 javax sound API
+- basic HTTP authentication
+- buffering
+
+The build setup is still a little bit shaky, combining ant build stuff
+with a standard Makefile.  We could use a little help there.
+
+BUGS
+----
+
+You can file bugs at Fluendo's issue tracker:
+https://www.fluendo.com/tracker
+
+Make sure to choose the "cortado" component.
+
 USAGE
 -----
 

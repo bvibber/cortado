@@ -1,4 +1,4 @@
-VERSION = 0.0.1.1
+VERSION = 0.1.0
 
 configure:
 	@./gen-Configure "Built using make."
@@ -30,7 +30,7 @@ jar:
 	jar cvf cortado.jar com/jcraft/jogg/*.class com/jcraft/jorbis/*.class com/fluendo/player/*.class com/fluendo/utils/*.class com/fluendo/jheora/*.class com/fluendo/codecs/*.class plugins.ini
 
 dist:
-	rm cortado-$(VERSION).tar.gz
+	rm -f cortado-$(VERSION).tar.gz
 	make cortado-$(VERSION).tar.gz
 
 cortado-$(VERSION).tar.gz:
