@@ -52,6 +52,7 @@ public class Cortado extends Applet implements ImageTarget,
   private double aspect;
 
   private Image image;
+  private ImageProducer imageProd;
   private Thread videoThread;
   private Thread audioThread;
   private Thread mainThread;
@@ -182,8 +183,9 @@ public class Cortado extends Applet implements ImageTarget,
   }
 
   public synchronized void update(Graphics g) {
-    if (!needRepaint)
+    if (!needRepaint) {
       return;
+    }
 
     if (useDb) {
       if (appletDimension == null) {
@@ -205,7 +207,7 @@ public class Cortado extends Applet implements ImageTarget,
       dbGraphics.setColor (Color.black);
       dbGraphics.setFont (getFont() );
       paint (dbGraphics);
-      g.drawImage (dbImage, 0, 0, this);
+      g.drawImage (dbImage, 0, 0, null);
     }
     else {
       paint(g);
@@ -230,10 +232,10 @@ public class Cortado extends Applet implements ImageTarget,
 
           if (status.isVisible()) {
             status.setBufferPercent(percent);
+            forceRepaint();
 	  }
-	  System.out.println(""+preBuffer.getReceived()+ 
-	           " "+preBuffer.getReceiveSpeed() +
-	           " "+preBuffer.getConsumeSpeed());
+	  preBuffer.dumpStats();
+	  QueueManager.dumpStats();
 	}
 
         Thread.sleep(500);
@@ -246,7 +248,8 @@ public class Cortado extends Applet implements ImageTarget,
     System.out.println("exit status thread");
   }
 
-  public synchronized void paint(Graphics g) {
+  public synchronized void paint(Graphics g) 
+  {
     if (appletDimension == null) {
       appletDimension = getSize();
     }
@@ -295,10 +298,35 @@ public class Cortado extends Applet implements ImageTarget,
     needRepaint = false;
   }
 
-  public synchronized void setImageProducer(ImageProducer prod, double framerate, double aspect) {
+  private synchronized void forceRepaint() {
+    needRepaint = true;
+    /* we call update in this thread, it's not nice but it
+     * improves smoothness and CPU usage */
+    update(getGraphics());
+  }
+
+  public synchronized void setImage(Object obj, double framerate, double aspect) {
+    if (obj instanceof Image) {
+      setImage ((Image) obj, framerate, aspect);
+    }
+    else if (obj instanceof ImageProducer) {
+      setImage ((ImageProducer) obj, framerate, aspect);
+    }
+  }
+
+  public synchronized void setImage(ImageProducer prod, double framerate, double aspect) {
     if (!needRepaint) {
-      //System.out.println("set image "+newImage);
-      image = createImage (prod);
+      if (imageProd != prod) {
+        image = createImage (prod);
+	imageProd = prod;
+      }
+      setImage (image, framerate, aspect);
+    }
+  }
+  public synchronized void setImage(Image newImage, double framerate, double aspect) 
+  {
+    if (!needRepaint) {
+      image = newImage;
       this.framerate = framerate;
       this.aspect = aspect;
       if (!havePreroll) {
@@ -307,8 +335,7 @@ public class Cortado extends Applet implements ImageTarget,
         getGraphics().clearRect(0, 0, dwidth, dheight);
         status.setMessage("Buffering...");
       }
-      needRepaint = true;
-      repaint();
+      forceRepaint();
     }
   }
 
@@ -341,6 +368,7 @@ public class Cortado extends Applet implements ImageTarget,
       return;
 
     status.setMessage(str);
+    forceRepaint();
   }
 
   public void mouseClicked(MouseEvent e){}

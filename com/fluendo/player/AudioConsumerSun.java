@@ -30,7 +30,7 @@ public class AudioConsumerSun implements Runnable, DataConsumer, ClockProvider
   private int queueid;
   private boolean ready;
   private Clock clock;
-  private static final int MAX_BUFFER = 100;
+  private static final int MAX_BUFFER = 5;
   private boolean stopping = false;
   private Plugin plugin;
   private long queuedTime = -1;
@@ -84,8 +84,6 @@ public class AudioConsumerSun implements Runnable, DataConsumer, ClockProvider
     private byte[] buffer;
     private boolean started;
     private boolean needHeader = true;
-    private long bufstart;
-    private long bufend;
     private int resampleWrap;
     private long samplesRead;
     private long samplesWritten;
@@ -101,8 +99,6 @@ public class AudioConsumerSun implements Runnable, DataConsumer, ClockProvider
         buffer[i] = 0x7f;
       }
       started = false;
-      bufstart = 0;
-      bufend = size;
       free = size;
       try {
         audioStream = new AudioStream (this);
@@ -155,9 +151,6 @@ public class AudioConsumerSun implements Runnable, DataConsumer, ClockProvider
     public int read() {
       int res;
 
-      if (stopping)
-        return -1;
-      
       if (needHeader) {
         res = header[readPtr];
 	readPtr++;
@@ -181,13 +174,10 @@ public class AudioConsumerSun implements Runnable, DataConsumer, ClockProvider
 	    /* underrun !! */
 	    free = buffer.length-1;
 	    writePtr++;
-	    notify();
 	  }
 
 	  if (readPtr >= buffer.length) {
 	    readPtr = 0;
-	    bufstart = bufend;
-	    bufend = bufstart + buffer.length;
           }
 	  samplesRead++;
 	}
@@ -199,6 +189,10 @@ public class AudioConsumerSun implements Runnable, DataConsumer, ClockProvider
       //System.out.println("******** read "+bytes.length);  
       if (started)
         checkClockAdjust();
+
+      if (stopping)
+        return -1;
+      
       int read = super.read(bytes);
       notify();
       return read;
@@ -207,6 +201,10 @@ public class AudioConsumerSun implements Runnable, DataConsumer, ClockProvider
       //System.out.println("******** read "+offset+" "+len);  
       if (started)
         checkClockAdjust();
+
+      if (stopping)
+        return -1;
+      
       int read = super.read(bytes, offset, len);
       notify();
       return read;
@@ -242,14 +240,7 @@ public class AudioConsumerSun implements Runnable, DataConsumer, ClockProvider
         buffer[writePtr] = toUlaw (sample);
         if (++writePtr >= buffer.length)
 	  writePtr = 0;
-	free--;
-
-	if (readPtr == writePtr) {
-	  try {
-	    wait();
-	  }
-	  catch (Exception e) {}
-	}
+        free--;
         inc++;
 
 	ptr = 2 * channels * (rate * inc / 8000);

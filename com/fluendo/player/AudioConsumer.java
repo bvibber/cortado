@@ -177,9 +177,9 @@ public class AudioConsumer implements Runnable, DataConsumer, ClockProvider
 
       if (!ready) {
         try {
+	  ready = true;
 	  // first sample, wait for signal
 	  synchronized (clock) {
-	    ready = true;
 	    System.out.println("audio preroll wait");
 	    clock.wait();
 	    System.out.println("audio preroll go!");

@@ -24,13 +24,12 @@ import java.util.*;
 public class PreBuffer extends InputStream implements Runnable {
   private InputStream inputStream;
   private int bufferSize;
-  private short[] buffer;
+  private byte[] buffer;
   private int in;
   private int out;
   private Reader reader;
   private Thread thread;
   private boolean stopping = false;
-  private int filled = 0;
   private int low;
   private int high;
   private PreBufferNotify notify;
@@ -40,17 +39,38 @@ public class PreBuffer extends InputStream implements Runnable {
   private long received;
   private long receiveStart;
   private long consumed;
+  private static int SEGSIZE = 1024;
+  private int segment;
+  private byte[] temp = new byte[1];
 
   private int state = PreBufferNotify.STATE_START;
 
+  /* 
+   *
+   *  +---------------------------+
+   *  |  !        !               |
+   *  +---------------------------+
+   *     ^        ^
+   *     in       out
+   *
+   * in:  pointer in buffer where writing happens
+   * out: pointer where reading happens.
+   *
+   * conditions:
+   * 
+   * full:   in == out
+   * empty:  in == -1
+   *
+   * free:      (out + bufSize - in) % bufSize    (amount available for writing)
+   * available: (in + bufSize - out) % bufSize    (amount available for reading)
+   *
+   */ 
+
   public PreBuffer (InputStream is, int bufSize, int bufLow, int bufHigh, PreBufferNotify pbn) {
     inputStream = is;
-    bufferSize = bufSize;
-    buffer = new short[bufferSize];
     in = -1;
     out = 0;
     notify = pbn;
-    filled = 0;
     low = (bufSize * bufLow/100);
     if (low <= 0)
       low = 1;
@@ -58,9 +78,33 @@ public class PreBuffer extends InputStream implements Runnable {
     if (high >= bufSize)
       high = bufSize-1;
     eos = false;
+    segment = Math.max (SEGSIZE, low);
+
+    bufferSize = bufSize;
+    buffer = new byte[bufferSize];
+    
     thread = new Thread (this);
     thread.start();
     receiveStart = 0;
+  }
+
+  public int free ()
+  {
+    synchronized (this) {
+      if (in == -1)
+        return bufferSize;
+      return (out +  bufferSize - in) % bufferSize;
+    }
+  }
+  public int available ()
+  {
+    synchronized (this) {
+      if (in == -1)
+        return 0;
+      if (in == out)
+        return bufferSize;
+      return (in +  bufferSize - out) % bufferSize;
+    }
   }
 
   public void stop() {
@@ -76,6 +120,7 @@ public class PreBuffer extends InputStream implements Runnable {
   }
 
   public void run() {
+    Thread.currentThread().setPriority(Thread.MAX_PRIORITY);
     try {
       realRun();
     }
@@ -84,37 +129,16 @@ public class PreBuffer extends InputStream implements Runnable {
     }
   }
 
-  private void realRun() {
-    System.out.println("entering preroll thread");
-    while (!stopping) {
-      try {
-        int b = inputStream.read();
-        receive (b);
-	if (b < 0) {
-	  eos = true;
-	  break;
-	}
-      }
-      catch (Exception e) {
-        if (!stopping) {
-          e.printStackTrace();
-	  stopping = true;
-	}
-      }
-    }
-    System.out.println("exit preroll thread");
+  public boolean isEmpty() {
+    return available() < low;
   }
 
-  public synchronized boolean isEmpty() {
-    return filled < low;
-  }
-
-  public synchronized boolean isFilled() {
-    return filled >= high;
+  public boolean isFilled() {
+    return available() >= high;
   }
 
   public synchronized int getFilled() {
-    return filled;
+    return available();
   }
 
   public synchronized long getReceived() {
@@ -137,6 +161,27 @@ public class PreBuffer extends InputStream implements Runnable {
     return ((double)consumed) / time;
   }
 
+  private void checkFilled()
+  {
+    if (state == PreBufferNotify.STATE_BUFFER) {
+      if (isFilled()) {
+        state = PreBufferNotify.STATE_PLAYBACK;
+        if (notify != null)
+  	  notify.preBufferNotify (state);
+      }
+    }
+  }
+  private void checkEmpty()
+  {
+    if (!eos && state == PreBufferNotify.STATE_PLAYBACK) {
+      if (isEmpty()) {
+        state = PreBufferNotify.STATE_BUFFER;
+    	if (notify != null)
+	  notify.preBufferNotify (state);
+      }
+    }
+  }
+
   public synchronized void startBuffer() {
     System.out.println("start buffer..");
     state = PreBufferNotify.STATE_BUFFER;
@@ -144,91 +189,166 @@ public class PreBuffer extends InputStream implements Runnable {
     receiveStart = System.currentTimeMillis();
   }
 
-  public synchronized void receive(int b) {
-    received++;
-    while (in == out) {
-      if (notify != null)
-        notify.preBufferNotify (PreBufferNotify.STATE_OVERFLOW);
-
+  private void realRun() {
+    System.out.println("entering preroll thread");
+    while (!stopping) {
       try {
-        writerBlocked = true;
-	wait ();
-        writerBlocked = false;
+	int len1, len2;
+	int newIn;
+	int ret1, ret2;
+
+        synchronized (this) {
+          while (free () < segment) {
+	    //System.out.println ("write: wait free "+free()+" need "+segment);
+	    if (notify != null)
+              notify.preBufferNotify (PreBufferNotify.STATE_OVERFLOW);
+	    writerBlocked = true;
+	    wait();
+	    writerBlocked = false;
+	  }
+	  //System.out.println ("write: wait free done "+free()+" need "+segment);
+	  if (in < 0)
+	    newIn = out;
+	  else
+	    newIn = in;
+
+	  if (newIn + segment > bufferSize) {
+	    len1 = bufferSize - newIn;
+	    len2 = segment - len1;
+	  }
+	  else {
+	    len1 = segment;
+	    len2 = 0;
+	  }
+        }
+
+	ret1 = inputStream.read(buffer, newIn, len1);
+	if (len2 > 0 && ret1 == len1)
+	  ret2 = inputStream.read(buffer, 0, len2);
+	else
+	  ret2 = 0;
+	  
+	if (ret1 < 0) {
+	  eos = true;
+	  System.out.println("writer EOS");
+	  break;
+	}
+	int ret;
+	if (ret2 <= 0) {
+	  ret = ret1;
+	}
+	else {
+	  ret = ret1 + ret2;
+	}
+
+	synchronized (this) {
+          received += ret;
+	  in = (newIn + ret) % bufferSize;
+
+	  checkFilled();
+
+	  if (readerBlocked)
+	    notify ();
+	}
       }
-      catch (InterruptedException ie) {
-        if (stopping)
-          return;
-        ie.printStackTrace();
-      }
-      if (stopping)
-        return;
-    }
-    if (in < 0) {
-      in = 0;
-      out = 0;
-      filled = 1;
-    }
-    else {
-      filled++;
-    }
-    buffer[in++] = (short) b;
-    if (in >= buffer.length) {
-      in = 0;
-    }
-    if (state == PreBufferNotify.STATE_BUFFER) {
-      if (isFilled()) {
-        state = PreBufferNotify.STATE_PLAYBACK;
-	if (notify != null)
-	  notify.preBufferNotify (state);
+      catch (Exception e) {
+        if (!stopping) {
+          e.printStackTrace();
+	  stopping = true;
+	}
       }
     }
-    if (readerBlocked)
-      notify();
+    System.out.println("exit preroll thread");
   }
 
-  public synchronized int read() {
-    /* buffer empty */
-    while ((state == PreBufferNotify.STATE_BUFFER  && in != out)|| in < 0) {
-      if (eos)
-        return -1;
-
-      try {
-        readerBlocked = true;
-	wait ();
-        readerBlocked = false;
-      }
-      catch (InterruptedException ie) {
-        if (stopping)
-          return -1;
-        ie.printStackTrace();
-      }
-      if (stopping)
-        return -1;
+  public int read() {
+    int ret = read (temp, 0, 1);
+    if (ret > 0) {
+      ret = (temp[0] + 256);   
     }
-    int ret = buffer[out++];
-
-    if (out >= buffer.length) {
-      out = 0;
-    }
-    if (in == out) {
-      in = -1;
-      filled = 0;
-    }
-    else {
-      filled--;
-    }
-    if (!eos && state == PreBufferNotify.STATE_PLAYBACK) {
-      if (isEmpty()) {
-        state = PreBufferNotify.STATE_BUFFER;
-	if (notify != null)
-	  notify.preBufferNotify (state);
-      }
-    }
-    if (writerBlocked)
-      notify();
-
-    consumed++;
-
     return ret;
   }
+
+  public int read(byte[] res, int offset, int len) {
+    int len2, len1;
+
+    synchronized (this) {
+      int avail = available();
+
+      if (eos) {
+        if (avail == 0) {
+	  System.out.println("reader EOS");
+	  return -1;
+	}
+        len = Math.min (avail, len);
+      }
+
+      while (avail < len) {
+        try {
+	  //System.out.println ("read: wait available "+avail+" need "+len);
+	  readerBlocked = true;
+          wait();
+	  readerBlocked = false;
+	  //System.out.println ("read: wait done available "+avail+" need "+len);
+	}
+	catch (InterruptedException ie) { }
+        avail = available();
+      }
+      /* split up copy if it crosses the buffer boundary */
+      if (out + len > bufferSize) {
+        len1 = bufferSize - out;
+	len2 = len - len1;
+      }
+      else {
+        len1 = len;
+	len2 = 0;
+      }
+    }
+
+    System.arraycopy (buffer, out, res, offset, len1);
+    if (len2 > 0)
+      System.arraycopy (buffer, 0, res, offset+len1, len2);
+
+    synchronized (this) {
+      out = (out + len) % bufferSize;
+
+      checkEmpty();
+
+      if (writerBlocked)
+        notify();
+      consumed += len;
+    }
+
+    return len;
+  }
+
+  public final void dumpStats()
+  {
+    System.out.println("buffer: [in:"+getReceived()+
+                      ", in-speed:"+getReceiveSpeed() +
+                      ", avail:"+available()+"/"+bufferSize+"]");
+  }
+
+/*
+  public static void main (String args[])
+  {
+    try {
+      boolean eos = false;
+      byte[] bytes = new byte[4096];
+
+      InputStream is = new FileInputStream ("/home/wim/data/cdda.ogg");
+      PreBuffer buf = new PreBuffer (is, 256*1024, 10, 80, null);
+
+      System.out.println("free: "+buf.free());
+
+      do {
+        eos = (buf.read (bytes, 0, 4096) == -1);
+	System.out.print(".");
+      } while (!eos);
+    }
+    catch (Exception e) {
+      e.printStackTrace();
+    }
+  }
+*/
 }

@@ -23,5 +23,7 @@ import java.awt.image.*;
 
 public interface ImageTarget {
   public Component getComponent();
-  public void setImageProducer (ImageProducer prod, double framerate, double aspect);
+  public void setImage (Object obj, double framerate, double aspect);
+  public void setImage (ImageProducer prod, double framerate, double aspect);
+  public void setImage (Image newImage, double framerate, double aspect);
 }

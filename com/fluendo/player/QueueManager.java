@@ -98,7 +98,7 @@ public class QueueManager {
     Object sync = syncs[id];
     Vector queue = queues[id];
     synchronized (sync) {
-      while (queue.size() > sizes[id]) {
+      while (queue.size() >= sizes[id]) {
 	//System.out.println("queue "+id+" filled");
 	writeWait[id] = true;
         sync.wait();
@@ -142,7 +142,7 @@ public class QueueManager {
   public static void dumpStats() {
     System.out.print("queues:");
     for (int i=0; i< numqueues; i++) {
-      System.out.print(" [id: "+i+" "+queues[i].size()+" "+sizes[i]+"]");
+      System.out.print(" [id:"+i+", size:"+queues[i].size()+", max:"+sizes[i]+"]");
     }
     System.out.println();
   }
