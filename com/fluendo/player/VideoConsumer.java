@@ -50,7 +50,12 @@ public class VideoConsumer implements DataConsumer, Runnable
     queueid = QueueManager.registerQueue(MAX_BUFFER);
     System.out.println("video on queue "+queueid);
     clock = newClock;
-    frameperiod = 1000.0 / framerate;
+    if (framerate > 0) {
+      frameperiod = 1000.0 / framerate;
+    }
+    else {
+      frameperiod = -1;
+    }
   }
 
   public void setPlugin(Plugin pl) {
@@ -91,12 +96,22 @@ public class VideoConsumer implements DataConsumer, Runnable
   private void handleDisplay (MediaBuffer buf)
   {
     Image image = (Image) buf.object;
-    long timestamp = buf.timestamp;
-    if (timestamp == -1) {
-      timestamp = (long) (framenr * frameperiod);
-    }
     try {
-      if (clock.waitForMediaTime((long) (timestamp))) {
+      if (frameperiod > 0) {
+        long timestamp = buf.timestamp;
+        if (timestamp == -1) {
+          timestamp = (long) (framenr * frameperiod);
+        }
+        if (clock.waitForMediaTime((long) (timestamp))) {
+	  //System.out.println("set image "+timestamp);
+          target.setImage(image, framerate, aspect);
+        }
+	else {
+	  //System.out.println("skip image "+timestamp);
+	}
+      }
+      else {
+        //System.out.println("set image");
         target.setImage(image, framerate, aspect);
       }
     }
