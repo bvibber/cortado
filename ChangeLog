@@ -1,5 +1,10 @@
 2004-11-19  Thomas Vander Stichele  <thomas at apestaart dot org>
 
+	* com/fluendo/player/Cortado.java:
+	  fix compiler warning
+
+2004-11-19  Thomas Vander Stichele  <thomas at apestaart dot org>
+
 	* build.xml:
 	  allow excluding functionality with -Dexclude=(which,...)
 

@@ -165,7 +165,7 @@ public class Cortado extends Applet implements ImageTarget,
 
         status.setBufferPercent(percent);
 
-        Thread.currentThread().sleep(500);
+        Thread.sleep(500);
       }
       catch (Exception e) {
         if (!stopping)
