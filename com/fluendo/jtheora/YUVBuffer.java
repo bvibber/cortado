@@ -60,6 +60,7 @@ public class YUVBuffer
 
     MemoryImageSource source =
       new MemoryImageSource (width, height, pixels, 0, width);
+    pix_size = 0;
 
     return toolkit.createImage (source);
   }
@@ -115,8 +116,7 @@ public class YUVBuffer
     int UFactor;
     int VFactor;
     int YVal;
-    int RVal;
-    int BVal;
+    int GFactor;
 
     // Set up starting values for YUV pointers
     int YPtr = y_offset + x + y*(y_stride);
@@ -138,31 +138,29 @@ public class YUVBuffer
 	UFactor = data[UPtr++] - 128;
 	VFactor = data[VPtr++] - 128;
 
-	RVal = UFactor * CR_DIFF_FAC;
-	BVal = VFactor * CB_DIFF_FAC;
+	GFactor = UFactor * CR_DIFF_FAC + VFactor * CB_DIFF_FAC - (VAL_RANGE<<SHIFT);
+	UFactor = UFactor * CR_FAC + (VAL_RANGE<<SHIFT);
+	VFactor = VFactor * CB_FAC + (VAL_RANGE<<SHIFT);
 
-	UFactor *= CR_FAC;
-	VFactor *= CB_FAC;
-
-	YVal = (data[YPtr] + VAL_RANGE) << SHIFT;
+	YVal = data[YPtr] << SHIFT;
         pixels[RGBPtr] = r_tab[(YVal + VFactor)>>SHIFT] |
                          b_tab[(YVal + UFactor)>>SHIFT] |
-                         g_tab[(YVal - RVal - BVal)>>SHIFT];
+                         g_tab[(YVal - GFactor)>>SHIFT];
 
-	YVal = (data[YPtr+1] + VAL_RANGE) << SHIFT;
+	YVal = data[YPtr+1] << SHIFT;
         pixels[RGBPtr+1] = r_tab[(YVal + VFactor)>>SHIFT] |
                            b_tab[(YVal + UFactor)>>SHIFT] |
-                           g_tab[(YVal - RVal - BVal)>>SHIFT];
+                           g_tab[(YVal - GFactor)>>SHIFT];
 
-	YVal = (data[YPtr2] + VAL_RANGE) << SHIFT;
+	YVal = data[YPtr2] << SHIFT;
         pixels[RGBPtr2] = r_tab[(YVal + VFactor)>>SHIFT] |
                           b_tab[(YVal + UFactor)>>SHIFT] |
-                          g_tab[(YVal - RVal - BVal)>>SHIFT];
+                          g_tab[(YVal - GFactor)>>SHIFT];
 
-	YVal = (data[YPtr2+1] + VAL_RANGE) << SHIFT;
+	YVal = data[YPtr2+1] << SHIFT;
         pixels[RGBPtr2+1] = r_tab[(YVal + VFactor)>>SHIFT] |
                             b_tab[(YVal + UFactor)>>SHIFT] |
-                            g_tab[(YVal - RVal - BVal)>>SHIFT];
+                            g_tab[(YVal - GFactor)>>SHIFT];
 	YPtr+=2;
 	YPtr2+=2;
 	RGBPtr+=2;
@@ -179,8 +177,10 @@ public class YUVBuffer
     }
   }
 
-  private static int Clamp255(double x) {
-    return (int) ((x) < 0 ? 0 : ((x) <= 255 ? (x) : 255));
+  private static final short clamp255(int val) {
+    val -= 255;
+    val = -(255+((val>>(31))&val));
+    return (short) -((val>>31)&val);
   }
 
   private static void SetupRgbYuvAccelerators ()
@@ -188,9 +188,9 @@ public class YUVBuffer
     int i;
 
     for( i = 0; i < VAL_RANGE * 3; i++) {
-      r_tab[i] = Clamp255(i-VAL_RANGE) << 16;
-      g_tab[i] = Clamp255(i-VAL_RANGE) << 8;
-      b_tab[i] = Clamp255(i-VAL_RANGE) | 0xff000000;
+      r_tab[i] = clamp255(i-VAL_RANGE) << 16;
+      g_tab[i] = clamp255(i-VAL_RANGE) << 8;
+      b_tab[i] = clamp255(i-VAL_RANGE) | 0xff000000;
     }
   }
 }
