@@ -1,4 +1,4 @@
-VERSION = 0.0.1
+VERSION = 0.0.1.1
 
 configure:
 	@./gen-Configure "Built using make."
