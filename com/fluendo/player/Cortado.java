@@ -56,7 +56,7 @@ public class Cortado extends Applet implements ImageTarget, PreBufferNotify, Run
   private Status status;
 
   /* Prebuffer in K */
-  private int bufferSize = 100;
+  private int bufferSize = 200;
   
   public void init() {
 
@@ -90,6 +90,9 @@ public class Cortado extends Applet implements ImageTarget, PreBufferNotify, Run
   }
   public void setLocal (boolean local) {
     this.local = local;
+  }
+  public void setFramerate (double framerate) {
+    this.framerate = framerate;
   }
 
   public void update(Graphics g) {
@@ -229,7 +232,10 @@ public class Cortado extends Applet implements ImageTarget, PreBufferNotify, Run
     }
   }
 
-  public void start() {
+  public void start() 
+  {
+    Plugin plugin = null;
+
     status.setMessage("Opening "+urlString+"...");
     repaint();
     //System.out.println("entering the start method");
@@ -249,6 +255,13 @@ public class Cortado extends Applet implements ImageTarget, PreBufferNotify, Run
 	  String encoding = Base64Converter.encode (userPassword.getBytes());
 	  uc.setRequestProperty ("Authorization", "Basic " + encoding);
 	}
+	String mime = uc.getContentType();
+	int extraPos = mime.indexOf(';');
+        if (extraPos != -1) {
+	  mime = mime.substring(0, extraPos);
+	}
+	System.out.println ("got stream mime: "+mime);
+	plugin = Plugin.makeByMime(mime);
         is = uc.getInputStream();
         System.out.println("opened "+url);
       }
@@ -279,7 +292,10 @@ public class Cortado extends Applet implements ImageTarget, PreBufferNotify, Run
 
     System.out.println("creating main thread");
     preBuffer = new PreBuffer (is, 1024 * bufferSize, this);
-    demuxer = new Demuxer(preBuffer, this, audioConsumer, videoConsumer);
+    if (plugin == null) {
+      plugin = Plugin.makeByMime("application/ogg");
+    }
+    demuxer = new Demuxer(preBuffer, plugin, this, audioConsumer, videoConsumer);
     mainThread = new Thread(demuxer);
 
     new Thread(this).start();

@@ -61,6 +61,10 @@ public class OggPlugin extends Plugin
     super(Plugin.TYPE_DEMUX);
   }
 
+  public String getMime ()
+  {
+    return "application/ogg";
+  }
   public int typeFind (byte[] data, int offset, int length)
   {
     return Plugin.RANK_NONE;
@@ -138,7 +142,7 @@ public class OggPlugin extends Plugin
 	    if (stream.bos) {
 	      Plugin plugin;
 
-	      plugin = Plugin.make(op.packet_base, op.packet, op.bytes);
+	      plugin = Plugin.makeTypeFind(op.packet_base, op.packet, op.bytes);
 	      if (plugin != null) {
 	        plugin.initDecoder(component);
 	        if (plugin.type == Plugin.TYPE_AUDIO) {

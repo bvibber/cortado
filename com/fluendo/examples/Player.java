@@ -33,6 +33,7 @@ public class Player {
     f.setSize(f.getInsets().left+f.getInsets().right+384,f.getInsets().top+f.getInsets().bottom+268);
 
     c.init();
+    c.setFramerate(5.0);
     c.setUrl (args[0]);
     c.setLocal (false);
     c.start();

@@ -28,6 +28,10 @@ public class MulawPlugin extends Plugin
     super(Plugin.TYPE_AUDIO);
   }
 
+  public String getMime ()
+  {
+    return "audio/x-mulaw";
+  }
   public int typeFind (byte[] data, int offset, int length)
   {
     return Plugin.RANK_NONE;

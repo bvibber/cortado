@@ -61,6 +61,10 @@ public class VorbisPlugin extends Plugin
     super(Plugin.TYPE_AUDIO);
   }
 
+  public String getMime ()
+  {
+    return "audio/vorbis";
+  }
   public int typeFind (byte[] data, int offset, int length)
   {
     if (data[offset+1] == 0x76) {

@@ -32,15 +32,14 @@ public class Demuxer implements Runnable
 
   private boolean stopping;
 
-  public Demuxer (InputStream is, Component comp, AudioConsumer ac, VideoConsumer vc) {
+  public Demuxer (InputStream is, Plugin pl, Component comp, AudioConsumer ac, VideoConsumer vc) {
     inputStream = is;
     audioConsumer = ac;
     videoConsumer = vc;
     component = comp;
     stopping = false;
-
-    plugin = new OggPlugin();
-    plugin.initDemuxer (is, comp, ac, vc);
+    plugin = pl;
+    pl.initDemuxer (is, comp, ac, vc);
   }
 
   public void run() {
@@ -48,7 +47,7 @@ public class Demuxer implements Runnable
 
     try {
       while (!stopping) {
-        plugin.demux();
+        stopping = plugin.demux();
       }
     }
     catch (Exception e) {

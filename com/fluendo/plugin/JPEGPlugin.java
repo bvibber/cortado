@@ -32,6 +32,10 @@ public class JPEGPlugin extends Plugin
     super(Plugin.TYPE_VIDEO);
   }
 
+  public String getMime ()
+  {
+    return "image/jpeg";
+  }
   public int typeFind (byte[] data, int offset, int length)
   {
     return Plugin.RANK_NONE;

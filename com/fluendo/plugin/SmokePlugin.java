@@ -34,6 +34,10 @@ public class SmokePlugin extends Plugin
     super(Plugin.TYPE_VIDEO);
   }
 
+  public String getMime ()
+  {
+    return "video/x-smoke";
+  }
   public int typeFind (byte[] data, int offset, int length)
   {
     if (data[offset+1] == 0x73) {

@@ -87,11 +87,24 @@ public abstract class Plugin
   public Plugin(int t) {
     type = t;
   }
+  private static final Plugin dup (Plugin plugin) {
+    Plugin result = null;
 
-  public static final Plugin make(byte[] data, int offset, int length)
+    Class cl = plugin.getClass();
+    try {
+      result = (Plugin) cl.newInstance();
+      System.out.println("create plugin: "+plugin);
+    }
+    catch (Exception e) {
+      e.printStackTrace();
+    }
+    return result;
+  }
+
+  public static final Plugin makeTypeFind(byte[] data, int offset, int length)
   {
-    int best = 0;
-    Plugin bestPlugin = null;
+    int best = -1;
+    Plugin result = null;
 
     for (Enumeration e = plugins.elements(); e.hasMoreElements();) {
       Plugin plugin = (Plugin) e.nextElement();
@@ -99,23 +112,31 @@ public abstract class Plugin
       int rank = plugin.typeFind (data, offset, length);
       if (rank > best) {
         best = rank;
-	bestPlugin = plugin;
+	result = plugin;
       }
     }
-    if (bestPlugin != null) {
-      Class cl = bestPlugin.getClass();
-      
-      try {
-        bestPlugin = (Plugin) cl.newInstance();
-	System.out.println("create plugin: "+bestPlugin);
-      }
-      catch (Exception e) {
-        e.printStackTrace();
-      }
+    if (result != null) {
+      result = dup (result);
     }
-    return bestPlugin;
+    return result;
   }
 
+  public static final Plugin makeByMime(String mime)
+  {
+    Plugin result = null;
+
+    for (Enumeration e = plugins.elements(); e.hasMoreElements();) {
+      Plugin plugin = (Plugin) e.nextElement();
+
+      if (mime.equals(plugin.getMime())) {
+        result = dup (plugin);
+        break;
+      }
+    }
+    return result;
+  }
+
+  public abstract String getMime ();
   public abstract int typeFind (byte[] data, int offset, int length);
 
   public void initDecoder(Component comp)

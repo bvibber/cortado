@@ -40,6 +40,10 @@ public class TheoraPlugin extends Plugin
     super(Plugin.TYPE_VIDEO);
   }
 
+  public String getMime ()
+  {
+    return "video/x-theora";
+  }
   public int typeFind (byte[] data, int offset, int length)
   {
     if (data[offset+1] == 0x74) {
