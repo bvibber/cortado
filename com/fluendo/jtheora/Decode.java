@@ -265,8 +265,7 @@ public final class Decode {
   private void decodeMVectors ( Playback pbi,
                              int SBRows,
                              int SBCols ){
-    long ret;
-    int   FragIndex;
+    int  FragIndex;
     int  MB;
     int  SBrow;
     int  SBcol;
@@ -295,8 +294,7 @@ public final class Decode {
     PriorLastInterMV.y = 0;
 
     /* Read the entropy method used and set up the appropriate decode option */
-    ret = opb.readB( 1);  
-    if ( ret == 0 )
+    if (opb.readB(1) == 0 )
       MVC = MVA;
     else
       MVC = MVB;
@@ -500,22 +498,14 @@ public final class Decode {
   }
 
   private void unPackVideo (Playback pbi){
-    long ret;
     int       EncodedCoeffs = 1;
     int       FragIndex;
-    int       cbl;
-    int       cble;
 
-    int     AcHuffIndex1;
-    int     AcHuffIndex2;
     int     AcHuffChoice;
     int     AcHuffChoice1;
     int     AcHuffChoice2;
 
     int     DcHuffChoice;
-    int     DcHuffChoice1;
-    int     DcHuffChoice2;
-
 
     /* Bail out immediately if a decode error has already been reported. */
     if ( pbi.DecoderErrorCode != 0) 
@@ -533,12 +523,12 @@ public final class Decode {
     BlocksToDecode = pbi.CodedBlockIndex;
 
     /* Get the DC huffman table choice for Y and then UV */
-    DcHuffChoice1 = (int)(pbi.opb.readB(Huffman.DC_HUFF_CHOICE_BITS) + Huffman.DC_HUFF_OFFSET);
-    DcHuffChoice2 = (int)(pbi.opb.readB(Huffman.DC_HUFF_CHOICE_BITS) + Huffman.DC_HUFF_OFFSET);
+    int DcHuffChoice1 = (int)(pbi.opb.readB(Huffman.DC_HUFF_CHOICE_BITS) + Huffman.DC_HUFF_OFFSET);
+    int DcHuffChoice2 = (int)(pbi.opb.readB(Huffman.DC_HUFF_CHOICE_BITS) + Huffman.DC_HUFF_OFFSET);
 
     /* UnPack DC coefficients / tokens */
-    cbl = 0;
-    cble = pbi.CodedBlockIndex;
+    int cbl = 0;
+    int cble = pbi.CodedBlockIndex;
     while (cbl < cble) {
       /* Get the block data index */
       FragIndex = pbi.CodedBlockList[cbl];
@@ -570,8 +560,8 @@ public final class Decode {
     }
 
     /* Get the AC huffman table choice for Y and then for UV. */
-    AcHuffIndex1 = (int) (pbi.opb.readB(Huffman.AC_HUFF_CHOICE_BITS) + Huffman.AC_HUFF_OFFSET);
-    AcHuffIndex2 = (int) (pbi.opb.readB(Huffman.AC_HUFF_CHOICE_BITS) + Huffman.AC_HUFF_OFFSET);
+    int AcHuffIndex1 = (int) (pbi.opb.readB(Huffman.AC_HUFF_CHOICE_BITS) + Huffman.AC_HUFF_OFFSET);
+    int AcHuffIndex2 = (int) (pbi.opb.readB(Huffman.AC_HUFF_CHOICE_BITS) + Huffman.AC_HUFF_OFFSET);
 
     /* Unpack Lower AC coefficients. */
     while ( EncodedCoeffs < 64 ) {

@@ -86,10 +86,11 @@ public class DCTDecode
   private short[] ReconDataBuffer = new short[64];
   /* value left value up-left, value up, value up-right, missing
       values skipped. */
-  int[] v = new int[4];
+  private int[] v = new int[4];
   /* fragment number left, up-left, up, up-right */
-  int[] fn = new int[4];
-  short[] Last = new short[3];
+  private int[] fn = new int[4];
+  private short[] Last = new short[3];
+  private iDCT idct = new iDCT();
 
   private void ExpandKFBlock ( Playback pbi, int FragmentNumber ){
     int ReconPixelsPerLine;
@@ -111,13 +112,13 @@ public class DCTDecode
     /* Invert quantisation and DCT to get pixel data. */
     switch(pbi.FragCoefEOB[FragmentNumber]){
     case 0:case 1:
-      iDCT.IDct1(quantized_list, dequant_coeffs, ReconDataBuffer );
+      idct.IDct1(quantized_list, dequant_coeffs, ReconDataBuffer );
       break;
     case 2: case 3:case 4:case 5:case 6:case 7:case 8: case 9:case 10:
-      iDCT.IDct10(quantized_list, dequant_coeffs, ReconDataBuffer );
+      idct.IDct10(quantized_list, dequant_coeffs, ReconDataBuffer );
       break;
     default:
-      iDCT.IDctSlow(quantized_list, dequant_coeffs, ReconDataBuffer );
+      idct.IDctSlow(quantized_list, dequant_coeffs, ReconDataBuffer );
     }
 
     /* Convert fragment number to a pixel offset in a reconstruction buffer. */
@@ -179,13 +180,13 @@ public class DCTDecode
     /* Invert quantisation and DCT to get pixel data. */
     switch(pbi.FragCoefEOB[FragmentNumber]){
     case 0:case 1:
-      iDCT.IDct1(quantized_list, dequant_coeffs, ReconDataBuffer );
+      idct.IDct1(quantized_list, dequant_coeffs, ReconDataBuffer );
       break;
     case 2: case 3:case 4:case 5:case 6:case 7:case 8: case 9:case 10:
-      iDCT.IDct10(quantized_list, dequant_coeffs, ReconDataBuffer );
+      idct.IDct10(quantized_list, dequant_coeffs, ReconDataBuffer );
       break;
     default:
-      iDCT.IDctSlow(quantized_list, dequant_coeffs, ReconDataBuffer );
+      idct.IDctSlow(quantized_list, dequant_coeffs, ReconDataBuffer );
     }
   
     /* Convert fragment number to a pixel offset in a reconstruction buffer. */
@@ -204,31 +205,34 @@ public class DCTDecode
     }else if (ModeUsesMC[pbi.codingMode.getValue()] != 0) {
       /* The mode uses a motion vector. */
       /* Get vector from list */
-      MotionVector MVector = pbi.FragMVect[FragmentNumber];
-
+      int dir;
+      
       /* Work out the base motion vector offset and the 1/2 pixel offset
          if any.  For the U and V planes the MV specifies 1/4 pixel
          accuracy. This is adjusted to 1/2 pixel as follows ( 0.0,
          1/4->1/2, 1/2->1/2, 3/4->1/2 ). */
       ReconPtr2Offset = 0;
       MVOffset = 0;
-      if (MVector.x > 0) {
-        MVOffset = MVector.x >> MvShift;
-        if ((MVector.x & MvModMask) != 0 )
+
+      dir = pbi.FragMVect[FragmentNumber].x;
+      if (dir > 0) {
+        MVOffset = dir >> MvShift;
+        if ((dir & MvModMask) != 0 )
           ReconPtr2Offset = 1;
-      } else if (MVector.x < 0) {
-        MVOffset = -((-MVector.x) >> MvShift);
-        if (((-MVector.x) & MvModMask) != 0 )
+      } else if (dir < 0) {
+        MVOffset = -((-dir) >> MvShift);
+        if (((-dir) & MvModMask) != 0 )
           ReconPtr2Offset = -1;
       }
 
-      if ( MVector.y > 0 ){
-        MVOffset += (MVector.y >>  MvShift) * ReconPixelsPerLine;
-        if ((MVector.y & MvModMask) != 0 )
+      dir = pbi.FragMVect[FragmentNumber].y;
+      if ( dir > 0 ){
+        MVOffset += (dir >>  MvShift) * ReconPixelsPerLine;
+        if ((dir & MvModMask) != 0 )
           ReconPtr2Offset += ReconPixelsPerLine;
-      } else if ( MVector.y < 0 ){
-        MVOffset -= ((-MVector.y) >> MvShift) * ReconPixelsPerLine;
-        if (((-MVector.y) & MvModMask) != 0 )
+      } else if (dir < 0 ){
+        MVOffset -= ((-dir) >> MvShift) * ReconPixelsPerLine;
+        if (((-dir) & MvModMask) != 0 )
           ReconPtr2Offset -= ReconPixelsPerLine;
       }
 
@@ -564,11 +568,9 @@ public class DCTDecode
   
         /* Extra bit determines sign */
         if ( ExtraBits != 0)
-          ExpandedBlock[CoeffIndex[FragIndex]] = (short)
-            -((short)(Token + Huffman.DCT_VAL_CAT2_MIN));
+          ExpandedBlock[CoeffIndex[FragIndex]] = (short)-(Token + Huffman.DCT_VAL_CAT2_MIN);
         else
-          ExpandedBlock[CoeffIndex[FragIndex]] =
-            (short)(Token + Huffman.DCT_VAL_CAT2_MIN);
+          ExpandedBlock[CoeffIndex[FragIndex]] = (short) (Token + Huffman.DCT_VAL_CAT2_MIN);
       } else if ( Token == Huffman.DCT_VAL_CATEGORY3 ) {
         /* Bit 1 determines sign, Bit 0 the value */
         if ((ExtraBits & 0x02) != 0 )
