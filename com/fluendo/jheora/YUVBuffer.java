@@ -44,8 +44,8 @@ public class YUVBuffer
 
   private int[] pixels;
   private int pix_size;
-  MemoryImageSource source;
-  Image image;
+  private MemoryImageSource source;
+  private Image image;
 
   private void prepareRGBData (int x, int y, int width, int height)
   {
@@ -55,6 +55,8 @@ public class YUVBuffer
       pix_size = size;
       source = new MemoryImageSource (width, height, pixels, 0, width);
       source.setAnimated(true);
+      source.setFullBufferUpdates(true);
+      System.out.println("created image source");
     }
     YUVtoRGB(x, y, width, height);
   }

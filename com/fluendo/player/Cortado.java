@@ -46,6 +46,7 @@ public class Cortado extends Applet implements ImageTarget
   private Object tick;
   private long startTime;
   private boolean keepAspect = true;
+  private InputStream is;
   
   public void init() {
 
@@ -76,10 +77,7 @@ public class Cortado extends Applet implements ImageTarget
   }
 
   public void update(Graphics g) {
-    Image i = createImage(getSize().width, getSize().height );
-    Graphics gr = i.getGraphics();
-    paint(gr);
-    g.drawImage(i,0,0, this); 
+    paint(g);
   }
 
   public void paint(Graphics g) {
@@ -88,9 +86,12 @@ public class Cortado extends Applet implements ImageTarget
       int width = d.width;
       int height = d.height;
 
+      /* need to get the image dimension or else the image
+         will not draw for some reason */
+      int imgW = image.getWidth(this);
+      int imgH = image.getHeight(this);
+
       if (keepAspect) {
-        int imgW = image.getWidth(this);
-        int imgH = image.getHeight(this);
 	double aspectSrc = (((double)imgW) / imgH) * aspect;
 
 	height = (int) (width / aspectSrc);
@@ -99,15 +100,16 @@ public class Cortado extends Applet implements ImageTarget
 	  width = (int) (height * aspectSrc);
 	}
       }
-
       int x = (d.width - width) / 2;
       int y = (d.height - height) / 2;
 
+      //System.out.println("draw image "+image);
       g.drawImage(image, x, y, width, height, null);
     }
   }
 
   public void setImage(Image newImage, double framerate, double aspect) {
+    //System.out.println("set image "+newImage);
     if (image != newImage) {
       image = newImage;
       this.framerate = framerate;
@@ -121,8 +123,6 @@ public class Cortado extends Applet implements ImageTarget
   }
 
   public void start() {
-    InputStream is;
-
     //System.out.println("entering the start method");
     try {
       if (local) {
@@ -162,7 +162,6 @@ public class Cortado extends Applet implements ImageTarget
       audioConsumer = new AudioConsumer(clock);
       audioThread = new Thread(audioConsumer);
     }
-
 
     System.out.println("creating main thread");
     reader = new OggReader(is, audioConsumer, videoConsumer);
@@ -225,6 +224,7 @@ public class Cortado extends Applet implements ImageTarget
   public void stop() {
     reader.stop();
     try {
+      is.close();
       if (video)
         videoConsumer.stop();
       if (audio)
