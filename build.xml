@@ -1,7 +1,8 @@
 <project name="cortado" default="dist" basedir=".">
     <description>
-        simple example build file
+Cortado ANT build file
     </description>
+
   <!-- set global properties for this build -->
   <property name="src" location="com"/>
   <property name="build" location="build"/>
@@ -16,6 +17,11 @@
   <property name="libdir"      location="${exec_prefix}/lib" />
   <property name="datadir"     location="${prefix}/share" />
 
+  <!-- read a file containing properties for plugins to build -->
+<!--
+  <property file="plugins.properties" />
+-->
+
   <target name="init">
     <!-- Create the time stamp -->
     <tstamp/>
@@ -23,13 +29,131 @@
     <mkdir dir="${build}"/>
   </target>
 
+<!-- generate Configure-time options class -->
   <target name="configure">
     <exec dir="${basedir}" executable="./gen-Configure">
       <arg line="Built using ant." />
     </exec>
   </target>
 
-  <target name="compile" depends="compile-jikes,configure" />
+<!-- prepare plugin.*.true variables  by parsing the exclude property-->
+  <target name="plugins">
+    <condition property="plugin.JPEG.false">
+      <contains string="${exclude}" substring="JPEG" casesensitive="false" />
+    </condition>
+    <condition property="plugin.Mulaw.false">
+      <contains string="${exclude}" substring="Mulaw" casesensitive="false" />
+    </condition>
+    <condition property="plugin.MultiPart.false">
+      <contains string="${exclude}" substring="MultiPart" casesensitive="false" />
+    </condition>
+    <condition property="plugin.Ogg.false">
+      <contains string="${exclude}" substring="Ogg" casesensitive="false" />
+    </condition>
+    <condition property="plugin.Smoke.false">
+      <contains string="${exclude}" substring="Smoke" casesensitive="false" />
+    </condition>
+    <condition property="plugin.Theora.false">
+      <contains string="${exclude}" substring="Theora" casesensitive="false" />
+    </condition>
+    <condition property="plugin.Vorbis.false">
+      <contains string="${exclude}" substring="Vorbis" casesensitive="false" />
+    </condition>
+   </target>
+
+<!-- generate includes and plugins.ini -->
+  <target name="includes"
+          depends="plugins,includes-delete,include-JPEG,include-Mulaw,include-MultiPart,include-Ogg,include-Smoke,include-Theora,include-Vorbis">
+    <echo>Generating ${build}/includes</echo>
+  </target>
+
+  <target name="includes-delete">
+    <delete file="${build}/includes" />
+    <echo file="${build}/includes" append="true"
+>fluendo/player/*
+fluendo/utils/*
+</echo>
+    <delete file="${build}/plugins.ini" />
+    <touch file="${build}/plugins.ini" />
+
+  </target>
+
+  <target name="include-JPEG" unless="plugin.JPEG.false">
+    <echo>Including JPEG</echo>
+    <echo file="${build}/includes" append="true"
+>fluendo/plugin/JPEG*
+</echo>
+    <echo file="${build}/plugins.ini" append="true"
+>com.fluendo.plugin.JPEGPlugin
+</echo>
+  </target>
+
+  <target name="include-Mulaw" unless="plugin.Mulaw.false">
+    <echo>Including Mulaw</echo>
+    <echo file="${build}/includes" append="true"
+>fluendo/plugin/Mulaw*
+</echo>
+    <echo file="${build}/plugins.ini" append="true"
+>com.fluendo.plugin.MulawPlugin
+</echo>
+  </target>
+
+  <target name="include-MultiPart" unless="plugin.MultiPart.false">
+    <echo>Including MultiPart</echo>
+    <echo file="${build}/includes" append="true"
+>fluendo/plugin/MultiPart*
+</echo>
+    <echo file="${build}/plugins.ini" append="true"
+>com.fluendo.plugin.MultiPartPlugin
+</echo>
+  </target>
+
+  <target name="include-Ogg" unless="plugin.Ogg.false">
+    <echo>Including Ogg</echo>
+    <echo file="${build}/includes" append="true"
+>jcraft/ogg/*
+fluendo/plugin/Ogg*
+</echo>
+    <echo file="${build}/plugins.ini" append="true"
+>com.fluendo.plugin.OggPlugin
+</echo>
+  </target>
+
+  <target name="include-Smoke" unless="plugin.Smoke.false">
+    <echo>Including Smoke</echo>
+    <echo file="${build}/includes" append="true"
+>fluendo/codecs/Smoke*
+fluendo/plugin/Smoke*
+</echo>
+    <echo file="${build}/plugins.ini" append="true"
+>com.fluendo.plugin.SmokePlugin
+</echo>
+  </target>
+
+  <target name="include-Theora" unless="plugin.Theora.false">
+    <echo>Including Theora</echo>
+    <echo file="${build}/includes" append="true"
+>fluendo/jheora/*
+fluendo/plugin/Theora*
+</echo>
+    <echo file="${build}/plugins.ini" append="true"
+>com.fluendo.plugin.TheoraPlugin
+</echo>
+  </target>
+
+  <target name="include-Vorbis" unless="plugin.Vorbis.false">
+    <echo>Including Vorbis</echo>
+    <echo file="${build}/includes" append="true"
+>jcraft/jorbis/*
+fluendo/plugin/Vorbis*
+</echo>
+    <echo file="${build}/plugins.ini" append="true"
+>com.fluendo.plugin.VorbisPlugin
+</echo>
+  </target>
+
+<!-- compilation steps -->
+  <target name="compile" depends="compile-jikes,configure,includes" />
 
 <!-- sun java build -->
   <target name="compile-sun" depends="init"
@@ -40,12 +164,13 @@
     <javac 
            classpath="stubs"
            srcdir="${src}" destdir="${build}" 
-           target="1.1" />
+           target="1.1"
+           includesfile="${build}/includes" />
   </target>
 
  
 <!-- jikes build -->
-  <target name="compile-jikes" depends="init"
+  <target name="compile-jikes" depends="init,includes"
         description="compile the source " >
     <!-- Compile the java code from ${src} into ${build} -->
     <!-- using our stubs as classpath, and with a 1.1 target -->
@@ -54,7 +179,9 @@
            compiler="jikes" 
            classpath="stubs"
            srcdir="${src}" destdir="${build}" 
+           includesfile="${build}/includes"
            target="1.1">
+      <!-- for some reason jikes ignores the target given above this -->
       <compilerarg line="-target 1.1" />
     </javac>
   </target>
@@ -66,7 +193,18 @@
     </copy>
   </target>
 
-  <target name="jar" depends="compile,ini"
+<!-- clean out unwanted plugins -->
+  <target name="testcheck" if="test">
+    <condition property="testyes">
+      <equals arg1="${test}" arg2="yes" />
+    </condition>
+  </target>
+
+  <target name="test" if="testyes" depends="testcheck">
+    <echo>${test}</echo>
+  </target>
+
+  <target name="jar" depends="clean,compile,ini"
         description="generate the jar file">
     <!-- Create the distribution directory -->
     <mkdir dir="${dist}/applet"/>

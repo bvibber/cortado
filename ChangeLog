@@ -1,5 +1,10 @@
 2004-11-19  Thomas Vander Stichele  <thomas at apestaart dot org>
 
+	* build.xml:
+	  allow excluding functionality with -Dexclude=(which,...)
+
+2004-11-19  Thomas Vander Stichele  <thomas at apestaart dot org>
+
 	reviewed by: Wim Taymans
 
 	* com/fluendo/player/Cortado.java:
