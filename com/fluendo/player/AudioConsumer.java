@@ -30,11 +30,9 @@ public class AudioConsumer implements Runnable, DataConsumer
   private AudioStream as;
   private boolean ready;
   private Clock clock;
-  private static final int MAX_BUFFER = 20;
+  private static final int MAX_BUFFER = 10000;
   private boolean stopping = false;
-  private long start;
-  private long prev;
-  private static final long DEVICE_BUFFER_TIME = 2 * 1024 / 8;
+  private static final long DEVICE_BUFFER_TIME = 8 * 1024 / 8;
   private Plugin plugin;
 
   /* muLaw header */
@@ -166,9 +164,7 @@ public class AudioConsumer implements Runnable, DataConsumer
   public void run() {
     try {
       System.out.println("entering audio thread");
-      start = System.currentTimeMillis();
       as = new AudioStream(new MyIS());
-      start = System.currentTimeMillis();
       AudioPlayer.player.start(as);
       System.out.println("exit audio thread");
     }

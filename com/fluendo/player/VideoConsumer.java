@@ -31,13 +31,11 @@ public class VideoConsumer implements DataConsumer, Runnable
   private int framenr;
   private Clock clock;
   private boolean ready;
-  //private static final int MAX_BUFFER = 1;
-  private static final int MAX_BUFFER = 20;
+  private static final int MAX_BUFFER = 50;
   private double framerate;
   private double frameperiod;
   private double aspect = 1.;
   private boolean stopping = false;
-  private double avgratio;
   private Plugin plugin;
 
   public VideoConsumer(Clock newClock, ImageTarget target, double framerate) {
@@ -93,11 +91,11 @@ public class VideoConsumer implements DataConsumer, Runnable
 
       Image image = plugin.decodeVideo (imgData, 0, imgData.length);
       if (plugin.fps_numerator > 0) {
-        double framerate = plugin.fps_numerator/(double)plugin.fps_denominator;
+        double fps = plugin.fps_numerator/(double)plugin.fps_denominator;
 
-        if (framerate != this.framerate) {
-          this.framerate = framerate;
-          frameperiod = 1000.0 / framerate;
+        if (fps != framerate) {
+          framerate = fps;
+          frameperiod = 1000.0 / fps;
           System.out.println("frameperiod: "+frameperiod);
 	}
       }
@@ -117,7 +115,7 @@ public class VideoConsumer implements DataConsumer, Runnable
 	  }
 	}
 	else {
-	  //System.out.println("wait for "+(framenr * frameperiod));
+	  //System.out.println("wait for "+framenr+" "+(framenr * frameperiod));
 	  clock.waitForMediaTime((long) (framenr * frameperiod));
 	}
       }

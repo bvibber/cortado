@@ -34,11 +34,11 @@ public class Clock {
   }
 
   public synchronized void play() {
-    long now;
-    long gap;
-    long media;
-
     if (paused) {
+      long now;
+      long gap;
+      long media;
+      
       now = System.currentTimeMillis();
       if (startTime == 0) {
         startTime = now;
@@ -62,11 +62,13 @@ public class Clock {
   }
 
   public synchronized void updateAdjust(long newAdjust) {
+    //System.out.println("clock update adjust "+newAdjust);
     adjust += newAdjust;
     notifyAll();
   }
 
   public synchronized void setAdjust(long newAdjust) {
+    //System.out.println("clock set adjust "+newAdjust);
     adjust = newAdjust;
     notifyAll();
   }
@@ -88,8 +90,10 @@ public class Clock {
     while (true) {
       now = getMediaTime();
       interval = time - now;
-      if (interval <= 0)
+      if (interval <= 0) {
+        //System.out.println("shortcut now="+now+" time="+time+" interval="+interval);
         break;
+      }
 
       synchronized (this) {
         //System.out.print("waiting now="+now+" time="+time+" interval="+interval+"...");

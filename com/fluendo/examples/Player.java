@@ -29,13 +29,13 @@ public class Player {
     Frame f = new Frame();
 
     f.add(c);
-    f.show();
     f.setSize(f.getInsets().left+f.getInsets().right+384,f.getInsets().top+f.getInsets().bottom+268);
+    f.show();
 
+    c.setParam("framerate", "5.0");
+    c.setParam("url", args[0]);
+    c.setParam("local", "false");
     c.init();
-    c.setFramerate(5.0);
-    c.setUrl (args[0]);
-    c.setLocal (false);
     c.start();
   }
 }

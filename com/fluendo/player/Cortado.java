@@ -33,11 +33,16 @@ public class Cortado extends Applet implements ImageTarget,
 		MouseListener
 {
   private String urlString;
-  private boolean local = false;
-  private double framerate = 0.;
-  private double aspect = 0.;
+  private boolean local;
+  private double framerate;
+  private boolean audio;
+  private boolean video;
+  private boolean keepAspect;
+  private int bufferSize;
   private String userId;
   private String password;
+
+  private double aspect = 0.;
 
   private Image image = null;
   private Thread videoThread;
@@ -47,11 +52,6 @@ public class Cortado extends Applet implements ImageTarget,
   private VideoConsumer videoConsumer;
   private AudioConsumer audioConsumer;
   private Demuxer demuxer;
-  private boolean audio = true;
-  private boolean video = true;
-  private Object tick;
-  private long startTime;
-  private boolean keepAspect = true;
   private PreBuffer preBuffer;
   private InputStream is;
   private Clock clock;
@@ -59,31 +59,60 @@ public class Cortado extends Applet implements ImageTarget,
   private Status status;
   private PopupMenu menu;
   private boolean stopping;
+  private Hashtable params = new Hashtable();
 
-  /* Prebuffer in K */
-  private int bufferSize = 200;
+  public String getAppletInfo() {
+    return "Title: Fluendo media player \nAuthor: Wim Taymans \nA Java based network multimedia player.";
+  }
+
+  public String[][] getParameterInfo() {
+    String[][] info = {
+      {"url",        "URL",     "The media file to play"},
+      {"local",      "boolean", "Is this a local file (default false)"},
+      {"framerate",  "float",   "The default framerate of the video (default 5.0)"},
+      {"audio",      "boolean", "Enable audio playback (default true)"},
+      {"video",      "boolean", "Enable video playback (default true)"},
+      {"keepAspect", "boolean", "Use aspect ratio of video (default true)"},
+      {"bufferSize", "int",     "The size of the prebuffer in Kbytes (default 100)"},
+      {"userId",     "string",  "userId for basic authentication (default null)"},
+      {"password",   "string",  "password for basic authentication (default null)"},
+    };
+    return info;
+  }
+
+  public void setParam(String name, String value) {
+    params.put(name, value);
+  }
+
+  public String getParam(String name, String def)
+  {
+    String result = null;
+    try {
+      result = getParameter(name);
+    }
+    catch (Exception e) { 
+    }
+
+    if (result == null) {
+      result = (String) params.get(name);
+      if (result == null) {
+        result = def;
+      }
+    }
+    return result;
+  }
   
   public void init() {
+    urlString = getParam("url", null);
+    local = String.valueOf(getParam("local", "false")).equals("true");
+    framerate = Double.valueOf(getParam("framerate", "5.0")).doubleValue();
+    audio = String.valueOf(getParam("audio","true")).equals("true");
+    video = String.valueOf(getParam("video","true")).equals("true");
+    keepAspect = String.valueOf(getParam("keepAspect","true")).equals("true");
+    bufferSize = Integer.valueOf(getParam("bufferSize","100")).intValue();
+    userId = getParam("userId",  null);
+    password = getParam("password",  null);
 
-    System.out.println("reading applet properties");
-
-    try {
-      urlString = getParameter("url");
-      local = String.valueOf(getParameter("local")).equals("true");
-      framerate = Double.valueOf(getParameter("framerate")).doubleValue();
-      audio = !String.valueOf(getParameter("audio")).equals("false");
-      video = !String.valueOf(getParameter("video")).equals("false");
-      keepAspect = String.valueOf(getParameter("keepAspect")).equals("true");
-      bufferSize = Integer.valueOf(getParameter("bufferSize")).intValue();
-      if (bufferSize == 0) {
-        bufferSize = 100;
-      }
-      userId = getParameter("userId");
-      password = getParameter("password");
-    }
-    catch (Exception e) {
-      e.printStackTrace();
-    }
     setBackground(Color.black);
 
     status = new Status(this);
@@ -94,14 +123,8 @@ public class Cortado extends Applet implements ImageTarget,
     this.add (menu);
   }
 
-  public void setUrl (String url) {
-    urlString = url;
-  }
-  public void setLocal (boolean local) {
-    this.local = local;
-  }
-  public void setFramerate (double framerate) {
-    this.framerate = framerate;
+  public Component getComponent() {
+    return this;
   }
 
   public void update(Graphics g) {
@@ -116,7 +139,6 @@ public class Cortado extends Applet implements ImageTarget,
 	           (1024 * bufferSize);
 
         status.setBufferPercent(percent);
-	repaint();
 
         Thread.currentThread().sleep(500);
       }
@@ -156,13 +178,15 @@ public class Cortado extends Applet implements ImageTarget,
       y = (dheight - height) / 2;
 
       if (status.isVisible()) {
-        g.setClip(x, y, width, height-12);
+        g.setClip(x, y, width, dheight-12-y);
         g.drawImage(image, x, y, width, height, null); 
         g.setClip(0, 0, dwidth, dheight);
       }
       else {
-        //System.out.println("draw image "+image);
         g.drawImage(image, x, y, width, height, null); 
+        g.setColor(Color.black);
+	int pos = Math.max (y+height, dheight-12);
+        g.fillRect(x, pos, x+width, dheight);
       }
     }
     if (status != null && status.isVisible()) {
@@ -185,15 +209,11 @@ public class Cortado extends Applet implements ImageTarget,
     }
   }
 
-  public Component getComponent() {
-    return this;
-  }
-
   public void preBufferNotify (int state) {
     String str = null;
 
     synchronized (preBuffer) {
-      if (!havePreroll && state == STATE_PLAYBACK) {
+      if (!havePreroll && state != STATE_BUFFER) {
         System.out.println("no preroll yet, not starting");
         return;
       }
@@ -219,7 +239,6 @@ public class Cortado extends Applet implements ImageTarget,
       return;
 
     status.setMessage(str);
-    repaint();
   }
 
   public void mouseClicked(MouseEvent e){}
@@ -257,8 +276,6 @@ public class Cortado extends Applet implements ImageTarget,
     Plugin plugin = null;
 
     status.setMessage("Opening "+urlString+"...");
-    repaint();
-    //System.out.println("entering the start method");
     try {
       if (local) {
         System.out.println("reading from file "+urlString);
@@ -267,7 +284,6 @@ public class Cortado extends Applet implements ImageTarget,
       else {
         System.out.println("reading from url "+urlString);
         URL url = new URL(urlString);
-        //URL url = new URL(getCodeBase(), urlString);
         System.out.println("trying to open "+url);
 	URLConnection uc = url.openConnection();
 	if (userId != null && password != null) {
@@ -284,7 +300,6 @@ public class Cortado extends Applet implements ImageTarget,
 	plugin = Plugin.makeByMime(mime);
 	if (plugin == null) {
           status.setMessage("Unknown stream "+urlString+"...");
-          repaint();
           return;
 	}
         is = uc.getInputStream();
@@ -294,7 +309,6 @@ public class Cortado extends Applet implements ImageTarget,
     catch (Exception e) {
       e.printStackTrace();
       status.setMessage("Failed opening "+urlString+"...");
-      repaint();
       return;
     }
     status.setMessage("Loading media...");

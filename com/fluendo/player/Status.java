@@ -19,6 +19,7 @@
 package com.fluendo.player;
 
 import java.awt.*;
+import java.awt.image.*;
 import java.net.*;
 import java.util.*;
 import com.fluendo.utils.*;
@@ -30,9 +31,34 @@ public class Status extends Component
   private Rectangle r = new Rectangle();
   private Component component;
   private Font font = new Font("SansSerif", Font.PLAIN, 10);
+
+  private String speaker =
+  "\0\0\0\0\0\357\0\0\357U\27" +
+  "\36\0\0\0\0\357\357\0\0" +
+  "\0\357U\30\0\0\0\357\0\357" +
+  "\0\357\0\0\357\23\357" +
+  "\357\357\0\34\357\0Z\357\0" +
+  "\357\\\357\0)+F\357\0\0\357" +
+  "\0\357r\357Ibz\221\357" +
+  "\0\0\357\0\357r\357\357\357" +
+  "\276\323\357\0Z\357\0\357" +
+  "\\\0\0\0\357\357\357\0" +
+  "\357\0\0\357\0\0\0\0\0\357" +
+  "\357\0\0\0\357\\\0\0\0" +
+  "\0\0\0\357\0\0\357\\\0\0";
+  private Image speakerImg;
   
   public Status(Component comp) {
+    int[] pixels = new int[12*10];
     component = comp;
+
+    for (int i=0; i<120; i++) {
+      pixels[i] = 0xff000000 |
+                  (speaker.charAt(i) << 16) |
+                  (speaker.charAt(i) << 8) |
+                  (speaker.charAt(i));
+    }
+    speakerImg = comp.getToolkit().createImage(new MemoryImageSource (12, 10, pixels, 0, 12));
   }
 
   public void update(Graphics g) {
@@ -54,10 +80,11 @@ public class Status extends Component
     g2.setColor(Color.black);
     g2.fillRect(1, 1, r.width-2, r.height-2);
     g2.setColor(Color.white);
-    g2.drawString(""+bufferPercent+"%", r.width-30, r.height-2);
+    g2.drawString(""+bufferPercent+"%", r.width-38, r.height-2);
     if (message != null) {
       g2.drawString(message, 2, r.height-2);
     }
+    g2.drawImage(speakerImg,r.width-12,r.height-11,null);
     g.drawImage(img,r.x,r.y,null);
     img.flush();
   }
@@ -65,9 +92,13 @@ public class Status extends Component
   public void setBufferPercent(int bp)
   {
     bufferPercent = bp;
+    if (isVisible())
+      component.repaint();
   }
   public void setMessage(String m)
   {
     message = m;
+    if (isVisible())
+      component.repaint();
   }
 }

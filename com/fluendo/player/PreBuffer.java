@@ -24,7 +24,7 @@ import java.util.*;
 public class PreBuffer extends InputStream implements Runnable {
   private InputStream inputStream;
   private int bufferSize;
-  private byte[] buffer;
+  private short[] buffer;
   private int in;
   private int out;
   private Reader reader;
@@ -32,17 +32,19 @@ public class PreBuffer extends InputStream implements Runnable {
   private boolean stopping = false;
   private int filled = 0;
   private PreBufferNotify notify;
+  private boolean eos;
 
   private int state = PreBufferNotify.STATE_START;
 
   public PreBuffer (InputStream is, int bufSize, PreBufferNotify pbn) {
     inputStream = is;
     bufferSize = bufSize;
-    buffer = new byte[bufferSize];
+    buffer = new short[bufferSize];
     in = -1;
     out = 0;
     notify = pbn;
     filled = 0;
+    eos = false;
     thread = new Thread (this);
     thread.start();
   }
@@ -64,6 +66,10 @@ public class PreBuffer extends InputStream implements Runnable {
       try {
         int b = inputStream.read();
         receive (b);
+	if (b < 0) {
+	  eos = true;
+	  break;
+	}
       }
       catch (Exception e) {
         e.printStackTrace();
@@ -114,7 +120,7 @@ public class PreBuffer extends InputStream implements Runnable {
     else {
       filled++;
     }
-    buffer[in++] = (byte) (b & 0xff);
+    buffer[in++] = (short) b;
     if (in >= buffer.length) {
       in = 0;
     }
@@ -130,6 +136,9 @@ public class PreBuffer extends InputStream implements Runnable {
   public synchronized int read() {
     /* buffer empty */
     while (state == PreBufferNotify.STATE_BUFFER || in < 0) {
+      if (eos)
+        return -1;
+
       notifyAll();
       try {
 	wait (1000);
@@ -142,7 +151,8 @@ public class PreBuffer extends InputStream implements Runnable {
       if (stopping)
         return -1;
     }
-    int ret = buffer[out++] & 0xff;
+    int ret = buffer[out++];
+
     if (out >= buffer.length) {
       out = 0;
     }
@@ -153,7 +163,7 @@ public class PreBuffer extends InputStream implements Runnable {
     else {
       filled--;
     }
-    if (state == PreBufferNotify.STATE_PLAYBACK) {
+    if (!eos && state == PreBufferNotify.STATE_PLAYBACK) {
       if (isEmpty()) {
         state = PreBufferNotify.STATE_BUFFER;
 	if (notify != null)
