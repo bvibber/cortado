@@ -159,6 +159,7 @@ public class VideoConsumer implements DataConsumer, Runnable
       framesQueued = 0;
     }
     else {
+      //System.out.println("video queueing");
       framesQueued++;
     }
   }
@@ -180,6 +181,7 @@ public class VideoConsumer implements DataConsumer, Runnable
 
       MediaBuffer buf = plugin.decode (imgData);
       if (buf != null) {
+        //System.out.println("decoded image");
         if (plugin.fps_numerator > 0) {
           double fps = plugin.fps_numerator/(double)plugin.fps_denominator;
 
@@ -189,6 +191,10 @@ public class VideoConsumer implements DataConsumer, Runnable
             System.out.println("frameperiod: "+frameperiod);
 	  }
         }
+	else {
+	  if (preQueueing)
+	    buf.timestamp = 0;
+	}
         aspect = plugin.aspect_numerator/(double)plugin.aspect_denominator;
 
 	if (preQueueing) {

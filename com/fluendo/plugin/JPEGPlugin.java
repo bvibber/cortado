@@ -21,6 +21,7 @@ package com.fluendo.plugin;
 import java.awt.*;
 import java.awt.image.*;
 import com.fluendo.player.*;
+import com.fluendo.utils.*;
 
 public class JPEGPlugin extends Plugin 
 {

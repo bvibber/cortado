@@ -127,8 +127,9 @@ public class MultiPartPlugin extends Plugin
 	    throw new RuntimeException ("unkown mime type");
           }
 	}
-	if (stream.consumer != null)
+	if (stream.consumer != null) {
 	  mpp.fillData(stream.consumer);
+	}
       }
     }
     return !stopping;

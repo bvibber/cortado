@@ -61,7 +61,7 @@ public class MultiPartParser
   
   private void fill(int pos) throws IOException
   {
-    //System.out.println("fill");
+    //System.out.println("fill "+pos);
     if (eos)
       return;
     // make sure buffer is long enough
@@ -107,6 +107,9 @@ public class MultiPartParser
         fill(buflen);
       }
       else {
+        if (matchpos > 0) {
+          System.out.println("found partial match");
+	}
         fill(0);
         scanpos = 0;
       }
@@ -162,10 +165,10 @@ public class MultiPartParser
       int end = scanpos;
       if (!eos) end-=1;
       MediaBuffer buf = MediaBuffer.create();
-      buf.data = buffer;
-      buf.offset = 0;
-      buf.length = end;
-      
+      buf.copyData (buffer, 0, end);
+
+      //System.out.println("sending data to consumer");
+
       consumer.consume(buf);
     }
   }
