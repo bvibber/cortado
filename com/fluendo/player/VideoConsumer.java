@@ -165,6 +165,7 @@ public class VideoConsumer implements DataConsumer, Runnable
 
   public void stop() {
     stopping = true;
+    QueueManager.unRegisterQueue(queueid);
   }
 
   public void run() {
