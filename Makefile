@@ -23,6 +23,8 @@ clean:
 	rm -f com/fluendo/jheora/*.class
 	rm -f cortado.jar 
 	rm -f cortado.tgz 
+	rm -rf build
+	rm -rf dist
 
 jar:
 	jar cvf cortado.jar com/jcraft/jogg/*.class com/jcraft/jorbis/*.class com/fluendo/player/*.class com/fluendo/utils/*.class com/fluendo/jheora/*.class com/fluendo/codecs/*.class plugins.ini
