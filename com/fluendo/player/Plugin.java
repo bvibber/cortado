@@ -24,6 +24,7 @@ import java.io.*;
 import java.net.*;
 import java.util.*;
 import com.fluendo.plugin.*;
+import com.fluendo.utils.*;
 
 public abstract class Plugin
 {
@@ -72,14 +73,14 @@ public abstract class Plugin
 	    break;
 	  Class cl = Class.forName(str);
 
-          System.out.println("registered plugin: "+str);
+          Debug.log(Debug.INFO, "registered plugin: "+str);
 	  Plugin pl = (Plugin) cl.newInstance();
 	  plugins.addElement(pl);
 	}
 	while (true);
       }
       else {
-        System.out.println("could not register plugins");
+        Debug.log(Debug.INFO, "could not register plugins");
       }
     }
     catch (Exception e) {
@@ -96,7 +97,7 @@ public abstract class Plugin
     Class cl = plugin.getClass();
     try {
       result = (Plugin) cl.newInstance();
-      System.out.println("create plugin: "+plugin);
+      Debug.log(Debug.INFO, "create plugin: "+plugin);
     }
     catch (Exception e) {
       e.printStackTrace();
@@ -144,29 +145,29 @@ public abstract class Plugin
 
   public long offsetToTime(long ts_offset)
   {
-    System.out.println("offsetToTime not implemented");
+    Debug.log(Debug.INFO, "offsetToTime not implemented");
     return -1;
   }
 
   public void initDecoder(Component comp)
   {
-    System.out.println("plugin not decoder");
+    Debug.log(Debug.INFO, "plugin not decoder");
   }
 
   public void initDemuxer (InputStream is, Component comp, DataConsumer ac, DataConsumer vc) 
   {
-    System.out.println("plugin not demuxer");
+    Debug.log(Debug.INFO, "plugin not demuxer");
   }
 
   public MediaBuffer decode(MediaBuffer buffer) 
   {
-    System.out.println("plugin not decoder");
+    Debug.log(Debug.INFO, "plugin not decoder");
     return null;
   }
 
   public boolean demux() throws IOException
   {
-    System.out.println("plugin not demuxer");
+    Debug.log(Debug.INFO, "plugin not demuxer");
     return false;
   }
 

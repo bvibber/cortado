@@ -22,6 +22,7 @@ import java.awt.*;
 import com.jcraft.jogg.*;
 import com.jcraft.jorbis.*;
 import com.fluendo.player.*;
+import com.fluendo.utils.*;
 
 public class VorbisPlugin extends Plugin 
 {
@@ -112,15 +113,15 @@ public class VorbisPlugin extends Plugin
       //System.out.println ("decoding header");
       if(vi.synthesis_headerin(vc, op) < 0){
 	// error case; not a vorbis header
-	System.err.println("This Ogg bitstream does not contain Vorbis audio data.");
+	Debug.log(Debug.ERROR, "This Ogg bitstream does not contain Vorbis audio data.");
 	return null;
       }
       if (packet == 2) {
 	vd.synthesis_init(vi);
 	vb.init(vd);
 
-	System.out.println("vorbis rate: "+vi.rate);
-	System.out.println("vorbis channels: "+vi.channels);
+	Debug.log(Debug.INFO, "vorbis rate: "+vi.rate);
+	Debug.log(Debug.INFO, "vorbis channels: "+vi.channels);
 
 	rate = vi.rate;
 	channels = vi.channels;
@@ -134,7 +135,7 @@ public class VorbisPlugin extends Plugin
         vd.synthesis_blockin(vb);
       }
       else {
-        System.out.println ("decoding error");
+        Debug.log(Debug.ERROR, "decoding error");
       }
       //System.out.println ("decode vorbis done");
       while ((samples = vd.synthesis_pcmout (_pcmf, _index)) > 0) {

@@ -20,6 +20,7 @@ package com.fluendo.player;
 
 import java.io.*;
 import java.util.*;
+import com.fluendo.utils.*;
 
 public class PreBuffer extends InputStream implements Runnable {
   private InputStream inputStream;
@@ -183,14 +184,14 @@ public class PreBuffer extends InputStream implements Runnable {
   }
 
   public synchronized void startBuffer() {
-    System.out.println("start buffer..");
+    Debug.log(Debug.INFO, "start buffer..");
     state = PreBufferNotify.STATE_BUFFER;
     received = 0;
     receiveStart = System.currentTimeMillis();
   }
 
   private void realRun() {
-    System.out.println("entering preroll thread");
+    Debug.log(Debug.INFO, "entering preroll thread");
     while (!stopping) {
       try {
 	int len1, len2;
@@ -199,14 +200,12 @@ public class PreBuffer extends InputStream implements Runnable {
 
         synchronized (this) {
           while (free () < segment) {
-	    //System.out.println ("write: wait free "+free()+" need "+segment);
 	    if (notify != null)
               notify.preBufferNotify (PreBufferNotify.STATE_OVERFLOW);
 	    writerBlocked = true;
 	    wait();
 	    writerBlocked = false;
 	  }
-	  //System.out.println ("write: wait free done "+free()+" need "+segment);
 	  if (in < 0)
 	    newIn = out;
 	  else
@@ -230,7 +229,7 @@ public class PreBuffer extends InputStream implements Runnable {
 	  
 	if (ret1 < 0) {
 	  eos = true;
-	  System.out.println("writer EOS");
+	  Debug.log(Debug.INFO, "writer EOS");
 	  break;
 	}
 	int ret;
@@ -258,7 +257,7 @@ public class PreBuffer extends InputStream implements Runnable {
 	}
       }
     }
-    System.out.println("exit preroll thread");
+    Debug.log(Debug.INFO, "exit preroll thread");
   }
 
   public int read() {
@@ -277,7 +276,7 @@ public class PreBuffer extends InputStream implements Runnable {
 
       if (eos) {
         if (avail == 0) {
-	  System.out.println("reader EOS");
+	  Debug.log(Debug.INFO, "reader EOS");
 	  return -1;
 	}
         len = Math.min (avail, len);
@@ -285,11 +284,11 @@ public class PreBuffer extends InputStream implements Runnable {
 
       while (avail < len) {
         try {
-	  //System.out.println ("read: wait available "+avail+" need "+len);
+	  Debug.log(Debug.DEBUG, "read: wait available "+avail+" need "+len);
 	  readerBlocked = true;
           wait();
 	  readerBlocked = false;
-	  //System.out.println ("read: wait done available "+avail+" need "+len);
+	  Debug.log(Debug.DEBUG, "read: wait done available "+avail+" need "+len);
 	}
 	catch (InterruptedException ie) { }
         avail = available();
@@ -324,31 +323,8 @@ public class PreBuffer extends InputStream implements Runnable {
 
   public final void dumpStats()
   {
-    System.out.println("buffer: [in:"+getReceived()+
+    Debug.log(Debug.DEBUG, "buffer: [in:"+getReceived()+
                       ", in-speed:"+getReceiveSpeed() +
                       ", avail:"+available()+"/"+bufferSize+"]");
   }
-
-/*
-  public static void main (String args[])
-  {
-    try {
-      boolean eos = false;
-      byte[] bytes = new byte[4096];
-
-      InputStream is = new FileInputStream ("/home/wim/data/cdda.ogg");
-      PreBuffer buf = new PreBuffer (is, 256*1024, 10, 80, null);
-
-      System.out.println("free: "+buf.free());
-
-      do {
-        eos = (buf.read (bytes, 0, 4096) == -1);
-	System.out.print(".");
-      } while (!eos);
-    }
-    catch (Exception e) {
-      e.printStackTrace();
-    }
-  }
-*/
 }

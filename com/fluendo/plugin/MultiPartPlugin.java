@@ -23,6 +23,7 @@ import java.io.*;
 import java.util.*;
 import com.jcraft.jogg.*;
 import com.fluendo.player.*;
+import com.fluendo.utils.*;
 
 public class MultiPartPlugin extends Plugin 
 {
@@ -69,7 +70,7 @@ public class MultiPartPlugin extends Plugin
     streams = new Vector();
     stopping = false;
 
-    System.out.println("started multipart reader");
+    Debug.log(Debug.INFO, "started multipart reader");
 
     mpp = new MultiPartParser(is, boundary);
   }
@@ -99,7 +100,7 @@ public class MultiPartPlugin extends Plugin
           stream = null;
         }
         if (stream == null) {
-          System.out.println("new stream "+mime);
+          Debug.log(Debug.INFO, "new stream "+mime);
           stream = new MultiPartStream(mime);
           streams.addElement(stream);
       

@@ -19,6 +19,7 @@
 package com.fluendo.player;
 
 import java.util.*;
+import com.fluendo.utils.*;
 
 public class QueueManager {
   private static final int MAX_QUEUES = 4;
@@ -140,10 +141,12 @@ public class QueueManager {
     return result;
   }
   public static void dumpStats() {
-    System.out.print("queues:");
+    StringBuffer buf = new StringBuffer();
+
+    buf.append("queues:");
     for (int i=0; i< numqueues; i++) {
-      System.out.print(" [id:"+i+", size:"+queues[i].size()+", max:"+sizes[i]+"]");
+      buf.append(" [id:"+i+", size:"+queues[i].size()+", max:"+sizes[i]+"]");
     }
-    System.out.println();
+    Debug.log(Debug.DEBUG, buf.toString());
   }
 }

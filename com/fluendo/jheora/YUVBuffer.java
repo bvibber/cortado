@@ -83,7 +83,6 @@ public class YUVBuffer implements ImageProducer
     int size = width * height;
 
     if (size != pix_size) {
-      System.out.println("creating image ");
       pixels = new int[size];
       pix_size = size;
     }

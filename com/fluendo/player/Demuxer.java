@@ -21,6 +21,7 @@ package com.fluendo.player;
 import java.awt.*;
 import java.io.*;
 import com.fluendo.plugin.*;
+import com.fluendo.utils.*;
 
 public class Demuxer implements Runnable 
 {
@@ -51,7 +52,7 @@ public class Demuxer implements Runnable
     }
   }
   private void realRun() {
-    System.out.println("entering demuxer thread");
+    Debug.log(Debug.INFO, "entering demuxer thread");
     try {
       while (!stopping) {
         stopping = !plugin.demux();
@@ -62,7 +63,7 @@ public class Demuxer implements Runnable
         e.printStackTrace();
       stopping = true;
     }
-    System.out.println("exit demuxer thread");
+    Debug.log(Debug.INFO, "exit demuxer thread");
   }
 
   public void stop() {

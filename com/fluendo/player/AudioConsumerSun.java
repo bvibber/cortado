@@ -111,7 +111,7 @@ public class AudioConsumerSun implements Runnable, DataConsumer, ClockProvider
     }
 
     public int available () throws IOException {
-      //System.out.println("******** available ");  
+      //Debug.log(Debug.INFO, "******** available ");  
       return super.available();
     }
 
@@ -182,11 +182,11 @@ public class AudioConsumerSun implements Runnable, DataConsumer, ClockProvider
 	  samplesRead++;
 	}
       }
-      //System.out.println("******** read "+res);
+      //Debug.log(Debug.INFO, "******** read "+res);
       return res;
     }
     public synchronized int read(byte[] bytes) throws IOException {
-      //System.out.println("******** read "+bytes.length);  
+      //Debug.log(Debug.INFO, "******** read "+bytes.length);  
       if (started)
         checkClockAdjust();
 
@@ -198,7 +198,7 @@ public class AudioConsumerSun implements Runnable, DataConsumer, ClockProvider
       return read;
     }
     public synchronized int read(byte[] bytes, int offset, int len) throws IOException {
-      //System.out.println("******** read "+offset+" "+len);  
+      //Debug.log(Debug.INFO, "******** read "+offset+" "+len);  
       if (started)
         checkClockAdjust();
 
@@ -253,7 +253,7 @@ public class AudioConsumerSun implements Runnable, DataConsumer, ClockProvider
 
   public AudioConsumerSun(Clock newClock) {
     queueid = QueueManager.registerQueue(MAX_BUFFER);
-    System.out.println("audio on queue "+queueid);
+    Debug.log(Debug.INFO, "audio on queue "+queueid);
     clock = newClock;
   }
 
@@ -319,7 +319,7 @@ public class AudioConsumerSun implements Runnable, DataConsumer, ClockProvider
       }
     }
     /*
-    System.out.println("sync: clock="+clockTime+
+    Debug.log(Debug.INFO, "sync: clock="+clockTime+
                            " sampleTime="+sampleTime+
                            " diff="+diff+
                            " samples="+sampleCount+
@@ -336,7 +336,7 @@ public class AudioConsumerSun implements Runnable, DataConsumer, ClockProvider
     samplesQueued += buf.length / (2 * plugin.channels);
     preQueue.addElement (buf);
 
-    //System.out.println("audio time: "+buf.timestamp+" "+buf.time_offset+" "+queuedTime+
+    //Debug.log(Debug.INFO, "audio time: "+buf.timestamp+" "+buf.time_offset+" "+queuedTime+
 //	     " "+samplesQueued+" "+ buf.length);
         
     if (buf.time_offset != -1 || buf.time_offset != -1) {
@@ -345,11 +345,11 @@ public class AudioConsumerSun implements Runnable, DataConsumer, ClockProvider
       if (buf.timestamp == -1) {
         buf.timestamp = plugin.offsetToTime (buf.time_offset);
       }
-      //System.out.println("prebuffer head "+headBuf.timestamp);
+      //Debug.log(Debug.INFO, "prebuffer head "+headBuf.timestamp);
 
       headBuf.timestamp = buf.timestamp - (samplesQueued * 1000 / plugin.rate);
 	  
-      //System.out.println("prebuffer head after correction "+headBuf.timestamp);
+      //Debug.log(Debug.INFO, "prebuffer head after correction "+headBuf.timestamp);
 	    
       audioBuffer = new AudioBuffer(100000, plugin.rate, plugin.channels);
 
@@ -358,7 +358,7 @@ public class AudioConsumerSun implements Runnable, DataConsumer, ClockProvider
       try {
         for (int i=0; i<preQueue.size(); i++) {
           MediaBuffer out = (MediaBuffer) preQueue.elementAt(i);
-          //System.out.println("writing samples "+ line.available()+" "+out.length);
+          //Debug.log(Debug.INFO, "writing samples "+ line.available()+" "+out.length);
           audioBuffer.write (out.data, out.offset, out.length);
 	  sampleCount += out.length / (2 * plugin.channels);
 	  out.free();
@@ -377,9 +377,9 @@ public class AudioConsumerSun implements Runnable, DataConsumer, ClockProvider
 	  // first sample, wait for signal
 	  synchronized (clock) {
 	    ready = true;
-	    System.out.println("audio preroll wait");
+	    Debug.log(Debug.INFO, "audio preroll wait");
 	    clock.wait();
-	    System.out.println("audio preroll go!");
+	    Debug.log(Debug.INFO, "audio preroll go!");
 	    audioBuffer.start();
           }
         }
@@ -391,9 +391,9 @@ public class AudioConsumerSun implements Runnable, DataConsumer, ClockProvider
   }
 
   public void realRun() {
-    System.out.println("entering audio thread");
+    Debug.log(Debug.INFO, "entering audio thread");
     while (!stopping) {
-      //System.out.println("dequeue audio");
+      //Debug.log(Debug.INFO, "dequeue audio");
       MediaBuffer audioData = null;
       try {
         audioData = (MediaBuffer) QueueManager.dequeue(queueid);
@@ -403,7 +403,7 @@ public class AudioConsumerSun implements Runnable, DataConsumer, ClockProvider
           ie.printStackTrace();
         continue;
       }
-      //System.out.println("dequeued audio");
+      //Debug.log(Debug.INFO, "dequeued audio");
     
       MediaBuffer buf = plugin.decode (audioData);
       if (buf != null) {
@@ -424,6 +424,6 @@ public class AudioConsumerSun implements Runnable, DataConsumer, ClockProvider
         }
       }
     }
-    System.out.println("exit audio thread");
+    Debug.log(Debug.INFO, "exit audio thread");
   }
 }

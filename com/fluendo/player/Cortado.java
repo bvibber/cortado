@@ -48,6 +48,7 @@ public class Cortado extends Applet implements ImageTarget,
   private PreBuffer preBuffer;
   private int bufferLow;
   private int bufferHigh;
+  private int debug;
 
   private double aspect;
 
@@ -76,6 +77,7 @@ public class Cortado extends Applet implements ImageTarget,
   private Graphics dbGraphics;
   private Dimension appletDimension;
 
+
   private boolean needRepaint;
 
   public String getAppletInfo() {
@@ -97,6 +99,7 @@ public class Cortado extends Applet implements ImageTarget,
       {"bufferHigh",  "int",     "Percent of full buffer (default 70)"},
       {"userId",      "string",  "userId for basic authentication (default null)"},
       {"password",    "string",  "password for basic authentication (default null)"},
+      {"debug",       "int",     "Debug level 0 - 4 (default = 3)"},
     };
     return info;
   }
@@ -129,9 +132,9 @@ public class Cortado extends Applet implements ImageTarget,
     }
     return result;
   }
-
+  
   public static void shutdown(Throwable error) {
-    System.out.println("shutting down: reason: "+error.getMessage());
+    Debug.log(Debug.INFO, "shutting down: reason: "+error.getMessage());
     error.printStackTrace();
     cortado.stop();
   }
@@ -156,10 +159,12 @@ public class Cortado extends Applet implements ImageTarget,
     bufferSize = Integer.valueOf(getParam("bufferSize","200")).intValue();
     bufferLow = Integer.valueOf(getParam("bufferLow","10")).intValue();
     bufferHigh = Integer.valueOf(getParam("bufferHigh","70")).intValue();
+    debug = Integer.valueOf(getParam("debug","3")).intValue();
     userId = getParam("userId",  null);
     password = getParam("password",  null);
     configure = new Configure();
-    System.out.println("build info: " + configure.buildInfo);
+    Debug.level = debug;
+    Debug.log(Debug.WARNING, "build info: " + configure.buildInfo);
 
     needRepaint = true;
 
@@ -223,7 +228,7 @@ public class Cortado extends Applet implements ImageTarget,
     }
   }
   private void realRun() {
-    System.out.println("entering status thread");
+    Debug.log(Debug.INFO, "entering status thread");
     while (!stopping) {
       try {
         if (preBuffer != null) {
@@ -245,7 +250,7 @@ public class Cortado extends Applet implements ImageTarget,
           e.printStackTrace();
       }
     }
-    System.out.println("exit status thread");
+    Debug.log(Debug.INFO, "exit status thread");
   }
 
   public synchronized void paint(Graphics g) 
@@ -302,7 +307,8 @@ public class Cortado extends Applet implements ImageTarget,
     needRepaint = true;
     /* we call update in this thread, it's not nice but it
      * improves smoothness and CPU usage */
-    update(getGraphics());
+    //update(getGraphics());
+    repaint();
   }
 
   public synchronized void setImage(Object obj, double framerate, double aspect) {
@@ -409,13 +415,13 @@ public class Cortado extends Applet implements ImageTarget,
     try {
       try {
         if (local) {
-          System.out.println("reading from file "+urlString);
+          Debug.log(Debug.INFO, "reading from file "+urlString);
           is = new FileInputStream (urlString);
         }
         else {
-          System.out.println("reading from url "+urlString);
+          Debug.log(Debug.INFO, "reading from url "+urlString);
           URL url = new URL(urlString);
-          System.out.println("trying to open "+url);
+          Debug.log(Debug.INFO, "trying to open "+url);
   	  URLConnection uc = url.openConnection();
 	  if (userId != null && password != null) {
 	    String userPassword = userId + ":" + password;
@@ -425,20 +431,20 @@ public class Cortado extends Applet implements ImageTarget,
 	  String mime = uc.getContentType();
 	  if (mime == null) {
             mime = "application/ogg";
-	    System.out.println ("could not get mime type, using: "+mime);
+	    Debug.log(Debug.INFO, "could not get mime type, using: "+mime);
 	  }
 	  int extraPos = mime.indexOf(';');
           if (extraPos != -1) {
 	    mime = mime.substring(0, extraPos);
   	  }
-	  System.out.println ("got stream mime: "+mime);
+	  Debug.log(Debug.INFO, "got stream mime: "+mime);
 	  plugin = Plugin.makeByMime(mime);
 	  if (plugin == null) {
             status.setMessage("Unknown stream "+urlString+"...");
             return;
 	  }
           is = uc.getInputStream();
-          System.out.println("opened "+url);
+          Debug.log(Debug.INFO, "opened "+url);
         }
       }
       catch (SecurityException e) {
@@ -465,11 +471,11 @@ public class Cortado extends Applet implements ImageTarget,
       if (audio) {
         try {
 	  Class.forName("javax.sound.sampled.AudioSystem");
-	  System.out.println("using high quality javax.sound.* as audio backend");
+	  Debug.log(Debug.INFO, "using high quality javax.sound.* as audio backend");
           audioConsumer = new AudioConsumer(clock);
 	}
 	catch (ClassNotFoundException e) {
-	  System.out.println("using low quality sun.audio.* as audio backend");
+	  Debug.log(Debug.INFO, "using low quality sun.audio.* as audio backend");
           audioConsumer = new AudioConsumerSun(clock);
 	}
         audioThread = new Thread(audioConsumer);
@@ -510,7 +516,7 @@ public class Cortado extends Applet implements ImageTarget,
           boolean ready;
 
           havePreroll = false;
-          System.out.println("waiting for preroll...");
+          Debug.log(Debug.INFO, "waiting for preroll...");
           do {
 	    ready = true;
 	    if (video) {
@@ -520,9 +526,7 @@ public class Cortado extends Applet implements ImageTarget,
 	      ready &= audioConsumer.isReady();
 	    }
 	    if (!ready) {
-	      synchronized (this) {
-                clock.wait(100);	
-	      }
+              clock.wait(100);	
 	    }
           } while (!ready);
         }
@@ -531,31 +535,31 @@ public class Cortado extends Applet implements ImageTarget,
         long timeBase = 0;
 	if (video) {
 	  timeBase = videoConsumer.getQueuedTime();
-	  System.out.println("video timeBase: "+timeBase);
+	  Debug.log(Debug.INFO, "video timeBase: "+timeBase);
 	}
 	if (audio) {
 	  timeBase = audioConsumer.getQueuedTime();
-	  System.out.println("audio timeBase: "+timeBase);
+	  Debug.log(Debug.INFO, "audio timeBase: "+timeBase);
 	}
 	clock.updateAdjust(timeBase);
 	
         if (preBuffer != null) {
           synchronized (preBuffer) {
-            System.out.println("consumers ready");
-  	    System.out.println("preroll done, starting prebuffer...");
+            Debug.log(Debug.INFO, "consumers ready");
+  	    Debug.log(Debug.INFO, "preroll done, starting prebuffer...");
             status.setHavePercent (usePrebuffer);
 	    preBuffer.startBuffer();
 	    if (preBuffer.isFilled()) {
 	      clock.play();
 	    }
 	    else {
-	      System.out.println("not buffered, not starting yet "+preBuffer.getFilled());
+	      Debug.log(Debug.INFO, "not buffered, not starting yet "+preBuffer.getFilled());
 	    }
 	  }
         }
         else {
-          System.out.println("consumers ready");
-  	  System.out.println("preroll done, starting...");
+          Debug.log(Debug.INFO, "consumers ready");
+  	  Debug.log(Debug.INFO, "preroll done, starting...");
 	  status.setVisible(false);
 	  status.setMessage("Playing...");
   	  clock.play();

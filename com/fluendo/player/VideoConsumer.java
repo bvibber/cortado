@@ -21,6 +21,7 @@ package com.fluendo.player;
 import java.awt.*;
 import java.awt.image.*;
 import java.util.*;
+import com.fluendo.utils.*;
 import com.fluendo.plugin.*;
 
 public class VideoConsumer implements DataConsumer, Runnable
@@ -48,7 +49,7 @@ public class VideoConsumer implements DataConsumer, Runnable
     component = target.getComponent();
 
     queueid = QueueManager.registerQueue(MAX_BUFFER);
-    System.out.println("video on queue "+queueid);
+    Debug.log(Debug.INFO, "video on queue "+queueid);
     clock = newClock;
     if (framerate > 0) {
       frameperiod = 1000.0 / framerate;
@@ -103,15 +104,15 @@ public class VideoConsumer implements DataConsumer, Runnable
           timestamp = (long) (framenr * frameperiod);
         }
         if (clock.waitForMediaTime((long) (timestamp))) {
-	  //System.out.println("set image "+timestamp);
+	  Debug.log(Debug.DEBUG, "set image "+timestamp);
           target.setImage(buf.object, framerate, aspect);
         }
 	else {
-	  //System.out.println("skip image "+timestamp);
+	  Debug.log(Debug.DEBUG, "skip image "+timestamp);
 	}
       }
       else {
-        //System.out.println("set image");
+        Debug.log(Debug.DEBUG, "set image");
         target.setImage(buf.object, framerate, aspect);
       }
     }
@@ -127,8 +128,8 @@ public class VideoConsumer implements DataConsumer, Runnable
   {
     boolean have_ts = false;
 
-    //System.out.println("video time: "+buf.timestamp+" "+buf.time_offset+" "+queuedTime+
-//	     " "+framesQueued+" "+ buf.length);
+    Debug.log(Debug.DEBUG, "video time: "+buf.timestamp+" "+buf.time_offset+" "+queuedTime+
+	     " "+framesQueued+" "+ buf.length);
 
     preQueue.addElement (buf);
         
@@ -138,12 +139,12 @@ public class VideoConsumer implements DataConsumer, Runnable
       if (buf.timestamp == -1) {
         buf.timestamp = plugin.offsetToTime (buf.time_offset);
       }
-      //System.out.println("prebuffer head "+headBuf.timestamp);
+      Debug.log(Debug.DEBUG, "prebuffer head "+headBuf.timestamp);
 
       headBuf.timestamp = buf.timestamp - (long)(framesQueued * 1000 / framerate);
       framenr = (long) (headBuf.timestamp / frameperiod);
 	  
-      //System.out.println("prebuffer head after correction "+headBuf.timestamp);
+      Debug.log(Debug.DEBUG, "prebuffer head after correction "+headBuf.timestamp);
 
       if (!ready) {
         try {
@@ -153,9 +154,9 @@ public class VideoConsumer implements DataConsumer, Runnable
 	  // first frame, wait for signal
 	  synchronized (clock) {
 	    ready = true;
-	    System.out.println("video preroll wait");
+	    Debug.log(Debug.INFO, "video preroll wait");
 	    clock.wait();
-	    System.out.println("video preroll go!");
+	    Debug.log(Debug.INFO, "video preroll go!");
           }
         }
         catch (Exception e) {
@@ -173,15 +174,15 @@ public class VideoConsumer implements DataConsumer, Runnable
       framesQueued = 0;
     }
     else {
-      //System.out.println("video queueing");
+      Debug.log(Debug.DEBUG, "video queueing");
       framesQueued++;
     }
   }
 
   private void realRun() {
-    System.out.println("entering video thread");
+    Debug.log(Debug.INFO, "entering video thread");
     while (!stopping) {
-      //System.out.println("dequeue image");
+      Debug.log(Debug.DEBUG, "dequeue image");
       MediaBuffer imgData = null;
       try {
         imgData = (MediaBuffer) QueueManager.dequeue(queueid);
@@ -191,18 +192,18 @@ public class VideoConsumer implements DataConsumer, Runnable
 	  ie.printStackTrace();
 	continue;
       }
-      //System.out.println("dequeued image");
+      Debug.log(Debug.DEBUG, "dequeued image");
 
       MediaBuffer buf = plugin.decode (imgData);
       if (buf != null) {
-        //System.out.println("decoded image");
+        Debug.log(Debug.DEBUG, "decoded image");
         if (plugin.fps_numerator > 0) {
           double fps = plugin.fps_numerator/(double)plugin.fps_denominator;
 
           if (fps != framerate) {
             framerate = fps;
             frameperiod = 1000.0 / fps;
-            System.out.println("frameperiod: "+frameperiod);
+            Debug.log(Debug.INFO, "frameperiod: "+frameperiod);
 	  }
         }
 	else {
@@ -219,6 +220,6 @@ public class VideoConsumer implements DataConsumer, Runnable
 	}
       }
     }
-    System.out.println("exit video thread");
+    Debug.log(Debug.INFO, "exit video thread");
   }
 }

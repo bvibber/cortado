@@ -98,14 +98,10 @@ public class Status extends Component
   public void setBufferPercent(int bp)
   {
     bufferPercent = bp;
-    if (isVisible())
-      component.repaint();
   }
   public void setMessage(String m)
   {
     message = m;
-    if (isVisible())
-      component.repaint();
   }
   public void setHaveAudio(boolean a)
   {

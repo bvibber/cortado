@@ -23,6 +23,7 @@ import java.io.*;
 import java.util.*;
 import com.jcraft.jogg.*;
 import com.fluendo.player.*;
+import com.fluendo.utils.*;
 
 public class OggPlugin extends Plugin 
 {
@@ -113,7 +114,7 @@ public class OggPlugin extends Plugin
 	  stream = null;
 	}
 	if (stream == null) {
-  	  System.out.println("new stream "+serial);
+  	  Debug.log(Debug.INFO, "new stream "+serial);
 	  stream = new OggStream(serial);
 	  streams.addElement(stream);
 	}
@@ -133,7 +134,7 @@ public class OggPlugin extends Plugin
           if(res == -1) { 
 	    // missing or corrupt data at this page position
             // no reason to complain; already complained above
-	    System.out.println("ogg error: packetout gave "+res);
+	    Debug.log(Debug.WARNING, "ogg error: packetout gave "+res);
           }
           else {
             // we have a packet.  Decode it

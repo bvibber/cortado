@@ -23,6 +23,7 @@ import java.awt.image.*;
 import com.jcraft.jogg.*;
 import com.fluendo.jheora.*;
 import com.fluendo.player.*;
+import com.fluendo.utils.*;
 
 public class TheoraPlugin extends Plugin 
 {
@@ -82,21 +83,21 @@ public class TheoraPlugin extends Plugin
       if (ti.decodeHeader(tc, op) < 0){
         buf.free();
         // error case; not a theora header
-        System.err.println("does not contain Theora video data.");
+        Debug.log(Debug.ERROR, "does not contain Theora video data.");
         return null;
       }
       if (packet == 2) {
         ts.decodeInit(ti);
     
-        System.out.println("theora dimension: "+ti.width+"x"+ti.height);
+        Debug.log(Debug.INFO, "theora dimension: "+ti.width+"x"+ti.height);
         if (ti.aspect_denominator == 0) {
           ti.aspect_numerator = 1;
           ti.aspect_denominator = 1;
         }
-        System.out.println("theora offset: "+ti.offset_x+","+ti.offset_y);
-        System.out.println("theora frame: "+ti.frame_width+","+ti.frame_height);
-        System.out.println("theora aspect: "+ti.aspect_numerator+"/"+ti.aspect_denominator);
-        System.out.println("theora framerate: "+ti.fps_numerator+"/"+ti.fps_denominator);
+        Debug.log(Debug.INFO, "theora offset: "+ti.offset_x+","+ti.offset_y);
+        Debug.log(Debug.INFO, "theora frame: "+ti.frame_width+","+ti.frame_height);
+        Debug.log(Debug.INFO, "theora aspect: "+ti.aspect_numerator+"/"+ti.aspect_denominator);
+        Debug.log(Debug.INFO, "theora framerate: "+ti.fps_numerator+"/"+ti.fps_denominator);
 
         fps_numerator = ti.fps_numerator;
         fps_denominator = ti.fps_denominator;
@@ -109,12 +110,12 @@ public class TheoraPlugin extends Plugin
     else {
       if (ts.decodePacketin(op) != 0) {
         buf.free();
-        System.err.println("Error Decoding Theora.");
+        Debug.log(Debug.ERROR, "Error Decoding Theora.");
         return null;
       }
       if (ts.decodeYUVout(yuv) != 0) {
         buf.free();
-        System.err.println("Error getting the picture.");
+        Debug.log(Debug.ERROR, "Error getting the picture.");
         return null;
       }
       buf.object = yuv.getObject(ti.offset_x, ti.offset_y, ti.frame_width, ti.frame_height);
