@@ -18,37 +18,48 @@
 
 package com.fluendo.player;
 
-import com.fluendo.utils.*;
-
 import java.awt.*;
 import java.io.*;
-import java.util.*;
-import com.jcraft.jogg.*;
+import com.fluendo.plugin.*;
 
-public class PlayObject {
+public class Demuxer implements Runnable 
+{
+  private DataConsumer audioConsumer;
+  private DataConsumer videoConsumer;
   private InputStream inputStream;
   private Component component;
-  private Thread thread;
+  private Plugin plugin;
 
-  public PlayObject() {
-  }
+  private boolean stopping;
 
-  public void setInputStream(InputStream is) {
+  public Demuxer (InputStream is, Component comp, AudioConsumer ac, VideoConsumer vc) {
     inputStream = is;
-  }
-  public InputStream getInputStream() {
-    return inputStream;
+    audioConsumer = ac;
+    videoConsumer = vc;
+    component = comp;
+    stopping = false;
+
+    plugin = new OggPlugin();
+    plugin.initDemuxer (is, comp, ac, vc);
   }
 
-  public Component getComponent() {
-    return component;
-  }
+  public void run() {
+    System.out.println("started demuxer");
 
+    try {
+      while (!stopping) {
+        plugin.demux();
+      }
+    }
+    catch (Exception e) {
+      e.printStackTrace();
+      stopping = true;
+    }
+    
+    System.out.println("demuxer done");
+  }
   public void stop() {
-  }
-  public void pause() {
-  }
-  public void play() {
-    Cortado pt = new Cortado();
+    plugin.stop();
+    stopping = true;
   }
 }

@@ -73,6 +73,7 @@ public class State
 	  need_keyframe = false;
 	}
 	else {
+	  System.out.println("wait keyframe");
 	  return 0;
 	}
       }

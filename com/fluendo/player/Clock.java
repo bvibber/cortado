@@ -21,16 +21,39 @@ package com.fluendo.player;
 public class Clock {
   private long adjust;
   private long startTime;
+  private long lastMedia;
+  private boolean paused = true;
 
-  public long getStartTime() {
-    return startTime;
+  public synchronized void pause() {
+    if (!paused) {
+      paused = true;
+      lastMedia = getMediaTime();
+      //System.out.println("pause "+lastMedia);
+    }
+    notifyAll();
   }
 
-  public void setStartTime(long newStartTime) {
-    startTime = newStartTime;
+  public synchronized void play() {
+    long now;
+    long gap;
+    long media;
+
+    if (paused) {
+      now = System.currentTimeMillis();
+      if (startTime == 0) {
+        startTime = now;
+      }
+      media = getMediaTime();
+      gap = getMediaTime() - lastMedia;
+    
+      paused = false;
+      //System.out.println("play "+startTime+" "+now+" "+gap+" "+lastMedia+" "+media);
+      startTime += gap;  
+    }
+    notifyAll();
   }
 
-  public long getElapsedTime() {
+  public synchronized long getElapsedTime() {
     return System.currentTimeMillis() - startTime;
   }
 
@@ -55,6 +78,12 @@ public class Clock {
   public void waitForMediaTime(long time) throws InterruptedException {
     long now;
     long interval;
+
+    synchronized (this) {
+      while (paused) {
+        wait ();
+      }
+    }
     
     while (true) {
       now = getMediaTime();
@@ -64,9 +93,9 @@ public class Clock {
 
       synchronized (this) {
         try {
-          //System.out.println("waiting now="+now+" time="+time+" interval="+interval);
+          //System.out.print("waiting now="+now+" time="+time+" interval="+interval+"...");
           wait (interval);
-          //System.out.println("waiting done");
+          //System.out.println("done");
 	}
 	catch (Exception e) { e.printStackTrace();}
       }

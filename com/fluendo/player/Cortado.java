@@ -21,11 +21,14 @@ package com.fluendo.player;
 import java.applet.*;
 import java.io.*;
 import java.awt.*;
+import java.awt.event.*;
 import java.net.*;
 import java.util.*;
 import com.fluendo.utils.*;
 
-public class Cortado extends Applet implements ImageTarget
+public class Cortado extends Applet implements ImageTarget, PreBufferNotify, Runnable, 
+		MouseMotionListener,
+		MouseListener
 {
   private String urlString;
   private boolean local = false;
@@ -40,13 +43,20 @@ public class Cortado extends Applet implements ImageTarget
   private Thread mainThread;
   private VideoConsumer videoConsumer;
   private AudioConsumer audioConsumer;
-  private OggReader reader;
+  private Demuxer demuxer;
   private boolean audio = true;
   private boolean video = true;
   private Object tick;
   private long startTime;
   private boolean keepAspect = true;
+  private PreBuffer preBuffer;
   private InputStream is;
+  private Clock clock;
+  private boolean havePreroll;
+  private Status status;
+
+  /* Prebuffer in K */
+  private int bufferSize = 100;
   
   public void init() {
 
@@ -59,14 +69,20 @@ public class Cortado extends Applet implements ImageTarget
       audio = !String.valueOf(getParameter("audio")).equals("false");
       video = !String.valueOf(getParameter("video")).equals("false");
       keepAspect = String.valueOf(getParameter("keepAspect")).equals("true");
+      bufferSize = Integer.valueOf(getParameter("bufferSize")).intValue();
+      if (bufferSize == 0) {
+        bufferSize = 100;
+      }
       userId = getParameter("userId");
       password = getParameter("password");
     }
     catch (Exception e) {
       e.printStackTrace();
     }
-
     setBackground(Color.black);
+
+    status = new Status(this);
+    status.setVisible(true);
   }
 
   public void setUrl (String url) {
@@ -80,11 +96,32 @@ public class Cortado extends Applet implements ImageTarget
     paint(g);
   }
 
+  public void run() {
+    while (true) {
+      try {
+        int percent = (preBuffer.getFilled() * 100) /
+	           (1024 * bufferSize);
+
+        status.setBufferPercent(percent);
+	repaint();
+
+        Thread.currentThread().sleep(500);
+      }
+      catch (Exception e) {
+        e.printStackTrace();
+      }
+    }
+  }
+
   public void paint(Graphics g) {
+    Dimension d = getSize();
+    int dwidth = d.width;
+    int dheight = d.height;
+    int x = 0, y = 0;
+    int width = dwidth;
+    
     if (image != null) {
-      Dimension d = getSize();
-      int width = d.width;
-      int height = d.height;
+      int height = dheight;
 
       /* need to get the image dimension or else the image
          will not draw for some reason */
@@ -95,16 +132,27 @@ public class Cortado extends Applet implements ImageTarget
 	double aspectSrc = (((double)imgW) / imgH) * aspect;
 
 	height = (int) (width / aspectSrc);
-	if (height > d.height) {
-	  height = d.height;
+	if (height > dheight) {
+	  height = dheight;
 	  width = (int) (height * aspectSrc);
 	}
       }
-      int x = (d.width - width) / 2;
-      int y = (d.height - height) / 2;
+      x = (dwidth - width) / 2;
+      y = (dheight - height) / 2;
 
-      //System.out.println("draw image "+image);
-      g.drawImage(image, x, y, width, height, null);
+      if (status.isVisible()) {
+        g.setClip(x, y, width, height-12);
+        g.drawImage(image, x, y, width, height, null); 
+        g.setClip(0, 0, dwidth, dheight);
+      }
+      else {
+        //System.out.println("draw image "+image);
+        g.drawImage(image, x, y, width, height, null); 
+      }
+    }
+    if (status != null && status.isVisible()) {
+      status.setBounds(x, dheight-12, width, 12);
+      status.paint(g);
     }
   }
 
@@ -114,6 +162,10 @@ public class Cortado extends Applet implements ImageTarget
       image = newImage;
       this.framerate = framerate;
       this.aspect = aspect;
+      if (!havePreroll) {
+        getGraphics().clearRect(0,0,getWidth(), getHeight());
+        status.setMessage("Buffering...");
+      }
       repaint((long)(1000/(framerate * 2)));
     }
   }
@@ -122,7 +174,64 @@ public class Cortado extends Applet implements ImageTarget
     return this;
   }
 
+  public void preBufferNotify (int state) {
+    String str = null;
+
+    synchronized (preBuffer) {
+      if (!havePreroll && state == STATE_PLAYBACK) {
+        System.out.println("no preroll yet, not starting");
+        return;
+      }
+      switch (state) {
+        case PreBufferNotify.STATE_BUFFER:
+          str = "Buffering...";
+	  status.setVisible(true);
+  	  clock.pause();
+	  break;
+        case PreBufferNotify.STATE_PLAYBACK:
+          str = "Playing...";
+	  clock.play();
+	  status.setVisible(false);
+	  break;
+        case PreBufferNotify.STATE_OVERFLOW:
+	  clock.play();
+	  break;
+        default:
+	  break;
+      }
+    }
+    if (str == null)
+      return;
+
+    status.setMessage(str);
+    repaint();
+  }
+
+  public void mouseClicked(MouseEvent e){}
+  public void mouseEntered(MouseEvent e) {}
+  public void mouseExited(MouseEvent e) 
+  {
+    status.setVisible(false);
+  }
+  public void mousePressed(MouseEvent e) {}
+  public void mouseReleased(MouseEvent e) {}
+
+  public void mouseDragged(MouseEvent e){}
+  public void mouseMoved(MouseEvent e)
+  {
+    if (status != null) {
+      if (e.getY() > getHeight()-12) {
+        status.setVisible(true);
+      }
+      else {
+        status.setVisible(false);
+      }
+    }
+  }
+
   public void start() {
+    status.setMessage("Opening "+urlString+"...");
+    repaint();
     //System.out.println("entering the start method");
     try {
       if (local) {
@@ -146,11 +255,16 @@ public class Cortado extends Applet implements ImageTarget
     }
     catch (Exception e) {
       e.printStackTrace();
+      status.setMessage("Failed opening "+urlString+"...");
+      repaint();
       return;
     }
+    status.setMessage("Loading media...");
 
-    Clock clock = new Clock();
+    clock = new Clock();
     QueueManager.reset();
+    addMouseMotionListener(this);
+    addMouseListener(this);
 
     if (video) {
       System.out.println("creating video consumer");
@@ -164,8 +278,11 @@ public class Cortado extends Applet implements ImageTarget
     }
 
     System.out.println("creating main thread");
-    reader = new OggReader(is, audioConsumer, videoConsumer);
-    mainThread = new Thread(reader);
+    preBuffer = new PreBuffer (is, 1024 * bufferSize, this);
+    demuxer = new Demuxer(preBuffer, this, audioConsumer, videoConsumer);
+    mainThread = new Thread(demuxer);
+
+    new Thread(this).start();
 
     if (audio) {
       System.out.println("starting audio thread");
@@ -178,42 +295,42 @@ public class Cortado extends Applet implements ImageTarget
 
     try {
       synchronized (Thread.currentThread()) {
-      System.out.println("starting main thread");
-      mainThread.start();
-      System.out.println("started main thread");
+        System.out.println("starting main thread");
+        mainThread.start();
+        System.out.println("started main thread");
       }
 
       synchronized (clock) {
         boolean ready;
 
+        havePreroll = false;
         System.out.println("waiting for preroll...");
         do {
 	  ready = true;
 	  if (video) {
-            //System.out.println("polling videoconsumer");
 	    ready &= videoConsumer.isReady();
 	  }
 	  if (audio) {
-            //System.out.println("polling audioconsumer");
 	    ready &= audioConsumer.isReady();
 	  }
 	  if (!ready) {
-            //System.out.println("waiting 100 msec");
 	    synchronized (this) {
-              //System.out.println("in sync");
               clock.wait(100);	
-              //System.out.println("done sync");
 	    }
-            //System.out.println("done waiting 100 msec");
 	  }
         } while (!ready);
-
+      }
+      synchronized (preBuffer) {
         System.out.println("consumers ready");
-	startTime = System.currentTimeMillis();
-	
-        clock.notifyAll();
 	System.out.println("preroll done, starting...");
-	clock.setStartTime(startTime);
+	preBuffer.startBuffer();
+	havePreroll = true;
+	if (preBuffer.isFilled()) {
+	  clock.play();
+	}
+	else {
+	  System.out.println("not buffered, not starting yet "+preBuffer.getFilled());
+	}
       }
     }
     catch (Exception e) {
@@ -222,7 +339,7 @@ public class Cortado extends Applet implements ImageTarget
   }
 
   public void stop() {
-    reader.stop();
+    demuxer.stop();
     try {
       is.close();
       if (video)

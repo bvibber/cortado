@@ -21,9 +21,8 @@ package com.fluendo.player;
 import sun.audio.*;
 import java.io.*;
 
-import com.jcraft.jogg.*;
-import com.jcraft.jorbis.*;
 import com.fluendo.utils.*;
+import com.fluendo.plugin.*;
 
 public class AudioConsumer implements Runnable, DataConsumer
 {
@@ -36,17 +35,7 @@ public class AudioConsumer implements Runnable, DataConsumer
   private long start;
   private long prev;
   private static final long DEVICE_BUFFER_TIME = 2 * 1024 / 8;
-  private String currentType;
-  private int packet = 0;
-
-  private Info vi;
-  private Comment vc;
-  private DspState vd;
-  private Block vb;
-
-  private Packet op;
-  private float[][][] _pcmf = new float[1][][];
-  private int[] _index;
+  private Plugin plugin;
 
   /* muLaw header */
   private static final byte[] header = 
@@ -57,28 +46,6 @@ public class AudioConsumer implements Runnable, DataConsumer
 			   0x00, 0x00, 0x1f, 0x40, 		// frequency
 			   0x00, 0x00, 0x00, 0x01		// channels
 			 };
-  private static final boolean ZEROTRAP=true;
-  private static final short BIAS=0x84;
-  private static final int CLIP=32635;
-  private static final byte[] exp_lut = 
-    { 0, 0, 1, 1, 2, 2, 2, 2, 3, 3, 3, 3, 3, 3, 3, 3,
-      4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
-      5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5,
-      5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5,
-      6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6,
-      6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6,
-      6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6,
-      6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6,
-      7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7,
-      7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7,
-      7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7,
-      7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7,
-      7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7,
-      7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7,
-      7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7,
-      7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7
-    };
-
   
   class MyIS extends InputStream
   {
@@ -176,15 +143,6 @@ public class AudioConsumer implements Runnable, DataConsumer
     queueid = QueueManager.registerQueue(MAX_BUFFER);
     System.out.println("audio on queue "+queueid);
     clock = newClock;
-    vi = new Info();
-    vc = new Comment();
-    vd = new DspState();
-    vb = new Block(vd);
-
-    vi.init();
-    vc.init();
-      
-    op = new Packet();
   }
 
   public boolean isReady() {
@@ -212,92 +170,17 @@ public class AudioConsumer implements Runnable, DataConsumer
     }
   }
 
-  public void setType (String type) {
-    currentType = type;
+  public void setPlugin (Plugin pl) {
+    plugin = pl;
   }
 
   public void consume(byte[] data, int offset, int len) {
-    if (currentType.equals("audio/x-mulaw")) {
-      byte[] bytes = new byte[len];
-      System.arraycopy(data, offset, bytes, 0, len);
+    if (plugin == null) 
+      return;
+     
+    byte[] bytes = plugin.decodeAudio (data, offset, len);
+    if (bytes != null) {
       QueueManager.enqueue(queueid, bytes);
-    }
-    else if (currentType.equals("audio/x-vorbis")) {
-      //System.out.println ("creating packet");
-      op.packet_base = data;
-      op.packet = offset;
-      op.bytes = len;
-      op.b_o_s = (packet == 0 ? 1 : 0);
-      op.e_o_s = 0;
-      op.packetno = packet;
-
-      if (packet < 3) {
-        //System.out.println ("decoding header");
-        if(vi.synthesis_headerin(vc, op) < 0){
-	  // error case; not a vorbis header
-	  System.err.println("This Ogg bitstream does not contain Vorbis audio data.");
-	  return;
-	}
-        if (packet == 2) {
-	  vd.synthesis_init(vi);
-	  vb.init(vd);
-
-          _index =new int[vi.channels];
-	}
-      }
-      else {
-        int samples;
-        if (vb.synthesis(op) == 0) { // test for success!
-          vd.synthesis_blockin(vb);
-        }
-        else {
-          System.out.println ("decoding error");
-        }
-        //System.out.println ("decode vorbis done");
-        while ((samples = vd.synthesis_pcmout (_pcmf, _index)) > 0) {
-          float[][] pcmf=_pcmf[0];
-  	  int target = 8000 * samples / vi.rate;
-          byte[] bytes = new byte[target];
-
-	  //System.out.println(vi.rate + " " +target+ " " +samples);
-
-          for (int j=0; j<target; j++){
-	    float val = 0.0f;
-
-            for (int i=0; i<vi.channels; i++) {
-	      val += pcmf[i][_index[i]+(vi.rate * j / 8000)];
-	    }
-	    val /= vi.channels;
-
-            int sample = (int) (val * 32768);
-	    int sign, exponent, mantissa, ulawbyte;
-
-   	    if (sample>32767) sample=32767;
-	    else if (sample<-32768) sample=-32768;
-	    /* Get the sample into sign-magnitude. */
-            sign = (sample >> 8) & 0x80;    /* set aside the sign */
-	    if (sign != 0) sample = -sample;    /* get magnitude */
-            if (sample > CLIP) sample = CLIP;    /* clip the magnitude */
-
-            /* Convert from 16 bit linear to ulaw. */
-            sample = sample + BIAS;
-            exponent = exp_lut[(sample >> 7) & 0xFF];
-            mantissa = (sample >> (exponent + 3)) & 0x0F;
-            ulawbyte = ~(sign | (exponent << 4) | mantissa);
-            if (ZEROTRAP)
-              if (ulawbyte == 0) ulawbyte = 0x02;  /* optional CCITT trap */
-
-	    bytes[j] = (byte)ulawbyte;
-          }
-          QueueManager.enqueue(queueid, bytes);
-          //System.out.println ("decoded "+samples+" samples");
-          vd.synthesis_read(samples);
-        }
-      }
-      packet++;
-    }
-    else {
-      System.out.println ("unkown type");
     }
   }
 }

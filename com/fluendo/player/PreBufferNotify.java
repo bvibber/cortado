@@ -18,10 +18,11 @@
 
 package com.fluendo.player;
 
-import com.fluendo.plugin.*;
+public interface PreBufferNotify {
+  public static final int STATE_START = 0;
+  public static final int STATE_BUFFER = 1;
+  public static final int STATE_PLAYBACK = 2;
+  public static final int STATE_OVERFLOW = 3;
 
-public interface DataConsumer
-{
-  public void setPlugin (Plugin plugin);
-  public void consume(byte[] bytes, int offset, int len);
+  public void preBufferNotify (int state);
 }
