@@ -19,7 +19,7 @@ package com.fluendo.jtheora;
 
 import com.fluendo.utils.*;
 
-public class Filter 
+public final class Filter 
 {
   /* in-loop filter tables. one of these is used in dct_decode.c */
   private static final byte[] LoopFilterLimitValuesV1 = {
@@ -145,6 +145,7 @@ public class Filter
     int FLimit;
     int QIndex;
     int i,j,m,n;
+    int index, index2;
 
     /* Set the limit value for the loop filter based upon the current
        quantizer. */
@@ -201,45 +202,47 @@ public class Filter
         /* Filter right hand border only if the block to the right is
            not coded */
         if ( pbi.display_fragments[ i + 1 ] == 0){
-          FilterHoriz(pbi.LastFrameRecon,
-                      pbi.recon_pixel_index_table[i]+6,
+          FilterHoriz(pbi.LastFrameRecon, 
+	              pbi.recon_pixel_index_table[i]+6,
                       LineLength,FiltBoundingValue);
         }
 
         /* Bottom done if next row set */
         if( pbi.display_fragments[ i + LineFragments] == 0){
           FilterVert(pbi.LastFrameRecon,
-                     pbi.recon_pixel_index_table[i+LineFragments],
+	              pbi.recon_pixel_index_table[i+LineFragments],
                      LineLength, FiltBoundingValue);
         }
       }
       i++;
-  
+
       /***************************************************************/
       /* middle columns  */
-      for ( n = 1 ; n < FragsAcross - 1 ; n++, i++) {
+      for ( n = 1 ; n < FragsAcross - 1 ; n++) {
         if( pbi.display_fragments[i] != 0){
+          index = pbi.recon_pixel_index_table[i];
+
           /* Filter Left edge always */
-          FilterHoriz(pbi.LastFrameRecon,
-                      pbi.recon_pixel_index_table[i]-2,
+          FilterHoriz(pbi.LastFrameRecon, index-2,
                       LineLength, FiltBoundingValue);
   
           /* Filter right hand border only if the block to the right is
              not coded */
           if (pbi.display_fragments[ i + 1 ] == 0){
             FilterHoriz(pbi.LastFrameRecon,
-                        pbi.recon_pixel_index_table[i]+6,
+                        index+6,
                         LineLength, FiltBoundingValue);
           }
   
           /* Bottom done if next row set */
           if(pbi.display_fragments[ i + LineFragments] == 0){
-            FilterVert(pbi.LastFrameRecon,
-                       pbi.recon_pixel_index_table[i + LineFragments],
+            FilterVert(pbi.LastFrameRecon, 
+	               pbi.recon_pixel_index_table[i+LineFragments],
                        LineLength, FiltBoundingValue);
           }
   
         }
+	i++;
       }
   
       /***************************************************************/
@@ -252,8 +255,8 @@ public class Filter
   
         /* Bottom done if next row set */
         if(pbi.display_fragments[ i + LineFragments] == 0){
-          FilterVert(pbi.LastFrameRecon,
-                     pbi.recon_pixel_index_table[i + LineFragments],
+          FilterVert(pbi.LastFrameRecon, 
+                     pbi.recon_pixel_index_table[i+LineFragments],
                      LineLength, FiltBoundingValue);
         }
       }
@@ -263,29 +266,29 @@ public class Filter
       /* Middle Rows */
       /***************************************************************/
       for ( m = 1 ; m < FragsDown-1 ; m++) {
-  
+
         /*****************************************************************/
         /* first column conditions */
         /* only do 2 prediction if fragment coded and on non intra or if
            all fragments are intra */
         if(pbi.display_fragments[i] != 0){
+          index = pbi.recon_pixel_index_table[i];
+
           /* TopRow is always done */
-          FilterVert(pbi.LastFrameRecon,
-                     pbi.recon_pixel_index_table[i],
+          FilterVert(pbi.LastFrameRecon, index,
                      LineLength, FiltBoundingValue);
   
           /* Filter right hand border only if the block to the right is
              not coded */
           if (pbi.display_fragments[ i + 1 ] == 0){
-            FilterHoriz(pbi.LastFrameRecon,
-                        pbi.recon_pixel_index_table[i] + 6,
+            FilterHoriz(pbi.LastFrameRecon, index + 6,
                         LineLength, FiltBoundingValue);
           }
   
           /* Bottom done if next row set */
           if(pbi.display_fragments[ i + LineFragments] == 0){
-            FilterVert(pbi.LastFrameRecon,
-                       pbi.recon_pixel_index_table[i + LineFragments],
+            FilterVert(pbi.LastFrameRecon, 
+                       pbi.recon_pixel_index_table[i+LineFragments],
                        LineLength, FiltBoundingValue);
           }
         }
@@ -294,29 +297,28 @@ public class Filter
         /*****************************************************************/
         /* middle columns  */
         for ( n = 1 ; n < FragsAcross - 1 ; n++, i++){
+
           if( pbi.display_fragments[i] != 0){
+            index = pbi.recon_pixel_index_table[i];
             /* Filter Left edge always */
-            FilterHoriz(pbi.LastFrameRecon,
-                        pbi.recon_pixel_index_table[i] - 2,
+            FilterHoriz(pbi.LastFrameRecon, index - 2,
                         LineLength, FiltBoundingValue);
   
             /* TopRow is always done */
-            FilterVert(pbi.LastFrameRecon,
-                       pbi.recon_pixel_index_table[i],
+            FilterVert(pbi.LastFrameRecon, index,
                        LineLength, FiltBoundingValue);
   
             /* Filter right hand border only if the block to the right
                is not coded */
             if (pbi.display_fragments[ i + 1 ] == 0){
-              FilterHoriz(pbi.LastFrameRecon,
-                          pbi.recon_pixel_index_table[i] + 6,
+              FilterHoriz(pbi.LastFrameRecon, index + 6,
                           LineLength, FiltBoundingValue);
             }
   
             /* Bottom done if next row set */
             if(pbi.display_fragments[ i + LineFragments] == 0){
-              FilterVert(pbi.LastFrameRecon,
-                         pbi.recon_pixel_index_table[i + LineFragments],
+              FilterVert(pbi.LastFrameRecon, 
+                         pbi.recon_pixel_index_table[i+LineFragments],
                          LineLength, FiltBoundingValue);
             }
           }
@@ -325,25 +327,24 @@ public class Filter
         /******************************************************************/
         /* Last Column */
         if( pbi.display_fragments[i] != 0){
+          index = pbi.recon_pixel_index_table[i];
+
           /* Filter Left edge always*/
-          FilterHoriz(pbi.LastFrameRecon,
-                      pbi.recon_pixel_index_table[i] - 2,
+          FilterHoriz(pbi.LastFrameRecon, index - 2,
                       LineLength, FiltBoundingValue);
   
           /* TopRow is always done */
-          FilterVert(pbi.LastFrameRecon,
-                     pbi.recon_pixel_index_table[i],
+          FilterVert(pbi.LastFrameRecon, index,
                      LineLength, FiltBoundingValue);
   
           /* Bottom done if next row set */
           if(pbi.display_fragments[ i + LineFragments] == 0){
-            FilterVert(pbi.LastFrameRecon,
-                       pbi.recon_pixel_index_table[i + LineFragments],
+            FilterVert(pbi.LastFrameRecon, 
+                       pbi.recon_pixel_index_table[i+LineFragments],
                        LineLength, FiltBoundingValue);
           }
         }
         i++;
-  
       }
   
       /*******************************************************************/
@@ -353,17 +354,16 @@ public class Filter
       /* only do 2 prediction if fragment coded and on non intra or if
          all fragments are intra */
       if(pbi.display_fragments[i] != 0){
+        index = pbi.recon_pixel_index_table[i];
   
         /* TopRow is always done */
-        FilterVert(pbi.LastFrameRecon,
-                   pbi.recon_pixel_index_table[i],
+        FilterVert(pbi.LastFrameRecon, index,
                    LineLength, FiltBoundingValue);
   
         /* Filter right hand border only if the block to the right is
            not coded */
         if (pbi.display_fragments[ i + 1 ] == 0){
-          FilterHoriz(pbi.LastFrameRecon,
-                      pbi.recon_pixel_index_table[i] + 6,
+          FilterHoriz(pbi.LastFrameRecon, index+6,
                       LineLength, FiltBoundingValue);
         }
       }
@@ -373,21 +373,20 @@ public class Filter
       /* middle columns  */
       for ( n = 1 ; n < FragsAcross - 1 ; n++, i++){
         if( pbi.display_fragments[i] != 0){
+          index = pbi.recon_pixel_index_table[i];
+
           /* Filter Left edge always */
-          FilterHoriz(pbi.LastFrameRecon,
-                      pbi.recon_pixel_index_table[i] - 2,
+          FilterHoriz(pbi.LastFrameRecon, index-2,
                       LineLength, FiltBoundingValue);
   
           /* TopRow is always done */
-          FilterVert(pbi.LastFrameRecon,
-                     pbi.recon_pixel_index_table[i],
+          FilterVert(pbi.LastFrameRecon, index,
                      LineLength, FiltBoundingValue);
   
           /* Filter right hand border only if the block to the right is
              not coded */
           if (pbi.display_fragments[ i + 1 ] == 0){
-            FilterHoriz(pbi.LastFrameRecon,
-                        pbi.recon_pixel_index_table[i] + 6,
+            FilterHoriz(pbi.LastFrameRecon, index+6,
                         LineLength, FiltBoundingValue);
           }
         }
@@ -396,18 +395,16 @@ public class Filter
       /******************************************************************/
       /* Last Column */
       if(pbi.display_fragments[i] != 0){
+        index = pbi.recon_pixel_index_table[i];
+
         /* Filter Left edge always */
-        FilterHoriz(pbi.LastFrameRecon,
-                    pbi.recon_pixel_index_table[i] - 2,
+        FilterHoriz(pbi.LastFrameRecon, index - 2,
                     LineLength, FiltBoundingValue);
   
         /* TopRow is always done */
-        FilterVert(pbi.LastFrameRecon,
-                   pbi.recon_pixel_index_table[i],
+        FilterVert(pbi.LastFrameRecon, index,
                    LineLength, FiltBoundingValue);
-  
       }
-      i++;
     }
   }
 }

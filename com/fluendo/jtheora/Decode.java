@@ -170,11 +170,8 @@ public final class Decode {
     int  UVRow;
     int  UVColumn;
     int  UVFragOffset;
-
     int  CodingScheme;
-
     int  MBListIndex = 0;
-
     int  i;
 
     FragCodingMethod = pbi.FragCodingMethod;
@@ -438,7 +435,7 @@ public final class Decode {
        bitstream */
     /* until it hits a leaf at which point we have decoded a token */
     while (CurrentRoot.value < 0 ){
-      CurrentRoot = CurrentRoot.Child[opb.readB(1)];  
+      CurrentRoot = CurrentRoot.Child[(int)opb.readB(1)];
     }
     return CurrentRoot.value;
   }

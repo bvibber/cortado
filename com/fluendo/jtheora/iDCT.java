@@ -36,6 +36,15 @@ public final class iDCT
   {
     for(int i = 0; i < 64; i++) {
       DCT_block[Constants.dequant_index[i]] = quantized_list[i] * dequant_coeffs[i];
+      /*
+      if (i%8 ==0)
+        System.out.print(": ");
+      System.out.print("("+DCT_block[Constants.dequant_index[i]]+" ");
+      System.out.print(dequant_coeffs[i]+" ");
+      System.out.print(quantized_list[i]+")");
+      if (i%8 ==7)
+        System.out.print("\n");
+	*/
     }
   }
 

@@ -37,8 +37,6 @@ public class FrArray {
   }
 
   private int deCodeBlockRun(int bit_value){
-    int  ret_val = 0;
-
     /* Add in the new bit value. */
     bits_so_far++;
     bit_pattern = (bit_pattern << 1) + (bit_value & 1);
@@ -57,55 +55,52 @@ public class FrArray {
     case 2:
       /* If bit 1 is clear */
       if ((bit_pattern & 0x0002) == 0){
-        ret_val = 1;
         BitsLeft = (bit_pattern & 0x0001) + 1;
+        return 1;
       }
       break;
   
     case 3:
       /* If bit 1 is clear */
       if ((bit_pattern & 0x0002) == 0){
-        ret_val = 1;
         BitsLeft = (bit_pattern & 0x0001) + 3;
+        return 1;
       }
       break;
   
     case 4:
       /* If bit 1 is clear */
       if ((bit_pattern & 0x0002) == 0){
-        ret_val = 1;
         BitsLeft = (bit_pattern & 0x0001) + 5;
+        return 1;
       }
       break;
   
     case 6:
       /* If bit 2 is clear */
       if ((bit_pattern & 0x0004) == 0){
-        ret_val = 1;
         BitsLeft = (bit_pattern & 0x0003) + 7;
+        return 1;
       }
       break;
   
     case 7:
       /* If bit 2 is clear */
       if ((bit_pattern & 0x0004) == 0){
-        ret_val = 1;
         BitsLeft = (bit_pattern & 0x0003) + 11;
+        return 1;
       }
       break;
   
     case 9:
-      ret_val = 1;
       BitsLeft = (bit_pattern & 0x000F) + 15;
-      break;
+      return 1;
     }
   
-    return ret_val;
+    return 0;
   }
 
   private int deCodeSBRun (int bit_value){
-    int ret_val = 0;
-
     /* Add in the new bit value. */
     bits_so_far++;
     bit_pattern = (bit_pattern << 1) + (bit_value & 1);
@@ -124,62 +119,56 @@ public class FrArray {
     switch ( bits_so_far ){
     case 1:
       if (bit_pattern == 0 ){
-        ret_val = 1;
         BitsLeft = 1;
+        return 1;
       }
       break;
 
     case 3:
       /* Bit 1 clear */
       if ((bit_pattern & 0x0002) == 0){
-        ret_val = 1;
         BitsLeft = (bit_pattern & 0x0001) + 2;
+        return 1;
       }
       break;
 
     case 4:
       /* Bit 1 clear */
       if ((bit_pattern & 0x0002) == 0){
-        ret_val = 1;
         BitsLeft = (bit_pattern & 0x0001) + 4;
+        return 1;
       }
       break;
 
     case 6:
       /* Bit 2 clear */
       if ((bit_pattern & 0x0004) == 0){
-        ret_val = 1;
         BitsLeft = (bit_pattern & 0x0003) + 6;
+        return 1;
       }
       break;
 
     case 8:
       /* Bit 3 clear */
       if ((bit_pattern & 0x0008) == 0){
-        ret_val = 1;
         BitsLeft = (bit_pattern & 0x0007) + 10;
+        return 1;
       }
       break;
 
     case 10:
       /* Bit 4 clear */
       if ((bit_pattern & 0x0010) == 0){
-        ret_val = 1;
         BitsLeft = (bit_pattern & 0x000F) + 18;
+        return 1;
       }
       break;
 
     case 18:
-      ret_val = 1;
       BitsLeft = (bit_pattern & 0x0FFF) + 34;
-      break;
-  
-    default:
-      ret_val = 0;
-      break;
+      return 1;
     }
-
-    return ret_val;
+    return 0;
   }
 
   private void getNextBInit(Buffer opb){
@@ -357,7 +346,6 @@ public class FrArray {
   }
   
   public CodingMode unpackMode(Buffer opb){
-    long ret;
     /* Coding scheme:
        Token                      Codeword           Bits
        Entry   0 (most frequent)  0                   1
@@ -373,51 +361,44 @@ public class FrArray {
     /* Initialise the decoding. */
     bits_so_far = 0;
 
-    ret = opb.readB(1);
-    bit_pattern = (int)ret;
+    bit_pattern = (int) opb.readB(1);
 
     /* Do we have a match */
     if ( bit_pattern == 0 )
       return CodingMode.MODES[0];
   
     /* Get the next bit */
-    ret = opb.readB(1);
-    bit_pattern = (bit_pattern << 1) | (int)ret;
+    bit_pattern = (bit_pattern << 1) | (int)opb.readB(1);
   
     /* Do we have a match */
     if ( bit_pattern == 0x0002 )
       return CodingMode.MODES[1];
   
-    ret = opb.readB(1);
-    bit_pattern = (bit_pattern << 1) | (int)ret;
+    bit_pattern = (bit_pattern << 1) | (int)opb.readB(1);
   
     /* Do we have a match  */
     if ( bit_pattern == 0x0006 )
       return CodingMode.MODES[2];
   
-    ret = opb.readB(1);
-    bit_pattern = (bit_pattern << 1) | (int)ret;
+    bit_pattern = (bit_pattern << 1) | (int)opb.readB(1);
   
     /* Do we have a match */
     if ( bit_pattern == 0x000E )
       return CodingMode.MODES[3];
   
-    ret = opb.readB(1);
-    bit_pattern = (bit_pattern << 1) | (int)ret;
+    bit_pattern = (bit_pattern << 1) | (int)opb.readB(1);
   
     /* Do we have a match */
     if ( bit_pattern == 0x001E )
       return CodingMode.MODES[4];
   
-    ret = opb.readB(1);
-    bit_pattern = (bit_pattern << 1) | (int)ret;
+    bit_pattern = (bit_pattern << 1) | (int)opb.readB(1);
   
     /* Do we have a match */
     if ( bit_pattern == 0x003E )
       return CodingMode.MODES[5];
   
-    ret = opb.readB(1);
-    bit_pattern = (bit_pattern << 1) | (int)ret;
+    bit_pattern = (bit_pattern << 1) | (int)opb.readB(1);
   
     /* Do we have a match */
     if ( bit_pattern == 0x007E )

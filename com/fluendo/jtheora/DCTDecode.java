@@ -120,6 +120,12 @@ public class DCTDecode
     default:
       idct.IDctSlow(quantized_list, dequant_coeffs, ReconDataBuffer );
     }
+    /*
+    for (int i=0; i<64; i++) {
+      System.out.print(ReconDataBuffer[i]+" ");
+    }
+    System.out.println();
+    */
 
     /* Convert fragment number to a pixel offset in a reconstruction buffer. */
     ReconPixelIndex = pbi.recon_pixel_index_table[FragmentNumber];
@@ -188,6 +194,13 @@ public class DCTDecode
     default:
       idct.IDctSlow(quantized_list, dequant_coeffs, ReconDataBuffer );
     }
+    /*
+    for (int i=0; i<64; i++) {
+      System.out.print(ReconDataBuffer[i]+" ");
+    }
+    System.out.println();
+    */
+
   
     /* Convert fragment number to a pixel offset in a reconstruction buffer. */
     ReconPixelIndex = pbi.recon_pixel_index_table[FragmentNumber];
@@ -245,8 +258,12 @@ public class DCTDecode
         LastFrameRecPtr = pbi.LastFrameRecon;
       }
 
-      //System.out.println(MVector.x+" "+MVector.y+" "+ReconPixelIndex+" "+LastFrameRecOffset+
-      //                 " "+ReconPtr2Offset);
+      /*
+      System.out.println(pbi.FragMVect[FragmentNumber].x+" "+
+                         pbi.FragMVect[FragmentNumber].y+" "+
+			 ReconPixelIndex+" "+LastFrameRecOffset+ " "+
+			 ReconPtr2Offset);
+			 */
 
       /* Select the appropriate reconstruction function */
       if (ReconPtr2Offset == 0 ) {

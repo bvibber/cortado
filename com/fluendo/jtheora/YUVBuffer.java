@@ -45,7 +45,7 @@ public class YUVBuffer
       pixels = new int[size];
       pix_size = size;
     }
-    YUVtoRGB ();
+    YUVtoRGB();
   }
 
   public int[] getAsRGBData ()
@@ -64,20 +64,17 @@ public class YUVBuffer
     return toolkit.createImage (source);
   }
 
-  private static final double YFACTOR = 0.8588235;
   private static final int VAL_RANGE = 256;
+  private static final int SHIFT = 16;
 
-  // RGB and YUV accelerator structures.
-  private static int[] CalcUTable = new int[VAL_RANGE * 2];
-  private static int[] CalcRUTable = new int[VAL_RANGE];
-  private static int[] CalcVTable = new int[VAL_RANGE * 2];
-  private static int[] CalcRVTable = new int[VAL_RANGE];
-  private static int[] InvYScale = new int[VAL_RANGE * 2];
-  private static int[] DivBy5p87 = new int[VAL_RANGE * 14];
-  private static int[] Times2p99 = new int[VAL_RANGE];
-  private static int[] Times5p87 = new int[VAL_RANGE];
-  private static int[] Times1p14 = new int[VAL_RANGE];
-  private static int[] LimitVal = new int[VAL_RANGE * 3];
+  private static final int CR_FAC = (int) (1.402 * (1<<SHIFT));
+  private static final int CB_FAC = (int) (1.772 * (1<<SHIFT));
+  private static final int CR_DIFF_FAC = (int) (0.71414 * (1<<SHIFT));
+  private static final int CB_DIFF_FAC = (int) (0.34414 * (1<<SHIFT));
+
+  private static int[] r_tab = new int[VAL_RANGE * 3];
+  private static int[] g_tab = new int[VAL_RANGE * 3];
+  private static int[] b_tab = new int[VAL_RANGE * 3];
 
   static {
     SetupRgbYuvAccelerators ();
@@ -130,40 +127,46 @@ public class YUVBuffer
     int RGBPtr2 = y_width;
 
     // Set the line step for the Y and UV planes and YPtr2
-    int YStep = y_stride * 2;
-    int UVStep = uv_stride;
+    int YStep = y_stride*2 - (y_width/2)*2;
+    int UVStep = uv_stride - (y_width/2);
     int RGBStep = y_width;
 
     for (int i=0; i < y_height / 2; i++)
     {
-      for (int j=0, l=0; j < y_width / 2; j++, l+=2) {
+      for (int j=0; j < y_width / 2; j++) {
 	// groups of four pixels
-	UFactor = CalcRUTable[data[UPtr+j]] + VAL_RANGE;
-	VFactor = CalcRVTable[data[VPtr+j]] + VAL_RANGE;
+	UFactor = data[UPtr++] - 128;
+	VFactor = data[VPtr++] - 128;
 
-	YVal = InvYScale[data[YPtr+l]];
-	RVal = LimitVal[YVal + VFactor];
-	BVal = LimitVal[YVal + UFactor];
-	pixels[RGBPtr++] = (RVal<<16) | 
-	         DivBy5p87[(VAL_RANGE*4)+ 10*YVal - Times2p99[RVal] - Times1p14[BVal]] | BVal;
+	RVal = UFactor * CR_DIFF_FAC;
+	BVal = VFactor * CB_DIFF_FAC;
 
-	YVal = InvYScale[data[YPtr+l+1]];
-	RVal = LimitVal[YVal + VFactor];
-	BVal = LimitVal[YVal + UFactor];
-	pixels[RGBPtr++] = (RVal<<16) |
-	         DivBy5p87[(VAL_RANGE*4)+ 10*YVal - Times2p99[RVal] - Times1p14[BVal]] | BVal;
+	UFactor *= CR_FAC;
+	VFactor *= CB_FAC;
 
-	YVal = InvYScale[data[YPtr2+l]];
-	RVal = LimitVal[YVal + VFactor];
-	BVal = LimitVal[YVal + UFactor];
-	pixels[RGBPtr2++] = (RVal<<16) |
-	         DivBy5p87[(VAL_RANGE*4)+ 10*YVal - Times2p99[RVal] - Times1p14[BVal]] | BVal;
+	YVal = (data[YPtr] + VAL_RANGE) << SHIFT;
+        pixels[RGBPtr] = r_tab[(YVal + VFactor)>>SHIFT] |
+                         b_tab[(YVal + UFactor)>>SHIFT] |
+                         g_tab[(YVal - RVal - BVal)>>SHIFT];
 
-	YVal = InvYScale[data[YPtr2+l+1]];
-	RVal = LimitVal[YVal + VFactor];
-	BVal = LimitVal[YVal + UFactor];
-	pixels[RGBPtr2++] = (RVal<<16) |
-	         DivBy5p87[(VAL_RANGE*4)+ 10*YVal - Times2p99[RVal] - Times1p14[BVal]] | BVal;
+	YVal = (data[YPtr+1] + VAL_RANGE) << SHIFT;
+        pixels[RGBPtr+1] = r_tab[(YVal + VFactor)>>SHIFT] |
+                           b_tab[(YVal + UFactor)>>SHIFT] |
+                           g_tab[(YVal - RVal - BVal)>>SHIFT];
+
+	YVal = (data[YPtr2] + VAL_RANGE) << SHIFT;
+        pixels[RGBPtr2] = r_tab[(YVal + VFactor)>>SHIFT] |
+                          b_tab[(YVal + UFactor)>>SHIFT] |
+                          g_tab[(YVal - RVal - BVal)>>SHIFT];
+
+	YVal = (data[YPtr2+1] + VAL_RANGE) << SHIFT;
+        pixels[RGBPtr2+1] = r_tab[(YVal + VFactor)>>SHIFT] |
+                            b_tab[(YVal + UFactor)>>SHIFT] |
+                            g_tab[(YVal - RVal - BVal)>>SHIFT];
+	YPtr+=2;
+	YPtr2+=2;
+	RGBPtr+=2;
+	RGBPtr2+=2;
       }
 
       // Increment the various pointers
@@ -185,60 +188,9 @@ public class YUVBuffer
     int i;
 
     for( i = 0; i < VAL_RANGE * 3; i++) {
-      LimitVal[ i] = Clamp255( i - VAL_RANGE);
+      r_tab[i] = Clamp255(i-VAL_RANGE) << 16;
+      g_tab[i] = Clamp255(i-VAL_RANGE) << 8;
+      b_tab[i] = Clamp255(i-VAL_RANGE) | 0xff000000;
     }
-
-    // V range raw is +/- 179.
-    // Correct to approx 16-240 by dividing by 1.596 and adding 128.
-
-    // U range raw is +/- 226.
-    // Correct to approx 16-240 by dividing by 2.018 and adding 128.
-
-    for (i = -VAL_RANGE; i < VAL_RANGE; i++)
-      {
-	int x;
-	if (i < 0)
-	  {
-	    x = (int) ((i / 1.596) - 0.5) + 128;
-	    CalcVTable[i + VAL_RANGE] = Clamp255 (x);
-	    CalcUTable[i + VAL_RANGE] = (short) (((i / 2.018) - 0.5) + 128);
-	  }
-	else
-	  {
-	    x = (int) ((i / 1.596) + 0.5) + 128;
-	    CalcVTable[i + VAL_RANGE] = Clamp255 (x);
-	    CalcUTable[i + VAL_RANGE] = (short) (((i / 2.018) + 0.5) + 128);
-	  }
-      }
-
-    for (i = 0; i < (VAL_RANGE * 14); i++)
-      {
-	int x = (i - (VAL_RANGE * 4));
-
-	if (x < 0)
-	  x = (int) ((x / 5.87) - 0.5);
-	else
-	  x = (int) ((x / 5.87) + 0.5);
-
-	DivBy5p87[i] = (Clamp255 (x) << 8) | (255<<24);
-      }
-
-    for (i = 0; i < VAL_RANGE; i++)
-      {
-	InvYScale[i] = Clamp255 ((i - 16) / YFACTOR);
-	if (i < 128)
-	  {
-	    CalcRVTable[i] = (int) (((i - 128) * 1.596) - 0.5);
-	    CalcRUTable[i] = (int) (((i - 128) * 2.018) - 0.5);
-	  }
-	else
-	  {
-	    CalcRVTable[i] = (int) (((i - 128) * 1.596) + 0.5);
-	    CalcRUTable[i] = (int) (((i - 128) * 2.018) + 0.5);
-	  }
-	Times2p99[i] = (int) ((i * 2.99) + 0.5);
-	Times5p87[i] = (int) ((i * 5.87) + 0.5);
-	Times1p14[i] = (int) ((i * 1.14) + 0.5);
-      }
   }
 }

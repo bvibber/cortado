@@ -26,6 +26,7 @@ public class State
 
   private Playback pbi;
   private Decode dec;
+  private boolean need_keyframe;
 
   public void clear()
   {
@@ -44,6 +45,7 @@ public class State
     pbi = new Playback(ci);
     dec = new Decode(pbi);
     granulepos=-1;
+    need_keyframe = true;
 
     return(0);
   }
@@ -60,10 +62,21 @@ public class State
     ret = pbi.opb.readB(1);
 
     if (ret==0) {
+      if (need_keyframe) {
+        if ((op.packet_base[op.packet] & 0x40) == 0) {
+	  need_keyframe = false;
+	}
+	else {
+	System.out.println("drop");
+	  return 0;
+	}
+      }
+
       ret=dec.loadAndDecode(pbi);
 
       if(ret != 0)
         return (int) ret;
+ 
 
       //if(pbi.PostProcessingLevel != 0)
       //  pbi.PostProcess();
