@@ -1,0 +1,51 @@
+usage
+-----
+
+Embed the applet in a web page with code like this:
+
+<html>
+ <head>
+ </head>
+ <body>
+   <applet code="com.fluendo.player.Cortado.class" 
+           archive="cortado.jar" 
+	   width="352" height="288">
+     <param name="url" value="http://localhost/test6.ogg"/>
+     <param name="framerate" value="29"/>
+     <param name="keepaspect" value="true"/>
+     <param name="video" value="true"/>
+     <param name="audio" value="true"/>
+     <param name="bufferSize" value="100"/>
+     <param name="userId" value="user"/>
+     <param name="password" value="test"/>
+   </applet>
+ </body>
+</html>
+
+
+parameters:
+-----------
+
+  url:        the URL to load, must be a fully qualified URL.
+
+  framerate:  the target framerate for the video playback for formats (multipart) that
+              do not have a framerate embedded in the stream. This property is ignored
+	      on ogg streams. This value can be any floating point value.
+
+  keepaspect: Try to keep the natural aspect of the video when resizing the applet 
+              window. true or false.
+
+  video:      Use video. When not using video, this property will not create resources
+              to play a video stream. true or false.
+	      
+  audio:      Use audio. When not using audio, this property will not create resources
+              to play an audio stream. true or false.
+
+  bufferSize: The size of the network buffer. A good value is Kbps of the stream * 33;
+
+  userId:     user id for basic authentication.
+
+  password:   password for basic authentication.
+	      
+
+
