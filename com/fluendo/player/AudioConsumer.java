@@ -187,7 +187,8 @@ public class AudioConsumer implements Runnable, DataConsumer, ClockProvider
           }
         }
         catch (Exception e) {
-          e.printStackTrace();
+          if (!stopping)
+            e.printStackTrace();
         }
       }
     }
@@ -222,7 +223,8 @@ public class AudioConsumer implements Runnable, DataConsumer, ClockProvider
 	    checkClockAdjust();
           }
           catch (Exception ie) { 
-	    ie.printStackTrace();
+	    if (!stopping)
+	      ie.printStackTrace();
 	  }
           buf.free();
         }

@@ -59,6 +59,8 @@ public class VorbisPlugin extends Plugin
 
   public VorbisPlugin() {
     super(Plugin.TYPE_AUDIO);
+
+    op = new Packet();
   }
 
   public String getMime ()
@@ -85,8 +87,6 @@ public class VorbisPlugin extends Plugin
 
     vi.init();
     vc.init();
-
-    op = new Packet();
   }
 
   public long offsetToTime (long ts_offset) {

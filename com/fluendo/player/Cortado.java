@@ -530,46 +530,58 @@ public class Cortado extends Applet implements ImageTarget,
     }
   }
 
+  private final void interruptThread (Thread t) 
+  {
+    try {
+      if (t != null)
+        t.interrupt();
+    } catch (Exception e) { }
+  }
+
+  private final void joinThread (Thread t) 
+  {
+    try {
+      if (t != null)
+        t.join();
+    } catch (Exception e) { }
+  }
+
   public void stop() {
-    demuxer.stop();
+    if (demuxer != null)
+      demuxer.stop();
+
     try {
       stopping = true;
       if (preBuffer != null)
         preBuffer.stop();
-      if (video)
+      if (video && videoConsumer != null)
         videoConsumer.stop();
-      if (audio)
+      if (audio && audioConsumer != null)
         audioConsumer.stop();
     }
     catch (Exception e) {
       e.printStackTrace();
     }
+
+    if (video)
+      interruptThread (videoThread);
+    if (audio)
+      interruptThread (audioThread);
+    interruptThread (mainThread);
+    interruptThread (statusThread);
+
     try {
-      if (video)
-        videoThread.interrupt();
-    } catch (Exception e) { }
-    try {
-      if (audio)
-        audioThread.interrupt();
-    } catch (Exception e) { }
-    try {
-      mainThread.interrupt();
-    } catch (Exception e) { }
-    try {
-      statusThread.interrupt();
-    } catch (Exception e) { }
-    try {
-      is.close();
-      if (video)
-        videoThread.join();
-      if (audio)
-        audioThread.join();
-      mainThread.join();
-      statusThread.join();
+      if (is != null)
+        is.close();
     }
     catch (Exception e) {
       e.printStackTrace();
     }
+    if (video)
+      joinThread(videoThread);
+    if (audio)
+      joinThread(audioThread);
+    joinThread(mainThread);
+    joinThread(statusThread);
   }
-
 }

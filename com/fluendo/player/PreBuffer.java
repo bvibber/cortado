@@ -61,13 +61,14 @@ public class PreBuffer extends InputStream implements Runnable {
 
   public void stop() {
     stopping = true;
-    thread.interrupt();
+    try {
+      thread.interrupt();
+    }
+    catch (Exception e) { }
     try {
       thread.join();
     }
-    catch (Exception e) {
-      e.printStackTrace();
-    }
+    catch (Exception e) {}
   }
 
   public void run() {
@@ -91,8 +92,10 @@ public class PreBuffer extends InputStream implements Runnable {
 	}
       }
       catch (Exception e) {
-        e.printStackTrace();
-	stopping = true;
+        if (!stopping) {
+          e.printStackTrace();
+	  stopping = true;
+	}
       }
     }
     System.out.println("exit preroll thread");
