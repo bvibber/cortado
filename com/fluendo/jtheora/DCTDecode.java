@@ -1,21 +1,28 @@
-/********************************************************************
- *                                                                  *
- * THIS FILE IS PART OF THE OggTheora SOFTWARE CODEC SOURCE CODE.   *
- * USE, DISTRIBUTION AND REPRODUCTION OF THIS LIBRARY SOURCE IS     *
- * GOVERNED BY A BSD-STYLE SOURCE LICENSE INCLUDED WITH THIS SOURCE *
- * IN 'COPYING'. PLEASE READ THESE TERMS BEFORE DISTRIBUTING.       *
- *                                                                  *
- * THE Theora SOURCE CODE IS COPYRIGHT (C) 2002-2003                *
- * by the Xiph.Org Foundation http://www.xiph.org/                  *
- *                                                                  *
- ********************************************************************
+/* Jheora
+ * Copyright (C) 2004 Fluendo S.L.
+ *  
+ * Written by: 2004 Wim Taymans <wim@fluendo.com>
+ *   
+ * Many thanks to 
+ *   The Xiph.Org Foundation http://www.xiph.org/
+ * Jheora was based on their Theora reference decoder.
+ *   
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Library General Public License
+ * as published by the Free Software Foundation; either version 2 of
+ * the License, or (at your option) any later version.
+ * 
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Library General Public License for more details.
+ * 
+ * You should have received a copy of the GNU Library General Public
+ * License along with this program; if not, write to the Free Software
+ * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+ */
 
-  function:
-  last mod: $Id: dct_decode.c,v 1.12 2004/03/18 17:10:00 giles Exp $
-
- ********************************************************************/
-
-package com.fluendo.jtheora;
+package com.fluendo.jheora;
 
 import com.jcraft.jogg.*;
 import com.fluendo.utils.*;
@@ -373,16 +380,16 @@ public class DCTDecode
     int  PlaneStride;
     int  LineFragments;
     int  PlaneBorderWidth;
-    int   PlaneHeight;
+    int  PlaneHeight;
 
     short[] SrcPtr1;
-    int    SrcOff1;
+    int     SrcOff1;
     short[] SrcPtr2;
-    int    SrcOff2;
+    int     SrcOff2;
     short[] DestPtr1;
-    int    DestOff1;
+    int     DestOff1;
     short[] DestPtr2;
-    int    DestOff2;
+    int     DestOff2;
 
     /* Work out various plane specific values */
     if ( PlaneFragOffset == 0 ) {
@@ -780,7 +787,7 @@ public class DCTDecode
 
     /* Reconstruct the golden frame if necessary.
        For VFW codec only on key frames */
-    if (pbi.getFrameType() == Constants.BASE_FRAME )
+    if (isBaseFrame)
       CopyRecon( pbi, pbi.GoldenFrame, pbi.LastFrameRecon );
   }
 }

@@ -1,3 +1,21 @@
+/* Cortado - a video player java applet
+ * Copyright (C) 2004 Fluendo S.L.
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Street #330, Boston, MA 02111-1307, USA.
+ */
+
 package com.fluendo.player;
 
 import java.util.*;
@@ -29,7 +47,12 @@ public class QueueManager {
           sizes[i] < 1)
 	return;
 	
-      sizes[i] += delta;
+      synchronized (syncs[i]) {
+        if (sizes[i] < queues[i].size()) {
+          sizes[i] += delta;
+          syncs[i].notify();
+	}
+      }
     }
   }
   public static void adjustThis(int id, int delta) {
@@ -37,7 +60,12 @@ public class QueueManager {
         sizes[id] < 1)
       return;
 	
-    sizes[id] += delta;
+    synchronized (syncs[id]) {
+      if (sizes[id] < queues[id].size()) {
+        sizes[id] += delta;
+        syncs[id].notify();
+      }
+    }
   }
   public static void enqueue(int id, Object object) {
     Object sync = syncs[id];
@@ -69,12 +97,12 @@ public class QueueManager {
 	  //System.out.println("queue "+id+" empty");
 	  adjustOthers(id, 1);
 	  //System.out.println("others adjusted");
-          sync.wait(100);
+          sync.wait();
 	  //System.out.println("queue "+id+" empty done");
         }
         result = queue.elementAt(0);
         queue.removeElementAt(0);
-	adjustThis(id, -1);
+	//adjustThis(id, -1);
         sync.notify();
       }
     }
@@ -84,10 +112,10 @@ public class QueueManager {
     return result;
   }
   public static void dumpStats() {
-    //System.out.print("queues:");
+    System.out.print("queues:");
     for (int i=0; i< numqueues; i++) {
-      //System.out.print(" [id: "+i+" "+queues[i].size()+" "+sizes[i]+"]");
+      System.out.print(" [id: "+i+" "+queues[i].size()+" "+sizes[i]+"]");
     }
-    //System.out.println();
+    System.out.println();
   }
 }

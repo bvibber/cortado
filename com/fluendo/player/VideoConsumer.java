@@ -1,3 +1,21 @@
+/* Cortado - a video player java applet
+ * Copyright (C) 2004 Fluendo S.L.
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Street #330, Boston, MA 02111-1307, USA.
+ */
+
 package com.fluendo.player;
 
 import java.applet.*;
@@ -8,7 +26,7 @@ import java.net.*;
 import java.util.*;
 import com.jcraft.jogg.*;
 import com.fluendo.codecs.*;
-import com.fluendo.jtheora.*;
+import com.fluendo.jheora.*;
 import com.fluendo.utils.*;
 
 public class VideoConsumer implements DataConsumer, Runnable
@@ -42,7 +60,6 @@ public class VideoConsumer implements DataConsumer, Runnable
     component = target.getComponent();
     toolkit = component.getToolkit();
     mt = new MediaTracker(component);
-    //queueid = QueueManager.registerQueue((int)framerate);
     queueid = QueueManager.registerQueue(MAX_BUFFER);
     clock = newClock;
     frameperiod = 1000.0 / framerate;
@@ -57,6 +74,7 @@ public class VideoConsumer implements DataConsumer, Runnable
   public void setFramerate (double framerate) {
     this.framerate = framerate;
     frameperiod = 1000.0 / framerate;
+    System.out.println("frameperiod: "+frameperiod);
   }
 
   public void setType(String type) {
@@ -128,8 +146,9 @@ public class VideoConsumer implements DataConsumer, Runnable
 	}
 	packet++;
       }
-      if (newImage != null)
+      if (newImage != null) {
         QueueManager.enqueue(queueid, newImage);
+      }
     }
     catch (Exception e) { e.printStackTrace();}
   }

@@ -1,21 +1,28 @@
-/********************************************************************
- *                                                                  *
- * THIS FILE IS PART OF THE OggTheora SOFTWARE CODEC SOURCE CODE.   *
- * USE, DISTRIBUTION AND REPRODUCTION OF THIS LIBRARY SOURCE IS     *
- * GOVERNED BY A BSD-STYLE SOURCE LICENSE INCLUDED WITH THIS SOURCE *
- * IN 'COPYING'. PLEASE READ THESE TERMS BEFORE DISTRIBUTING.       *
- *                                                                  *
- * THE Theora SOURCE CODE IS COPYRIGHT (C) 2002-2003                *
- * by the Xiph.Org Foundation http://www.xiph.org/                  *
- *                                                                  *
- ********************************************************************
+/* Jheora
+ * Copyright (C) 2004 Fluendo S.L.
+ *  
+ * Written by: 2004 Wim Taymans <wim@fluendo.com>
+ *   
+ * Many thanks to 
+ *   The Xiph.Org Foundation http://www.xiph.org/
+ * Jheora was based on their Theora reference decoder.
+ *   
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Library General Public License
+ * as published by the Free Software Foundation; either version 2 of
+ * the License, or (at your option) any later version.
+ * 
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Library General Public License for more details.
+ * 
+ * You should have received a copy of the GNU Library General Public
+ * License along with this program; if not, write to the Free Software
+ * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+ */
 
-  function:
-  last mod: $Id: decode.c,v 1.10 2003/12/06 18:06:20 arc Exp $
-
- ********************************************************************/
-
-package com.fluendo.jtheora;
+package com.fluendo.jheora;
 
 import com.jcraft.jogg.*;
 import com.fluendo.utils.*;
@@ -112,12 +119,15 @@ public final class Decode {
 
   private MotionVector LastInterMV = new MotionVector ();
   private MotionVector PriorLastInterMV = new MotionVector ();
+  private Playback pbi;
 
   public Decode (Playback pbi) {
     FragCoeffs = new byte[pbi.UnitFragments];
+    this.pbi = pbi;
   }
 
-  private int loadFrameHeader(Playback pbi){
+  private int loadFrame()
+  {
     int  DctQMask;
     int  SpareBits;       /* Spare cfg bits */
     Buffer opb = pbi.opb;
@@ -140,24 +150,14 @@ public final class Decode {
     /* Set this frame quality value from Q Index */
     pbi.ThisFrameQualityValue = pbi.QThreshTable[DctQMask];
 
+    /* Read in the updated block map */
+    pbi.frArray.quadDecodeDisplayFragments( pbi );
+
     return 1;
   }
 
-  private int loadFrame(Playback pbi){
-
-    /* Load the frame header (including the frame size). */
-    if (loadFrameHeader(pbi) != 0){
-      /* Read in the updated block map */
-      pbi.frArray.quadDecodeDisplayFragments( pbi );
-      return 1;
-    }
-
-    return 0;
-  }
-
-  private void decodeModes (Playback pbi,
-                         int SBRows,
-                         int SBCols){
+  private void decodeModes (int SBRows, int SBCols)
+  {
     int  MB;
     int  SBcol;
     int  SBrow;
@@ -170,7 +170,6 @@ public final class Decode {
     int  UVRow;
     int  UVColumn;
     int  UVFragOffset;
-    int  CodingScheme;
     int  MBListIndex = 0;
     int  i;
 
@@ -178,21 +177,17 @@ public final class Decode {
 
     /* If the frame is an intra frame then all blocks have mode intra. */
     if ( pbi.getFrameType() == Constants.BASE_FRAME ){
-      for ( i = 0; i < pbi.UnitFragments; i++ ){
-        FragCodingMethod[i] = CodingMode.CODE_INTRA;
-      }
+      MemUtils.set(FragCodingMethod, 0, CodingMode.CODE_INTRA, pbi.UnitFragments);
     }else{
-      /* Clear down the macro block level mode and MV arrays. */
-      for ( i = 0; i < pbi.UnitFragments; i++ ){
-        FragCodingMethod[i] = CodingMode.CODE_INTER_NO_MV; /* Default coding mode */
-      }
+      /* Clear down the macro block level mode and MV arrays. Default coding mode */
+      MemUtils.set(FragCodingMethod, 0, CodingMode.CODE_INTER_NO_MV, pbi.UnitFragments);
 
       CodingMode ModeEntry; /* Mode bits read */
       CodingMode[] ModeList;
 
       /* Read the coding method */
       ret = pbi.opb.readB( Constants.MODE_METHOD_BITS);
-      CodingScheme=(int)ret;
+      int CodingScheme=(int)ret;
 
       /* If the coding method is method 0 then we have to read in a
          custom coding scheme */
@@ -259,9 +254,8 @@ public final class Decode {
   }
 
 
-  private void decodeMVectors ( Playback pbi,
-                             int SBRows,
-                             int SBCols ){
+  private void decodeMVectors (int SBRows, int SBCols)
+  {
     int  FragIndex;
     int  MB;
     int  SBrow;
@@ -440,8 +434,7 @@ public final class Decode {
     return CurrentRoot.value;
   }
 
-  private void unpackAndExpandToken(Playback pbi,
-                                    short[] ExpandedBlock,
+  private void unpackAndExpandToken(short[] ExpandedBlock,
                                     byte[] CoeffIndex,
 				    int FragIndex,
 				    int HuffChoice){
@@ -494,7 +487,8 @@ public final class Decode {
     }
   }
 
-  private void unPackVideo (Playback pbi){
+  private void unPackVideo ()
+  {
     int       EncodedCoeffs = 1;
     int       FragIndex;
 
@@ -547,8 +541,7 @@ public final class Decode {
         BlocksToDecode --;
       }else{
         /* Else unpack a DC token */
-        unpackAndExpandToken(pbi,
-                             pbi.QFragData[FragIndex],
+        unpackAndExpandToken(pbi.QFragData[FragIndex],
                              FragCoeffs,
   			     FragIndex,
 		 	     DcHuffChoice);
@@ -603,8 +596,7 @@ public final class Decode {
             else
               AcHuffChoice = AcHuffChoice2;
   
-            unpackAndExpandToken(pbi, 
-	                         pbi.QFragData[FragIndex],
+            unpackAndExpandToken(pbi.QFragData[FragIndex],
                                  FragCoeffs,
   				 FragIndex,
 				 AcHuffChoice);
@@ -622,39 +614,14 @@ public final class Decode {
     }
   }
   
-  private void decodeData(Playback pbi){
-    int i;
-
-    /* Bail out immediately if a decode error has already been reported. */
-    if (pbi.DecoderErrorCode != 0) 
-      return;
-
-    /* Zero Decoder EOB run count */
-    EOB_Run = 0;
-
-    /* Make a not of the number of coded blocks this frame */
-    pbi.CodedBlocksThisFrame = pbi.CodedBlockIndex;
-
-    /* Decode the modes data */
-    decodeModes(pbi, pbi.YSBRows, pbi.YSBCols);
-
-    /* Unpack and decode the motion vectors. */
-    decodeMVectors (pbi, pbi.YSBRows, pbi.YSBCols);
-
-    /* Unpack and decode the actual video data. */
-    unPackVideo(pbi);
-
-    /* Reconstruct and display the frame */
-    dctDecode.ReconRefFrames(pbi);
-  }
-
-  public int loadAndDecode(Playback pbi){
+  public int loadAndDecode()
+  {
     int    loadFrameOK;
 
     /* Load the next frame. */
-    loadFrameOK = loadFrame(pbi);
+    loadFrameOK = loadFrame();
   
-    if ( loadFrameOK != 0){
+    if (loadFrameOK != 0){
     //System.out.println("Load: "+loadFrameOK+" "+pbi.ThisFrameQualityValue+" "+pbi.LastFrameQualityValue);
 
       if ( (pbi.ThisFrameQualityValue != pbi.LastFrameQualityValue) ){
@@ -664,8 +631,29 @@ public final class Decode {
       }
   
       /* Decode the data into the fragment buffer. */
-      decodeData(pbi);
-      return(0);
+      /* Bail out immediately if a decode error has already been reported. */
+      if (pbi.DecoderErrorCode != 0) 
+        return 0;
+
+      /* Zero Decoder EOB run count */
+      EOB_Run = 0;
+
+      /* Make a note of the number of coded blocks this frame */
+      pbi.CodedBlocksThisFrame = pbi.CodedBlockIndex;
+
+      /* Decode the modes data */
+      decodeModes(pbi.YSBRows, pbi.YSBCols);
+
+      /* Unpack and decode the motion vectors. */
+      decodeMVectors (pbi.YSBRows, pbi.YSBCols);
+
+      /* Unpack and decode the actual video data. */
+      unPackVideo();
+
+      /* Reconstruct and display the frame */
+      dctDecode.ReconRefFrames(pbi);
+
+      return 0;
     }
   
     return(Result.BADPACKET);

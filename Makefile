@@ -5,7 +5,7 @@ all:
 	javac -O -target 1.1 com/fluendo/player/*.java
 	javac -O -target 1.1 com/fluendo/examples/*.java
 	javac -O -target 1.1 com/fluendo/utils/*.java
-	javac -O -target 1.1 com/fluendo/jtheora/*.java
+	javac -O -target 1.1 com/fluendo/jheora/*.java
 
 clean:
 	rm -f com/jcraft/jogg/*.class
@@ -14,8 +14,13 @@ clean:
 	rm -f com/fluendo/player/*.class
 	rm -f com/fluendo/examples/*.class
 	rm -f com/fluendo/utils/*.class
-	rm -f com/fluendo/jtheora/*.class
+	rm -f com/fluendo/jheora/*.class
 
 jar:
-	jar cvf cortado.jar com/jcraft/jogg/*.class com/jcraft/jorbis/*.class com/fluendo/player/*.class com/fluendo/utils/*.class com/fluendo/jtheora/*.class
+	jar cvf cortado.jar com/jcraft/jogg/*.class com/jcraft/jorbis/*.class com/fluendo/player/*.class com/fluendo/utils/*.class com/fluendo/jheora/*.class com/fluendo/codecs/*.class
 
+dist:
+	rm -rf cortado/
+	mkdir cortado
+	cp --parents com/jcraft/jogg/*.java com/jcraft/jorbis/*.java com/fluendo/player/*.java com/fluendo/utils/*.java com/fluendo/jheora/*.java com/fluendo/codecs/*.java Makefile LICENSE.cortado LICENSE.jheora LICENSE.smoke TODO cortado/
+	tar cvzf cortado.tgz cortado/

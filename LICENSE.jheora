@@ -21,18 +21,3 @@
  * License along with this program; if not, write to the Free Software
  * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  */
-
-package com.fluendo.jheora;
-
-public class JTheoraException extends Exception {
-  private int error;
-  
-  public JTheoraException() {
-    super();
-  }
-  public JTheoraException(String str, int error) {
-    super();
-
-    this.error = error;
-  }
-}
