@@ -34,7 +34,7 @@ public class Clock {
     return System.currentTimeMillis() - startTime;
   }
 
-  public long getMediaTime() {
+  public synchronized long getMediaTime() {
     return System.currentTimeMillis() - startTime + adjust;
   }
 

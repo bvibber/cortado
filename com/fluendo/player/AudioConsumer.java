@@ -33,6 +33,7 @@ public class AudioConsumer implements Runnable, DataConsumer
   private Clock clock;
   //private static final int MAX_BUFFER = Integer.MAX_VALUE;
   private static final int MAX_BUFFER = 20;
+  //private static final int MAX_BUFFER = 1;
   private boolean stopping = false;
   private long start;
   private long prev;
@@ -104,6 +105,8 @@ public class AudioConsumer implements Runnable, DataConsumer
 
       if (current == null) {
         current = (byte[]) QueueManager.dequeue(queueid);
+	if (current == null)
+	  return -1;
 	pos = 0;
       }
       res = current[pos];
@@ -137,22 +140,23 @@ public class AudioConsumer implements Runnable, DataConsumer
 
 	long absDiff = Math.abs(diff);
 	long maxDiff = (30 * DEVICE_BUFFER_TIME) / 100;
-
-	long adjust = (long)(Math.log(absDiff - maxDiff) * 5);
-	if (diff > 0) {
-	  clock.updateAdjust(-adjust);
-	}
-	else if (diff < 0) {
-	  clock.updateAdjust(adjust);
+	if (absDiff > maxDiff) {
+	  long adjust = (long)(Math.log(absDiff - maxDiff) * 20);
+	  if (diff > 0) {
+	    clock.updateAdjust(-adjust);
+	  }
+	  else if (diff < 0) {
+	    clock.updateAdjust(adjust);
+	  }
 	}
 	/*
         System.out.println("sync: clock="+clockTime+
 	                        " sampleTime="+sampleTime+
 	                        " diff="+diff+
 			        " adjust="+clock.getAdjust());  
-				*/
 				
 	QueueManager.dumpStats();
+				*/
       }
       sampleCount++;
 
@@ -171,6 +175,7 @@ public class AudioConsumer implements Runnable, DataConsumer
 
   public AudioConsumer(Clock newClock) {
     queueid = QueueManager.registerQueue(MAX_BUFFER);
+    System.out.println("audio on queue "+queueid);
     clock = newClock;
     vi = new Info();
     vc = new Comment();
@@ -189,6 +194,7 @@ public class AudioConsumer implements Runnable, DataConsumer
 
   public void stop() {
     stopping = true;
+    AudioPlayer.player.stop(as);
   }
 
   public void run() {

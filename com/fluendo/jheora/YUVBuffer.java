@@ -44,6 +44,8 @@ public class YUVBuffer
 
   private int[] pixels;
   private int pix_size;
+  MemoryImageSource source;
+  Image image;
 
   private void prepareRGBData (int x, int y, int width, int height)
   {
@@ -51,6 +53,8 @@ public class YUVBuffer
     if (size != pix_size) {
       pixels = new int[size];
       pix_size = size;
+      source = new MemoryImageSource (width, height, pixels, 0, width);
+      source.setAnimated(true);
     }
     YUVtoRGB(x, y, width, height);
   }
@@ -58,18 +62,19 @@ public class YUVBuffer
   public int[] getAsRGBData ()
   {
     prepareRGBData(0, 0, y_width, y_height);
+
     return pixels;
   }
 
   public Image getAsImage (Toolkit toolkit, int x, int y, int width, int height)
   {
     prepareRGBData(x, y, width, height);
-
-    MemoryImageSource source =
-      new MemoryImageSource (width, height, pixels, 0, width);
-    pix_size = 0;
-
-    return toolkit.createImage (source);
+    
+    source.newPixels();
+    if (image == null) {
+      image = toolkit.createImage (source);
+    }
+    return image;
   }
 
   private static final int VAL_RANGE = 256;

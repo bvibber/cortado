@@ -298,7 +298,7 @@ public class Quant
   public static void UpdateQ(Playback pbi, int NewQ ){
     int qscale;
 
-    /* Do bounds checking and convert to a float. */
+    /* Do bounds checking. */
     qscale = NewQ;
     if ( qscale < pbi.QThreshTable[Constants.Q_TABLE_SIZE-1] )
       qscale = pbi.QThreshTable[Constants.Q_TABLE_SIZE-1];

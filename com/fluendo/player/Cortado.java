@@ -108,10 +108,12 @@ public class Cortado extends Applet implements ImageTarget
   }
 
   public void setImage(Image newImage, double framerate, double aspect) {
-    image = newImage;
-    this.framerate = framerate;
-    this.aspect = aspect;
-    repaint((long)(1000/(framerate * 2)));
+    if (image != newImage) {
+      image = newImage;
+      this.framerate = framerate;
+      this.aspect = aspect;
+      repaint((long)(1000/(framerate * 2)));
+    }
   }
 
   public Component getComponent() {
@@ -227,10 +229,20 @@ public class Cortado extends Applet implements ImageTarget
         videoConsumer.stop();
       if (audio)
         audioConsumer.stop();
+    }
+    catch (Exception e) {
+      e.printStackTrace();
+    }
+    try {
       if (video)
         videoThread.interrupt();
       if (audio)
         audioThread.interrupt();
+    }
+    catch (Exception e) {
+      e.printStackTrace();
+    }
+    try {
       if (video)
         videoThread.join();
       if (audio)

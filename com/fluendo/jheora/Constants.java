@@ -27,7 +27,6 @@ package com.fluendo.jheora;
 public class Constants 
 {
   public static final int CURRENT_ENCODE_VERSION =  1;
-  public static final int HUGE_ERROR             = (1<<28);  /*  Out of range test value */
 
 /* Baseline dct height and width. */
   public static final int BLOCK_HEIGHT_WIDTH = 8;
@@ -49,23 +48,6 @@ public class Constants
   public static final int MODE_BITS          = 3;
   public static final int MODE_METHODS       = 8;
   public static final int MODE_METHOD_BITS   = 3;
-
-/* Different key frame types/methods */
-  public static final int DCT_KEY_FRAME      = 0;
-
-  public static final int KEY_FRAME_CONTEXT  = 5;
-
-/* Preprocessor defines */
-  public static final int MAX_PREV_FRAMES    = 16;
-
-/* Number of search sites for a 4-step search (at pixel accuracy) */
-  public static final int MAX_SEARCH_SITES   = 33;
-
-  public static final int VERY_BEST_Q        = 10;
-  public static final double MIN_BPB_FACTOR     = 0.3;
-  public static final double MAX_BPB_FACTOR     = 3.0;
-
-  public static final int MAX_MV_EXTENT      = 31;  /* Max search distance in half pixel increments */
 
   public static final int[] dequant_index = {
     0,  1,  8,  16,  9,  2,  3, 10,

@@ -39,7 +39,8 @@ public class VideoConsumer implements DataConsumer, Runnable
   private int framenr;
   private Clock clock;
   private boolean ready;
-  private static final int MAX_BUFFER = 1;
+  //private static final int MAX_BUFFER = 1;
+  private static final int MAX_BUFFER = 20;
   private double framerate;
   private double frameperiod;
   private double aspect = 1.;
@@ -61,6 +62,7 @@ public class VideoConsumer implements DataConsumer, Runnable
     toolkit = component.getToolkit();
     mt = new MediaTracker(component);
     queueid = QueueManager.registerQueue(MAX_BUFFER);
+    System.out.println("video on queue "+queueid);
     clock = newClock;
     frameperiod = 1000.0 / framerate;
     smoke = new SmokeCodec(component, mt);
@@ -85,7 +87,7 @@ public class VideoConsumer implements DataConsumer, Runnable
     return ready;
   }
 
-  public void consume(byte[] data, int offset, int length) {
+  private Image decodeImage (byte[] data, int offset, int length) {
     Image newImage = null;
     
     try {
@@ -115,7 +117,7 @@ public class VideoConsumer implements DataConsumer, Runnable
           if(ti.decodeHeader(tc, op) < 0){
             // error case; not a theora header
             System.err.println("does not contain Theora video data.");
-            return;
+            return null;
           }
           if (packet == 2) {
             ts.decodeInit(ti);
@@ -136,19 +138,27 @@ public class VideoConsumer implements DataConsumer, Runnable
         else {
 	  if (ts.decodePacketin(op) != 0) {
             System.err.println("Error Decoding Theora.");
-	    return;
+	    return null;
 	  }
 	  if (ts.decodeYUVout(yuv) != 0) {
             System.err.println("Error getting the picture.");
-	    return;
+	    return null;
 	  }
 	  newImage = yuv.getAsImage(toolkit, ti.offset_x, ti.offset_y, ti.frame_width, ti.frame_height);
 	}
 	packet++;
       }
-      if (newImage != null) {
-        QueueManager.enqueue(queueid, newImage);
-      }
+    }
+    catch (Exception e) { e.printStackTrace();}
+
+    return newImage;
+  }
+
+  public void consume(byte[] data, int offset, int length) {
+    try {
+      byte[] imgData = new byte[length];
+      System.arraycopy (data, offset, imgData, 0, length);
+      QueueManager.enqueue(queueid, imgData);
     }
     catch (Exception e) { e.printStackTrace();}
   }
@@ -161,8 +171,10 @@ public class VideoConsumer implements DataConsumer, Runnable
     System.out.println("entering video thread");
     while (!stopping) {
       //System.out.println("dequeue image");
-      Image image = (Image) QueueManager.dequeue(queueid);
+      byte[] imgData = (byte[]) QueueManager.dequeue(queueid);
       //System.out.println("dequeued image");
+
+      Image image = decodeImage (imgData, 0, imgData.length);
 
       try {
 	if (framenr == 0) {
@@ -175,13 +187,15 @@ public class VideoConsumer implements DataConsumer, Runnable
 	  }
 	}
 	else {
+	  //System.out.println("wait for "+(framenr * frameperiod));
 	  clock.waitForMediaTime((long) (framenr * frameperiod));
 	}
       }
       catch (Exception e) {
         e.printStackTrace();
       }
-      target.setImage(image, framerate, aspect);
+      if (image != null)
+        target.setImage(image, framerate, aspect);
       framenr++;
     }
   }

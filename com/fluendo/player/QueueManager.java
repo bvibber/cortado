@@ -95,7 +95,7 @@ public class QueueManager {
       synchronized (sync) {
         while (queue.size() == 0) {
 	  //System.out.println("queue "+id+" empty");
-	  adjustOthers(id, 1);
+	  //adjustOthers(id, 1);
 	  //System.out.println("others adjusted");
           sync.wait();
 	  //System.out.println("queue "+id+" empty done");
