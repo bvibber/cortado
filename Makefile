@@ -1,7 +1,7 @@
-com/fluendo/player/Configure.class:
+configure:
 	@./gen-Configure "Built using make."
 
-all: com/fluendo/player/Configure.class
+all: configure
 	jikes-classpath -cp stubs -O -target 1.1 com/jcraft/jogg/*.java
 	jikes-classpath -cp stubs -O -target 1.1 com/jcraft/jorbis/*.java
 	jikes-classpath -cp stubs -O -target 1.1 com/fluendo/codecs/*.java
