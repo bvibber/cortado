@@ -19,8 +19,9 @@
 package com.fluendo.player;
 
 import java.awt.*;
+import java.awt.image.*;
 
 public interface ImageTarget {
   public Component getComponent();
-  public void setImage (Image image, double framerate, double aspect);
+  public void setImageProducer (ImageProducer prod, double framerate, double aspect);
 }

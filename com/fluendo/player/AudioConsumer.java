@@ -30,7 +30,7 @@ public class AudioConsumer implements Runnable, DataConsumer, ClockProvider
   private int queueid;
   private boolean ready;
   private Clock clock;
-  private static final int MAX_BUFFER = 10;
+  private static final int MAX_BUFFER = 5;
   private boolean stopping = false;
   private Plugin plugin;
   private long queuedTime = -1;
@@ -49,7 +49,7 @@ public class AudioConsumer implements Runnable, DataConsumer, ClockProvider
   }
 
   public boolean isReady() {
-    return ready;
+    return ready && QueueManager.isFilled (queueid);
   }
 
   public long getQueuedTime () {

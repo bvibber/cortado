@@ -63,7 +63,7 @@ public class SmokePlugin extends Plugin
     aspect_numerator = 1;
     aspect_denominator = 1;
 
-    buf.object = newImage;
+    buf.object = newImage.getSource();
 
     return buf;
   }

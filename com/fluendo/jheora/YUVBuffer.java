@@ -27,7 +27,7 @@ package com.fluendo.jheora;
 import java.awt.*;
 import java.awt.image.*;
 
-public class YUVBuffer 
+public class YUVBuffer implements ImageProducer
 {
   public int y_width;
   public int y_height;
@@ -44,74 +44,61 @@ public class YUVBuffer
 
   private int[] pixels;
   private int pix_size;
-  private MemoryImageSource source;
-  private Image image;
 
-  public static final int MODE_NEW = 0;
-  public static final int MODE_ANIMATED = 1;
-  public static final int MODE_COPY = 2;
+  private boolean newPixels = true;
 
-  private int mode = MODE_COPY;
+  private ColorModel colorModel = ColorModel.getRGBdefault();
 
-  private void prepareRGBData (Toolkit toolkit, int x, int y, int width, int height)
+  public void addConsumer(ImageConsumer ic) 
   {
+  }
+  public boolean isConsumer(ImageConsumer ic) 
+  {
+    return false;
+  }
+  public void removeConsumer(ImageConsumer ic) 
+  {
+  }
+  public void requestTopDownLeftRightResend(ImageConsumer ic) 
+  {
+  }
+  public void startProduction(ImageConsumer ic) 
+  {
+    ic.setColorModel(colorModel);
+    ic.setHints (ImageConsumer.TOPDOWNLEFTRIGHT | 
+                 ImageConsumer.COMPLETESCANLINES | 
+                 ImageConsumer.SINGLEFRAME | 
+		 ImageConsumer.SINGLEPASS);
+    ic.setDimensions (y_width, y_height);
+    prepareRGBData(0, 0, y_width, y_height);
+    ic.setPixels(0, 0, y_width, y_height, colorModel, pixels, 0, y_width);
+    ic.imageComplete(ImageConsumer.STATICIMAGEDONE);
+  }
+
+  private synchronized void prepareRGBData (int x, int y, int width, int height)
+  {
+    if (!newPixels)
+      return;
+
     int size = width * height;
 
     if (size != pix_size) {
+      System.out.println("creating image ");
       pixels = new int[size];
       pix_size = size;
-      if (mode == MODE_NEW || mode == MODE_ANIMATED) {
-        source = new MemoryImageSource (width, height, ColorModel.getRGBdefault(), pixels, 0, width);
-
-        if (mode == MODE_ANIMATED) {
-          source.setAnimated(true);
-          source.setFullBufferUpdates(true);
-
-          System.out.println("created image source");
-          if (toolkit != null) {
-            image = toolkit.createImage (source);
-	    if (image != null)
-              System.out.println("created image");
-          }
-	}
-      }
     }
     YUVtoRGB(x, y, width, height);
+    newPixels = false;
   }
 
-  public int[] getAsRGBData ()
+  public synchronized void newPixels()
   {
-    prepareRGBData(null, 0, 0, y_width, y_height);
-
-    return pixels;
+    newPixels = true;
   }
 
-  public void setMode (int mode) {
-    this.mode = mode;
-  }
-
-  public Image getAsImage (Toolkit toolkit, int x, int y, int width, int height)
+  public ImageProducer getAsProducer (int x, int y, int width, int height)
   {
-    prepareRGBData(toolkit, x, y, width, height);
-
-    switch (mode) {
-      case MODE_ANIMATED:
-        source.newPixels(x, y, width, height, true);
-        break;
-      case MODE_NEW:
-        image = toolkit.createImage (source);
-        break;
-      case MODE_COPY:
-        int[] newPixels = new int[pixels.length];
-        System.arraycopy (pixels, 0, newPixels, 0, pixels.length);
-        MemoryImageSource newSource = 
-    		new MemoryImageSource (width, height, ColorModel.getRGBdefault(), newPixels, 0, width);
-        image = toolkit.createImage (newSource);
-        break;
-      default:
-        break;
-    }
-    return image;
+    return this;
   }
 
   private static final int VAL_RANGE = 256;
@@ -130,36 +117,6 @@ public class YUVBuffer
     SetupRgbYuvAccelerators ();
   }
 
-  private void Raw () 
-  {
-    int off, y = 0;
-
-    off = y_offset;
-    for (int i=0; i<y_height; i++) {
-      for (int j=0; j<y_width; j++) {
-        int pixel = data[off+j];
-        pixels[y++] = (pixel<<24) | (pixel<<16) | (pixel<<8) | pixel;
-      }
-      off += y_stride;
-    }
-    off = u_offset;
-    for (int i=0; i<y_height/2; i++) {
-      for (int j=0; j<y_width/2; j++) {
-        int pixel = data[off+j];
-        pixels[y++] = (pixel<<24) | (pixel<<16) | (pixel<<8) | pixel;
-      }
-      off += uv_stride;
-    }
-    off = v_offset;
-    for (int i=0; i<y_height/2; i++) {
-      for (int j=0; j<y_width/2; j++) {
-        int pixel = data[off+j];
-        pixels[y++] = (pixel<<24) | (pixel<<16) | (pixel<<8) | pixel;
-      }
-      off += uv_stride;
-    }
-  }
-
   private void YUVtoRGB (int x, int y, int width, int height) 
   {
     int UFactor;
@@ -174,15 +131,17 @@ public class YUVBuffer
     int VPtr = v_offset + x/2 + (y/2)*(uv_stride);
     int RGBPtr = 0;
     int RGBPtr2 = width;
+    int width2 = width/2;
+    int height2 = height/2;
 
     // Set the line step for the Y and UV planes and YPtr2
-    int YStep = y_stride*2 - (width/2)*2;
-    int UVStep = uv_stride - (width/2);
+    int YStep = y_stride*2 - (width2)*2;
+    int UVStep = uv_stride - (width2);
     int RGBStep = width;
 
-    for (int i=0; i < height / 2; i++)
+    for (int i=0; i < height2; i++)
     {
-      for (int j=0; j < width / 2; j++) {
+      for (int j=0; j < width2; j++) {
 	// groups of four pixels
 	UFactor = data[UPtr++] - 128;
 	VFactor = data[VPtr++] - 128;

@@ -70,8 +70,6 @@ public class TheoraPlugin extends Plugin
 
   public MediaBuffer decode(MediaBuffer buf)
   {
-    Image newImage =  null;
-
     op.packet_base = buf.data;
     op.packet = buf.offset;
     op.bytes = buf.length;
@@ -119,8 +117,7 @@ public class TheoraPlugin extends Plugin
         System.err.println("Error getting the picture.");
         return null;
       }
-      newImage = yuv.getAsImage(toolkit, ti.offset_x, ti.offset_y, ti.frame_width, ti.frame_height);
-      buf.object = newImage;
+      buf.object = yuv.getAsProducer(ti.offset_x, ti.offset_y, ti.frame_width, ti.frame_height);
     }
     packet++;
 

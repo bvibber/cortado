@@ -95,7 +95,7 @@ public class VideoConsumer implements DataConsumer, Runnable
   }
   private void handleDisplay (MediaBuffer buf)
   {
-    Image image = (Image) buf.object;
+    ImageProducer imageProd = (ImageProducer) buf.object;
     try {
       if (frameperiod > 0) {
         long timestamp = buf.timestamp;
@@ -104,7 +104,7 @@ public class VideoConsumer implements DataConsumer, Runnable
         }
         if (clock.waitForMediaTime((long) (timestamp))) {
 	  //System.out.println("set image "+timestamp);
-          target.setImage(image, framerate, aspect);
+          target.setImageProducer(imageProd, framerate, aspect);
         }
 	else {
 	  //System.out.println("skip image "+timestamp);
@@ -112,7 +112,7 @@ public class VideoConsumer implements DataConsumer, Runnable
       }
       else {
         //System.out.println("set image");
-        target.setImage(image, framerate, aspect);
+        target.setImageProducer(imageProd, framerate, aspect);
       }
     }
     catch (Exception ie) {
@@ -147,8 +147,8 @@ public class VideoConsumer implements DataConsumer, Runnable
 
       if (!ready) {
         try {
-	  Image image = (Image) headBuf.object;
-          target.setImage(image, framerate, aspect);
+	  ImageProducer prod = (ImageProducer)headBuf.object;
+          target.setImageProducer(prod, framerate, aspect);
 	  queuedTime = headBuf.timestamp;
 	  headBuf.free();
 	  // first frame, wait for signal

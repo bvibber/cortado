@@ -51,6 +51,17 @@ public class QueueManager {
     }
   }
 
+  public static boolean isFilled(int id) {
+    Object sync = syncs[id];
+    Vector queue = queues[id];
+    if (sync != null) {
+      synchronized (sync) {
+        return (queue.size() >= sizes[id]);
+      }
+    }
+    return false;
+  }
+
   public static void reset() {
     numqueues = 0;
   }

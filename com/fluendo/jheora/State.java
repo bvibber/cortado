@@ -132,6 +132,8 @@ public class State
     yuv.v_offset += yuv.uv_stride * (yuv.uv_height - 1);
     yuv.y_stride = - yuv.y_stride;
     yuv.uv_stride = - yuv.uv_stride;
+
+    yuv.newPixels();
   
     return 0;
   }

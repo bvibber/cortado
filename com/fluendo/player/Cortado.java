@@ -21,6 +21,7 @@ package com.fluendo.player;
 import java.applet.*;
 import java.io.*;
 import java.awt.*;
+import java.awt.image.*;
 import java.awt.event.*;
 import java.net.*;
 import java.util.*;
@@ -73,6 +74,8 @@ public class Cortado extends Applet implements ImageTarget,
   private Image dbImage;
   private Graphics dbGraphics;
   private Dimension appletDimension;
+
+  private boolean needRepaint;
 
   public String getAppletInfo() {
     return "Title: Fluendo media player \nAuthor: Wim Taymans \nA Java based network multimedia player.";
@@ -157,6 +160,8 @@ public class Cortado extends Applet implements ImageTarget,
     configure = new Configure();
     System.out.println("build info: " + configure.buildInfo);
 
+    needRepaint = true;
+
     /* FIXME: this needs to be redone in resize callbacks */
     appletDimension = getSize();
 
@@ -176,7 +181,10 @@ public class Cortado extends Applet implements ImageTarget,
     return this;
   }
 
-  public void update(Graphics g) {
+  public synchronized void update(Graphics g) {
+    if (!needRepaint)
+      return;
+
     if (useDb) {
       if (appletDimension == null) {
         appletDimension = getSize();
@@ -223,6 +231,9 @@ public class Cortado extends Applet implements ImageTarget,
           if (status.isVisible()) {
             status.setBufferPercent(percent);
 	  }
+	  System.out.println(""+preBuffer.getReceived()+ 
+	           " "+preBuffer.getReceiveSpeed() +
+	           " "+preBuffer.getConsumeSpeed());
 	}
 
         Thread.sleep(500);
@@ -235,7 +246,7 @@ public class Cortado extends Applet implements ImageTarget,
     System.out.println("exit status thread");
   }
 
-  public void paint(Graphics g) {
+  public synchronized void paint(Graphics g) {
     if (appletDimension == null) {
       appletDimension = getSize();
     }
@@ -275,25 +286,28 @@ public class Cortado extends Applet implements ImageTarget,
 	int pos = Math.max (y+height, dheight-12);
         g.fillRect(x, pos, x+width, dheight);
       }
+      image.flush();
     }
     if (status != null && status.isVisible()) {
       status.setBounds(x, dheight-12, width, 12);
       status.paint(g);
     }
+    needRepaint = false;
   }
 
-  public void setImage(Image newImage, double framerate, double aspect) {
-    //System.out.println("set image "+newImage);
-    if (image != newImage) {
-      image = newImage;
+  public synchronized void setImageProducer(ImageProducer prod, double framerate, double aspect) {
+    if (!needRepaint) {
+      //System.out.println("set image "+newImage);
+      image = createImage (prod);
       this.framerate = framerate;
       this.aspect = aspect;
       if (!havePreroll) {
-    	int dwidth = appletDimension.width;
-    	int dheight = appletDimension.height;
+  	int dwidth = appletDimension.width;
+   	int dheight = appletDimension.height;
         getGraphics().clearRect(0, 0, dwidth, dheight);
         status.setMessage("Buffering...");
       }
+      needRepaint = true;
       repaint();
     }
   }
@@ -500,7 +514,7 @@ public class Cortado extends Applet implements ImageTarget,
         if (preBuffer != null) {
           synchronized (preBuffer) {
             System.out.println("consumers ready");
-  	    System.out.println("preroll done, starting...");
+  	    System.out.println("preroll done, starting prebuffer...");
             status.setHavePercent (usePrebuffer);
 	    preBuffer.startBuffer();
 	    if (preBuffer.isFilled()) {

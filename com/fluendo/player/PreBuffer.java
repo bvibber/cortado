@@ -37,6 +37,9 @@ public class PreBuffer extends InputStream implements Runnable {
   private boolean eos;
   private boolean readerBlocked;
   private boolean writerBlocked;
+  private long received;
+  private long receiveStart;
+  private long consumed;
 
   private int state = PreBufferNotify.STATE_START;
 
@@ -57,6 +60,7 @@ public class PreBuffer extends InputStream implements Runnable {
     eos = false;
     thread = new Thread (this);
     thread.start();
+    receiveStart = 0;
   }
 
   public void stop() {
@@ -113,11 +117,35 @@ public class PreBuffer extends InputStream implements Runnable {
     return filled;
   }
 
+  public synchronized long getReceived() {
+    return received;
+  }
+
+  public synchronized double getReceiveSpeed() {
+    if (receiveStart == 0)
+      return 0.0;
+
+    long time = System.currentTimeMillis() - receiveStart;
+    return ((double)received) / time;
+  }
+
+  public synchronized double getConsumeSpeed() {
+    if (receiveStart == 0)
+      return 0.0;
+
+    long time = System.currentTimeMillis() - receiveStart;
+    return ((double)consumed) / time;
+  }
+
   public synchronized void startBuffer() {
+    System.out.println("start buffer..");
     state = PreBufferNotify.STATE_BUFFER;
+    received = 0;
+    receiveStart = System.currentTimeMillis();
   }
 
   public synchronized void receive(int b) {
+    received++;
     while (in == out) {
       if (notify != null)
         notify.preBufferNotify (PreBufferNotify.STATE_OVERFLOW);
@@ -198,6 +226,8 @@ public class PreBuffer extends InputStream implements Runnable {
     }
     if (writerBlocked)
       notify();
+
+    consumed++;
 
     return ret;
   }
