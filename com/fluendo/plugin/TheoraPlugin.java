@@ -117,7 +117,7 @@ public class TheoraPlugin extends Plugin
         System.err.println("Error getting the picture.");
         return null;
       }
-      buf.object = yuv.getAsProducer(ti.offset_x, ti.offset_y, ti.frame_width, ti.frame_height);
+      buf.object = yuv.getObject(ti.offset_x, ti.offset_y, ti.frame_width, ti.frame_height);
     }
     packet++;
 

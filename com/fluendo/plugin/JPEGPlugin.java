@@ -65,7 +65,7 @@ public class JPEGPlugin extends Plugin
     catch (Exception e) {
       e.printStackTrace();
     }
-    buf.object = newImage.getSource();
+    buf.object = newImage;
 
     return buf;
   }

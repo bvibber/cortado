@@ -96,7 +96,7 @@ public class YUVBuffer implements ImageProducer
     newPixels = true;
   }
 
-  public ImageProducer getAsProducer (int x, int y, int width, int height)
+  public Object getObject (int x, int y, int width, int height)
   {
     return this;
   }
