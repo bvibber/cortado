@@ -385,7 +385,7 @@ public class Cortado extends Applet implements ImageTarget,
   }
   public void mousePressed(MouseEvent e) 
   {
-    if (e.getButton() == MouseEvent.BUTTON3) {
+    if ((e.getModifiers() & InputEvent.BUTTON3_MASK) == InputEvent.BUTTON3_MASK) {
       menu.show(this, e.getX(), e.getY());
     }
   }
@@ -412,6 +412,7 @@ public class Cortado extends Applet implements ImageTarget,
     Plugin plugin = null;
 
     status.setMessage("Opening "+urlString+"...");
+    addMouseListener(this);
     try {
       try {
         if (local) {
@@ -462,7 +463,6 @@ public class Cortado extends Applet implements ImageTarget,
       clock = new Clock();
       QueueManager.reset();
       addMouseMotionListener(this);
-      addMouseListener(this);
 
       if (video) {
         videoConsumer = new VideoConsumer(clock, this, framerate);
