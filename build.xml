@@ -214,7 +214,7 @@ fluendo/plugin/Vorbis*
 
     <!-- Put everything in ${build} into the cortado.jar file -->
     <jar jarfile="${dist}/applet/cortado.jar" basedir="${build}"
-         excludes="includes,sun/audio/*,sun/audio,sun"/>
+         excludes="includes,sun/audio/*,sun/audio,sun,javax/sound/sampled/spi/*,javax/sound/sampled/*, javax/sound/sampled,javax/sound,javax"/>
   </target>
 
   <target name="install" depends="jar"

@@ -1,4 +1,4 @@
-usage
+USAGE
 -----
 
 Embed the applet in a web page with code like this:
@@ -28,24 +28,33 @@ parameters:
 
   url:        the URL to load, must be a fully qualified URL.
 
-  framerate:  the target framerate for the video playback for formats (multipart) that
-              do not have a framerate embedded in the stream. This property is ignored
-	      on ogg streams. This value can be any floating point value.
+  framerate:  the target framerate for the video playback for formats
+              (multipart) that do not have a framerate embedded in the stream.
+              This property is ignored on ogg streams.
+              This value can be any floating point value.
 
-  keepAspect: Try to keep the natural aspect of the video when resizing the applet 
-              window. true or false.
+  keepAspect: Try to keep the natural aspect of the video when resizing the
+              applet window. true or false.
 
-  video:      Use video. When not using video, this property will not create resources
-              to play a video stream. true or false.
+  video:      Use video. When not using video, this property will not create
+              resources to play a video stream. true or false.
 	      
-  audio:      Use audio. When not using audio, this property will not create resources
-              to play an audio stream. true or false.
+  audio:      Use audio. When not using audio, this property will not create
+              resources to play an audio stream. true or false.
 
-  bufferSize: The size of the network buffer. A good value is Kbps of the stream * 33;
+  bufferSize: The size of the network buffer.
+              A good value is Kbps of the stream * 33
 
   userId:     user id for basic authentication.
 
   password:   password for basic authentication.
 	      
+BUILDING
+--------
+Example build on Fedora Core 2 with jikes installed:
 
+- build the applet with Ogg, Vorbis and Theora:
+CLASSPATH=/usr/share/java/libgcj-3.4.0.jar make ovt
 
+- build the applet with Multipart, Mulaw, JPEG and smoke:
+CLASSPATH=/usr/share/java/libgcj-3.4.0.jar make mmjs

@@ -29,13 +29,27 @@ clean:
 jar:
 	jar cvf cortado.jar com/jcraft/jogg/*.class com/jcraft/jorbis/*.class com/fluendo/player/*.class com/fluendo/utils/*.class com/fluendo/jheora/*.class com/fluendo/codecs/*.class plugins.ini
 
-dist: cortado.tar.gz
+dist:
+	rm cortado-$(VERSION).tar.gz
+	make cortado-$(VERSION).tar.gz
 
-cortado.tar.gz:
-	rm -rf cortado/
-	mkdir cortado
-	cp --parents com/jcraft/jogg/*.java com/jcraft/jorbis/*.java com/fluendo/player/*.java com/fluendo/utils/*.java com/fluendo/jheora/*.java com/fluendo/codecs/*.java com/fluendo/examples/*.java Makefile LICENSE.cortado LICENSE.jheora LICENSE.smoke TODO play cortado/
-	tar cvzf cortado.tgz cortado/
+cortado-$(VERSION).tar.gz:
+	rm -rf cortado-$(VERSION)
+	mkdir cortado-$(VERSION)
+	cp --parents \
+		com/jcraft/jogg/*.java com/jcraft/jorbis/*.java \
+		com/fluendo/player/*.java com/fluendo/utils/*.java \
+		com/fluendo/jheora/*.java com/fluendo/codecs/*.java \
+		com/fluendo/plugin/*.java \
+		com/fluendo/examples/*.java \
+		stubs/sun/audio/*.java \
+		stubs/javax/sound/sampled/*.java \
+		Makefile build.xml gen-Configure \
+		LICENSE.cortado LICENSE.jheora LICENSE.smoke \
+		ChangeLog README TODO play \
+		cortado-$(VERSION)/
+	tar cvzf $@ cortado-$(VERSION)
+	rm -rf cortado-$(VERSION)
 
 cortado-ovt-$(VERSION).jar:
 	ant -Dexclude=MultiPart,JPEG,Smoke,Mulaw jar
