@@ -44,8 +44,10 @@ public class QueueManager {
     Object sync = syncs[id];
     queues[id] = null;
     syncs[id] = null;
-    synchronized (sync) {
-      sync.notifyAll();
+    if (sync != null) {
+      synchronized (sync) {
+        sync.notifyAll();
+      }
     }
   }
 

@@ -37,6 +37,9 @@ public abstract class Plugin
 
   public int type;
 
+  /* timestamp of last data */
+  public long last_pts;
+
   /* video */
   public int fps_numerator;
   public int fps_denominator;
@@ -139,6 +142,12 @@ public abstract class Plugin
   public abstract String getMime ();
   public abstract int typeFind (byte[] data, int offset, int length);
 
+  public long offsetToTime(long ts_offset)
+  {
+    System.out.println("offsetToTime not implemented");
+    return -1;
+  }
+
   public void initDecoder(Component comp)
   {
     System.out.println("plugin not decoder");
@@ -149,16 +158,12 @@ public abstract class Plugin
     System.out.println("plugin not demuxer");
   }
 
-  public Image decodeVideo(byte[] data, int offset, int length)
+  public MediaBuffer decode(MediaBuffer buffer) 
   {
-    System.out.println("plugin not video");
+    System.out.println("plugin not decoder");
     return null;
   }
-  public byte[] decodeAudio(byte[] data, int offset, int length)
-  {
-    System.out.println("plugin not audio");
-    return null;
-  }
+
   public boolean demux() throws IOException
   {
     System.out.println("plugin not demuxer");

@@ -54,8 +54,8 @@ public class YUVBuffer
       pixels = new int[size];
       pix_size = size;
       source = new MemoryImageSource (width, height, ColorModel.getRGBdefault(), pixels, 0, width);
-      source.setAnimated(true);
-      source.setFullBufferUpdates(true);
+      //source.setAnimated(true);
+      //source.setFullBufferUpdates(true);
       System.out.println("created image source");
       if (toolkit != null) {
         image = toolkit.createImage (source);
@@ -76,7 +76,8 @@ public class YUVBuffer
   public Image getAsImage (Toolkit toolkit, int x, int y, int width, int height)
   {
     prepareRGBData(toolkit, x, y, width, height);
-    source.newPixels(x, y, width, height, true);
+    //source.newPixels(x, y, width, height, true);
+    image = toolkit.createImage (source);
 
     return image;
   }

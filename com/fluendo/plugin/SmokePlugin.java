@@ -52,18 +52,20 @@ public class SmokePlugin extends Plugin
     smoke = new SmokeCodec (component, mediaTracker);
   }
 
-  public Image decodeVideo(byte[] data, int offset, int length)
+  public MediaBuffer decode(MediaBuffer buf)
   {
     Image newImage;
 
-    newImage = smoke.decode(data, offset, length);
+    newImage = smoke.decode(buf.data, buf.offset, buf.length);
     
     fps_numerator = smoke.fps_num;
     fps_denominator = smoke.fps_denom;
     aspect_numerator = 1;
     aspect_denominator = 1;
 
-    return newImage;
+    buf.object = newImage;
+
+    return buf;
   }
 
   public void stop() {

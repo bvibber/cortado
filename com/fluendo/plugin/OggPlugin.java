@@ -164,14 +164,21 @@ public class OggPlugin extends Plugin
 	      }
 	      stream.bos = false;
 	    }
-	    //System.out.println("consume "+stream.consumer);
-	    if (stream.consumer != null)
-	      stream.consumer.consume(op.packet_base, op.packet, op.bytes);
+	    //System.out.println("granulepos "+op.granulepos+" consume "+stream.consumer);
+	    if (stream.consumer != null) {
+	      MediaBuffer data = MediaBuffer.create();
+
+	      data.copyData(op.packet_base, op.packet, op.bytes);
+	      data.time_offset = op.granulepos;
+	      data.timestamp = -1;
+	      
+	      stream.consumer.consume(data);
+	    }
           }
         }
       }
     }
-    return stopping;
+    return !stopping;
   }
 
   public void stop()

@@ -51,11 +51,11 @@ public class JPEGPlugin extends Plugin
     aspect_denominator = 1;
   }
 
-  public Image decodeVideo(byte[] data, int offset, int length)
+  public MediaBuffer decode(MediaBuffer buf)
   {
     Image newImage = null;
 
-    newImage = toolkit.createImage(data, offset, length);
+    newImage = toolkit.createImage(buf.data, buf.offset, buf.length);
     try {
       mediaTracker.addImage(newImage, 0);
       mediaTracker.waitForID(0);
@@ -64,8 +64,9 @@ public class JPEGPlugin extends Plugin
     catch (Exception e) {
       e.printStackTrace();
     }
+    buf.object = newImage;
 
-    return newImage;
+    return buf;
   }
 
   public void stop() {

@@ -28,15 +28,19 @@ public class VideoConsumer implements DataConsumer, Runnable
   private ImageTarget target;
   private Component component;
   private int queueid;
-  private int framenr;
+  private long framenr;
   private Clock clock;
   private boolean ready;
-  private static final int MAX_BUFFER = 50;
+  private static final int MAX_BUFFER = 100;
   private double framerate;
   private double frameperiod;
   private double aspect = 1.;
   private boolean stopping = false;
   private Plugin plugin;
+  private long queuedTime = -1;
+  private Vector preQueue = new Vector();
+  private boolean preQueueing = true;
+  private long framesQueued = 0;
 
   public VideoConsumer(Clock newClock, ImageTarget target, double framerate) {
     this.target = target;
@@ -57,16 +61,18 @@ public class VideoConsumer implements DataConsumer, Runnable
     return ready;
   }
 
-  public void consume(byte[] data, int offset, int length) {
+  public void consume(MediaBuffer buffer) {
     try {
-      byte[] imgData = new byte[length];
-      System.arraycopy (data, offset, imgData, 0, length);
-      QueueManager.enqueue(queueid, imgData);
+      QueueManager.enqueue(queueid, buffer);
     }
     catch (Exception e) { 
       if (!stopping)
         e.printStackTrace();
     }
+  }
+
+  public long getQueuedTime () {
+    return queuedTime;
   }
 
   public void stop() {
@@ -82,14 +88,88 @@ public class VideoConsumer implements DataConsumer, Runnable
       Cortado.shutdown(t);
     }
   }
+  private void handleDisplay (MediaBuffer buf)
+  {
+    Image image = (Image) buf.object;
+    long timestamp = buf.timestamp;
+    if (timestamp == -1) {
+      timestamp = (long) (framenr * frameperiod);
+    }
+    try {
+      if (clock.waitForMediaTime((long) (timestamp))) {
+        target.setImage(image, framerate, aspect);
+      }
+    }
+    catch (Exception ie) {
+      if (!stopping)
+        ie.printStackTrace();
+    }
+    framenr++;
+    buf.free();
+  }
+
+  private void handlePrequeue (MediaBuffer buf) 
+  {
+    boolean have_ts = false;
+
+    //System.out.println("video time: "+buf.timestamp+" "+buf.time_offset+" "+queuedTime+
+//	     " "+framesQueued+" "+ buf.length);
+
+    preQueue.addElement (buf);
+        
+    if (buf.timestamp != -1 || buf.time_offset != -1) {
+      MediaBuffer headBuf = (MediaBuffer) preQueue.elementAt(0);
+
+      if (buf.timestamp == -1) {
+        buf.timestamp = plugin.offsetToTime (buf.time_offset);
+      }
+      //System.out.println("prebuffer head "+headBuf.timestamp);
+
+      headBuf.timestamp = buf.timestamp - (long)(framesQueued * 1000 / framerate);
+      framenr = (long) (headBuf.timestamp / frameperiod);
+	  
+      //System.out.println("prebuffer head after correction "+headBuf.timestamp);
+
+      if (!ready) {
+        try {
+	  Image image = (Image) headBuf.object;
+          target.setImage(image, framerate, aspect);
+	  queuedTime = headBuf.timestamp;
+	  headBuf.free();
+	  // first frame, wait for signal
+	  synchronized (clock) {
+	    ready = true;
+	    System.out.println("video preroll wait");
+	    clock.wait();
+	    System.out.println("video preroll go!");
+          }
+        }
+        catch (Exception e) {
+          e.printStackTrace();
+        }
+	framenr++;
+      }
+	    
+      for (int i=1; i<preQueue.size(); i++) {
+        MediaBuffer out = (MediaBuffer) preQueue.elementAt(i);
+	handleDisplay (out);
+      }
+      preQueue.setSize(0);
+      preQueueing = false;
+      framesQueued = 0;
+    }
+    else {
+      framesQueued++;
+    }
+  }
 
   private void realRun() {
     System.out.println("entering video thread");
     while (!stopping) {
       //System.out.println("dequeue image");
-      byte[] imgData = null;
+      MediaBuffer imgData = null;
       try {
-        imgData = (byte[]) QueueManager.dequeue(queueid);
+        imgData = (MediaBuffer) QueueManager.dequeue(queueid);
       }
       catch (InterruptedException ie) {
         if (!stopping)
@@ -98,42 +178,25 @@ public class VideoConsumer implements DataConsumer, Runnable
       }
       //System.out.println("dequeued image");
 
-      Image image = plugin.decodeVideo (imgData, 0, imgData.length);
-      if (plugin.fps_numerator > 0) {
-        double fps = plugin.fps_numerator/(double)plugin.fps_denominator;
+      MediaBuffer buf = plugin.decode (imgData);
+      if (buf != null) {
+        if (plugin.fps_numerator > 0) {
+          double fps = plugin.fps_numerator/(double)plugin.fps_denominator;
 
-        if (fps != framerate) {
-          framerate = fps;
-          frameperiod = 1000.0 / fps;
-          System.out.println("frameperiod: "+frameperiod);
-	}
-      }
-      aspect = plugin.aspect_numerator/(double)plugin.aspect_denominator;
-
-      try {
-        if (image != null) {
-	  if (framenr == 0) {
-            target.setImage(image, framerate, aspect);
-	    // first frame, wait for signal
-	    synchronized (clock) {
-	      ready = true;
-	      System.out.println("video preroll wait");
-	      clock.wait();
-	      System.out.println("video preroll go!");
-	    }
+          if (fps != framerate) {
+            framerate = fps;
+            frameperiod = 1000.0 / fps;
+            System.out.println("frameperiod: "+frameperiod);
 	  }
-	  else {
-	    //System.out.println("wait for "+framenr+" "+(framenr * frameperiod));
-	    clock.waitForMediaTime((long) (framenr * frameperiod));
+        }
+        aspect = plugin.aspect_numerator/(double)plugin.aspect_denominator;
 
-            target.setImage(image, framerate, aspect);
-          }
-          framenr++;
+	if (preQueueing) {
+	  handlePrequeue (buf);
 	}
-      }
-      catch (Exception e) {
-        if (!stopping)
-          e.printStackTrace();
+	else {
+	  handleDisplay (buf);
+	}
       }
     }
     System.out.println("exit video thread");

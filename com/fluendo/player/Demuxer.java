@@ -54,7 +54,7 @@ public class Demuxer implements Runnable
     System.out.println("entering demuxer thread");
     try {
       while (!stopping) {
-        stopping = plugin.demux();
+        stopping = !plugin.demux();
       }
     }
     catch (Exception e) {

@@ -23,5 +23,6 @@ import com.fluendo.plugin.*;
 public interface DataConsumer
 {
   public void setPlugin (Plugin plugin);
-  public void consume(byte[] bytes, int offset, int len);
+  public void consume(MediaBuffer buffer);
+  public long getQueuedTime();
 }

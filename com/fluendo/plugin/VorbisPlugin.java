@@ -89,14 +89,21 @@ public class VorbisPlugin extends Plugin
     op = new Packet();
   }
 
-  public byte[] decodeAudio(byte[] data, int offset, int length)
+  public long offsetToTime (long ts_offset) {
+    if (ts_offset == -1) {
+      return -1;
+    }
+    return ts_offset * 1000 / vi.rate;
+  }
+
+  public MediaBuffer decode(MediaBuffer buf)
   {
-    byte[] bytes = null;
+    MediaBuffer result = null;
 
     //System.out.println ("creating packet");
-    op.packet_base = data;
-    op.packet = offset;
-    op.bytes = length;
+    op.packet_base = buf.data;
+    op.packet = buf.offset;
+    op.bytes = buf.length;
     op.b_o_s = (packet == 0 ? 1 : 0);
     op.e_o_s = 0;
     op.packetno = packet;
@@ -115,6 +122,9 @@ public class VorbisPlugin extends Plugin
 	System.out.println("vorbis rate: "+vi.rate);
 	System.out.println("vorbis channels: "+vi.channels);
 
+	rate = vi.rate;
+	channels = vi.channels;
+
         _index =new int[vi.channels];
       }
     }
@@ -129,38 +139,27 @@ public class VorbisPlugin extends Plugin
       //System.out.println ("decode vorbis done");
       while ((samples = vd.synthesis_pcmout (_pcmf, _index)) > 0) {
         float[][] pcmf=_pcmf[0];
-  	int target = 8000 * samples / vi.rate;
-        bytes = new byte[target];
+	int numbytes = samples * 2 * vi.channels;
+	int k = 0;
+
+	buf.ensureSize(numbytes);
+	buf.offset = 0;
+	buf.length = numbytes;
+	result = buf;
 
 	//System.out.println(vi.rate + " " +target+ " " +samples);
 
-        for (int j=0; j<target; j++){
-	  float val = 0.0f;
-
+        for (int j=0; j<samples; j++){
           for (int i=0; i<vi.channels; i++) {
-	    val += pcmf[i][_index[i]+(vi.rate * j / 8000)];
+	     int val = (int) (pcmf[i][_index[i]+j] * 32767.0);
+	     if (val > 32767)
+	       val = 32767;
+	     else if (val < -32768)
+	       val = -32768;
+
+             result.data[k++] = (byte) (val >> 8);
+             result.data[k++] = (byte) (val % 256);
 	  }
-	  val /= vi.channels;
-
-          int sample = (int) (val * 32768);
-	  int sign, exponent, mantissa, ulawbyte;
-
-   	  if (sample>32767) sample=32767;
-	  else if (sample<-32768) sample=-32768;
-	  /* Get the sample into sign-magnitude. */
-          sign = (sample >> 8) & 0x80;    /* set aside the sign */
-	  if (sign != 0) sample = -sample;    /* get magnitude */
-          if (sample > CLIP) sample = CLIP;    /* clip the magnitude */
-
-          /* Convert from 16 bit linear to ulaw. */
-          sample = sample + BIAS;
-          exponent = exp_lut[(sample >> 7) & 0xFF];
-          mantissa = (sample >> (exponent + 3)) & 0x0F;
-          ulawbyte = ~(sign | (exponent << 4) | mantissa);
-          if (ZEROTRAP)
-            if (ulawbyte == 0) ulawbyte = 0x02;  /* optional CCITT trap */
-
-	  bytes[j] = (byte)ulawbyte;
         }
         //System.out.println ("decoded "+samples+" samples");
         vd.synthesis_read(samples);
@@ -168,7 +167,7 @@ public class VorbisPlugin extends Plugin
     }
     packet++;
 
-    return bytes;
+    return result;
   }
 
   public void stop() {

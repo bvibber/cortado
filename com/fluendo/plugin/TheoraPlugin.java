@@ -64,13 +64,17 @@ public class TheoraPlugin extends Plugin
     packet = 0;
   }
 
-  public Image decodeVideo(byte[] data, int offset, int length)
+  public long offsetToTime (long offset) {
+    return (long) (ts.granuleTime(offset) * 1000);
+  }
+
+  public MediaBuffer decode(MediaBuffer buf)
   {
     Image newImage =  null;
 
-    op.packet_base = data;
-    op.packet = offset;
-    op.bytes = length;
+    op.packet_base = buf.data;
+    op.packet = buf.offset;
+    op.bytes = buf.length;
     op.b_o_s = (packet == 0 ? 1 : 0);
     op.e_o_s = 0;
     op.packetno = packet;
@@ -78,6 +82,7 @@ public class TheoraPlugin extends Plugin
     if (packet < 3) {
       //System.out.println ("decoding header");
       if (ti.decodeHeader(tc, op) < 0){
+        buf.free();
         // error case; not a theora header
         System.err.println("does not contain Theora video data.");
         return null;
@@ -100,21 +105,26 @@ public class TheoraPlugin extends Plugin
         aspect_numerator = ti.aspect_numerator;
         aspect_denominator = ti.aspect_denominator;
       }
+      buf.free();
+      buf = null;
     }
     else {
       if (ts.decodePacketin(op) != 0) {
+        buf.free();
         System.err.println("Error Decoding Theora.");
         return null;
       }
       if (ts.decodeYUVout(yuv) != 0) {
+        buf.free();
         System.err.println("Error getting the picture.");
         return null;
       }
       newImage = yuv.getAsImage(toolkit, ti.offset_x, ti.offset_y, ti.frame_width, ti.frame_height);
+      buf.object = newImage;
     }
     packet++;
 
-    return newImage;
+    return buf;
   }
 
   public void stop() {

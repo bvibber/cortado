@@ -39,12 +39,10 @@ public class MultiPartPlugin extends Plugin
   
   class MultiPartStream {
     public String mime;
-    public boolean bos;
     DataConsumer consumer;
 
     public MultiPartStream (String m) {
       mime = m;
-      bos = true;
     }
   }
 
@@ -133,7 +131,7 @@ public class MultiPartPlugin extends Plugin
 	  mpp.fillData(stream.consumer);
       }
     }
-    return stopping;
+    return !stopping;
   }
 
   public void stop()

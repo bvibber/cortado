@@ -388,6 +388,7 @@ public class Cortado extends Applet implements ImageTarget,
       if (audio) {
         audioConsumer = new AudioConsumer(clock);
         audioThread = new Thread(audioConsumer);
+	//clock.setProvider(audioConsumer);
       }
 
       if (plugin == null) {
@@ -441,6 +442,18 @@ public class Cortado extends Applet implements ImageTarget,
           } while (!ready);
         }
         havePreroll = true;
+
+        long timeBase = 0;
+	if (video) {
+	  timeBase = videoConsumer.getQueuedTime();
+	  System.out.println("video timeBase: "+timeBase);
+	}
+	if (audio) {
+	  timeBase = audioConsumer.getQueuedTime();
+	  System.out.println("audio timeBase: "+timeBase);
+	}
+	clock.updateAdjust(timeBase);
+	
         if (preBuffer != null) {
           synchronized (preBuffer) {
             System.out.println("consumers ready");

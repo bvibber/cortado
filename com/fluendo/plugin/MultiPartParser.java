@@ -161,7 +161,12 @@ public class MultiPartParser
     if (consumer != null) {
       int end = scanpos;
       if (!eos) end-=1;
-      consumer.consume(buffer, 0, end);
+      MediaBuffer buf = MediaBuffer.create();
+      buf.data = buffer;
+      buf.offset = 0;
+      buf.length = end;
+      
+      consumer.consume(buf);
     }
   }
   

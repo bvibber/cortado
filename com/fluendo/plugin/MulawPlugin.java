@@ -42,11 +42,9 @@ public class MulawPlugin extends Plugin
     channels = 1;    
   }
 
-  public byte[] decodeAudio(byte[] data, int offset, int length)
+  public MediaBuffer decode(MediaBuffer buf)
   {
-    byte[] bytes = new byte[length];
-    System.arraycopy(data, offset, bytes, 0, length);
-    return bytes;
+    return buf;
   }
 
   public void stop() {

@@ -23,14 +23,25 @@ public class Clock {
   private long startTime;
   private long lastMedia;
   private boolean paused = true;
+  private ClockProvider provider;
+
+  public Clock()
+  {
+    provider = new SystemClock();
+  }
 
   public synchronized void pause() {
     if (!paused) {
       paused = true;
-      lastMedia = getMediaTime();
-      //System.out.println("pause "+lastMedia);
+      lastMedia = getMediaTime() - adjust;
+      System.out.println("pause "+lastMedia);
       notifyAll();
     }
+  }
+
+  public synchronized void setProvider (ClockProvider prov)
+  {
+    provider = prov;
   }
 
   public synchronized void play() {
@@ -39,36 +50,36 @@ public class Clock {
       long gap;
       long media;
       
-      now = System.currentTimeMillis();
+      now = provider.getTime();
       if (startTime == 0) {
         startTime = now;
       }
-      media = getMediaTime();
-      gap = getMediaTime() - lastMedia;
+      media = getMediaTime() - adjust;
+      gap = media - lastMedia;
     
       paused = false;
-      //System.out.println("play "+startTime+" "+now+" "+gap+" "+lastMedia+" "+media);
+      System.out.println("play "+startTime+" "+now+" "+gap+" "+lastMedia+" "+media);
       startTime += gap;  
       notifyAll();
     }
   }
 
   public synchronized long getElapsedTime() {
-    return System.currentTimeMillis() - startTime;
+    return provider.getTime() - startTime;
   }
 
   public synchronized long getMediaTime() {
-    return System.currentTimeMillis() - startTime + adjust;
+    return provider.getTime() - startTime + adjust;
   }
 
   public synchronized void updateAdjust(long newAdjust) {
-    //System.out.println("clock update adjust "+newAdjust);
+    System.out.println("clock update adjust "+newAdjust);
     adjust += newAdjust;
     notifyAll();
   }
 
   public synchronized void setAdjust(long newAdjust) {
-    //System.out.println("clock set adjust "+newAdjust);
+    System.out.println("clock set adjust "+newAdjust);
     adjust = newAdjust;
     notifyAll();
   }
@@ -77,28 +88,31 @@ public class Clock {
     return adjust;
   }
 
-  public void waitForMediaTime(long time) throws InterruptedException {
+  public synchronized void checkPlay () throws InterruptedException {
+    while (paused) {
+      wait ();
+    }
+  }
+
+  public boolean waitForMediaTime(long time) throws InterruptedException {
     long now;
     long interval;
+    boolean in_time = false;
 
-    synchronized (this) {
-      while (paused) {
-        wait ();
-      }
-    }
+    checkPlay();
     
     while (true) {
       now = getMediaTime();
       interval = time - now;
       if (interval <= 0) {
         //System.out.println("shortcut now="+now+" time="+time+" interval="+interval);
-        break;
+        return in_time;
       }
+      in_time = true;
 
       synchronized (this) {
-        //System.out.print("waiting now="+now+" time="+time+" interval="+interval+"...");
+        //System.out.println("waiting now="+now+" time="+time+" interval="+interval+"...");
         wait (interval);
-        //System.out.println("done");
       }
     }
   }
