@@ -78,7 +78,6 @@ public class OggTheoraPerf
           System.err.println("Error getting the picture.");
           return;
         }
-        int[] data = yuv.getAsRGBData();
       }
       packet++;
     }
