@@ -47,20 +47,33 @@ public class YUVBuffer
   private MemoryImageSource source;
   private Image image;
 
+  public static final int MODE_NEW = 0;
+  public static final int MODE_ANIMATED = 1;
+  public static final int MODE_COPY = 2;
+
+  private int mode = MODE_COPY;
+
   private void prepareRGBData (Toolkit toolkit, int x, int y, int width, int height)
   {
     int size = width * height;
+
     if (size != pix_size) {
       pixels = new int[size];
       pix_size = size;
-      source = new MemoryImageSource (width, height, ColorModel.getRGBdefault(), pixels, 0, width);
-      //source.setAnimated(true);
-      //source.setFullBufferUpdates(true);
-      System.out.println("created image source");
-      if (toolkit != null) {
-        image = toolkit.createImage (source);
-	if (image != null)
-          System.out.println("created image");
+      if (mode == MODE_NEW || mode == MODE_ANIMATED) {
+        source = new MemoryImageSource (width, height, ColorModel.getRGBdefault(), pixels, 0, width);
+
+        if (mode == MODE_ANIMATED) {
+          source.setAnimated(true);
+          source.setFullBufferUpdates(true);
+
+          System.out.println("created image source");
+          if (toolkit != null) {
+            image = toolkit.createImage (source);
+	    if (image != null)
+              System.out.println("created image");
+          }
+	}
       }
     }
     YUVtoRGB(x, y, width, height);
@@ -73,12 +86,31 @@ public class YUVBuffer
     return pixels;
   }
 
+  public void setMode (int mode) {
+    this.mode = mode;
+  }
+
   public Image getAsImage (Toolkit toolkit, int x, int y, int width, int height)
   {
     prepareRGBData(toolkit, x, y, width, height);
-    //source.newPixels(x, y, width, height, true);
-    image = toolkit.createImage (source);
 
+    switch (mode) {
+      case MODE_ANIMATED:
+        source.newPixels(x, y, width, height, true);
+        break;
+      case MODE_NEW:
+        image = toolkit.createImage (source);
+        break;
+      case MODE_COPY:
+        int[] newPixels = new int[pixels.length];
+        System.arraycopy (pixels, 0, newPixels, 0, pixels.length);
+        MemoryImageSource newSource = 
+    		new MemoryImageSource (width, height, ColorModel.getRGBdefault(), newPixels, 0, width);
+        image = toolkit.createImage (newSource);
+        break;
+      default:
+        break;
+    }
     return image;
   }
 

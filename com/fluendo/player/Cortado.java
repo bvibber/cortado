@@ -67,6 +67,11 @@ public class Cortado extends Applet implements ImageTarget,
   private boolean stopping;
   private Hashtable params = new Hashtable();
   private Configure configure;
+
+  private boolean useDb = true;
+  private Dimension dbSize;
+  private Image dbImage;
+  private Graphics dbGraphics;
   private Dimension appletDimension;
 
   public String getAppletInfo() {
@@ -75,18 +80,19 @@ public class Cortado extends Applet implements ImageTarget,
 
   public String[][] getParameterInfo() {
     String[][] info = {
-      {"url",        "URL",     "The media file to play"},
-      {"local",      "boolean", "Is this a local file (default false)"},
-      {"framerate",  "float",   "The default framerate of the video (default 5.0)"},
-      {"audio",      "boolean", "Enable audio playback (default true)"},
-      {"video",      "boolean", "Enable video playback (default true)"},
-      {"keepAspect", "boolean", "Use aspect ratio of video (default true)"},
-      {"preBuffer",  "boolean", "Use Prebuffering (default = true)"},
-      {"bufferSize", "int",     "The size of the prebuffer in Kbytes (default 100)"},
-      {"bufferLow",  "int",     "Percent of empty buffer (default 10)"},
-      {"bufferHigh", "int",     "Percent of full buffer (default 70)"},
-      {"userId",     "string",  "userId for basic authentication (default null)"},
-      {"password",   "string",  "password for basic authentication (default null)"},
+      {"url",         "URL",     "The media file to play"},
+      {"local",       "boolean", "Is this a local file (default false)"},
+      {"framerate",   "float",   "The default framerate of the video (default 5.0)"},
+      {"audio",       "boolean", "Enable audio playback (default true)"},
+      {"video",       "boolean", "Enable video playback (default true)"},
+      {"keepAspect",  "boolean", "Use aspect ratio of video (default true)"},
+      {"preBuffer",   "boolean", "Use Prebuffering (default = true)"},
+      {"doubleBuffer","boolean", "Use double buffering for screen updates (default = true)"},
+      {"bufferSize",  "int",     "The size of the prebuffer in Kbytes (default 100)"},
+      {"bufferLow",   "int",     "Percent of empty buffer (default 10)"},
+      {"bufferHigh",  "int",     "Percent of full buffer (default 70)"},
+      {"userId",      "string",  "userId for basic authentication (default null)"},
+      {"password",    "string",  "password for basic authentication (default null)"},
     };
     return info;
   }
@@ -142,6 +148,7 @@ public class Cortado extends Applet implements ImageTarget,
     video = String.valueOf(getParam("video","true")).equals("true");
     keepAspect = String.valueOf(getParam("keepAspect","true")).equals("true");
     usePrebuffer = String.valueOf(getParam("preBuffer","true")).equals("true");
+    useDb = String.valueOf(getParam("doubleBuffer","true")).equals("true");
     bufferSize = Integer.valueOf(getParam("bufferSize","200")).intValue();
     bufferLow = Integer.valueOf(getParam("bufferLow","10")).intValue();
     bufferHigh = Integer.valueOf(getParam("bufferHigh","70")).intValue();
@@ -170,7 +177,31 @@ public class Cortado extends Applet implements ImageTarget,
   }
 
   public void update(Graphics g) {
-    paint(g);
+    if (useDb) {
+      if (appletDimension == null) {
+        appletDimension = getSize();
+      }
+      boolean makeImage =
+        dbImage == null ||
+        dbSize.height != appletDimension.height ||
+        dbSize.width != appletDimension.width;
+
+      if (makeImage)
+      {
+        dbSize = appletDimension;
+        dbImage = createImage (dbSize.width, dbSize.height);
+        dbGraphics = dbImage.getGraphics();
+      }
+      dbGraphics.setColor (getBackground() );
+      dbGraphics.fillRect (0, 0, dbSize.width, dbSize.height);
+      dbGraphics.setColor (Color.black);
+      dbGraphics.setFont (getFont() );
+      paint (dbGraphics);
+      g.drawImage (dbImage, 0, 0, this);
+    }
+    else {
+      paint(g);
+    }
   }
 
   public void run() {
