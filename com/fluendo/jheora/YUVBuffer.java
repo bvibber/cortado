@@ -27,7 +27,7 @@ package com.fluendo.jheora;
 import java.awt.*;
 import java.awt.image.*;
 
-public class YUVBuffer
+public class YUVBuffer 
 {
   public int y_width;
   public int y_height;
@@ -47,35 +47,37 @@ public class YUVBuffer
   private MemoryImageSource source;
   private Image image;
 
-  private void prepareRGBData (int x, int y, int width, int height)
+  private void prepareRGBData (Toolkit toolkit, int x, int y, int width, int height)
   {
     int size = width * height;
     if (size != pix_size) {
       pixels = new int[size];
       pix_size = size;
-      source = new MemoryImageSource (width, height, pixels, 0, width);
+      source = new MemoryImageSource (width, height, ColorModel.getRGBdefault(), pixels, 0, width);
       source.setAnimated(true);
       source.setFullBufferUpdates(true);
       System.out.println("created image source");
+      if (toolkit != null) {
+        image = toolkit.createImage (source);
+	if (image != null)
+          System.out.println("created image");
+      }
     }
     YUVtoRGB(x, y, width, height);
   }
 
   public int[] getAsRGBData ()
   {
-    prepareRGBData(0, 0, y_width, y_height);
+    prepareRGBData(null, 0, 0, y_width, y_height);
 
     return pixels;
   }
 
   public Image getAsImage (Toolkit toolkit, int x, int y, int width, int height)
   {
-    prepareRGBData(x, y, width, height);
-    
-    source.newPixels();
-    if (image == null) {
-      image = toolkit.createImage (source);
-    }
+    prepareRGBData(toolkit, x, y, width, height);
+    source.newPixels(x, y, width, height, true);
+
     return image;
   }
 
@@ -175,6 +177,7 @@ public class YUVBuffer
         pixels[RGBPtr2+1] = r_tab[(YVal + VFactor)>>SHIFT] |
                             b_tab[(YVal + UFactor)>>SHIFT] |
                             g_tab[(YVal - GFactor)>>SHIFT];
+
 	YPtr+=2;
 	YPtr2+=2;
 	RGBPtr+=2;
