@@ -381,6 +381,10 @@ public class Cortado extends Applet implements ImageTarget,
 	    uc.setRequestProperty ("Authorization", "Basic " + encoding);
 	  }
 	  String mime = uc.getContentType();
+	  if (mime == null) {
+            mime = "application/ogg";
+	    System.out.println ("could not get mime type, using: "+mime);
+	  }
 	  int extraPos = mime.indexOf(';');
           if (extraPos != -1) {
 	    mime = mime.substring(0, extraPos);
@@ -390,7 +394,7 @@ public class Cortado extends Applet implements ImageTarget,
 	  if (plugin == null) {
             status.setMessage("Unknown stream "+urlString+"...");
             return;
-  	  }
+	  }
           is = uc.getInputStream();
           System.out.println("opened "+url);
         }
