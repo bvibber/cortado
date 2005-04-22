@@ -461,7 +461,6 @@ public class Cortado extends Applet implements ImageTarget,
       status.setMessage("Loading media...");
 
       clock = new Clock();
-      QueueManager.reset();
       addMouseMotionListener(this);
 
       if (video) {
@@ -629,5 +628,6 @@ public class Cortado extends Applet implements ImageTarget,
       joinThread(audioThread);
     joinThread(mainThread);
     joinThread(statusThread);
+    QueueManager.reset();
   }
 }

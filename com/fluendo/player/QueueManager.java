@@ -22,7 +22,7 @@ import java.util.*;
 import com.fluendo.utils.*;
 
 public class QueueManager {
-  private static final int MAX_QUEUES = 4;
+  private static final int MAX_QUEUES = 32;
   private static Vector[] queues = new Vector[MAX_QUEUES];
   private static Object[] syncs = new Object[MAX_QUEUES];
   private static boolean[] readWait = new boolean[MAX_QUEUES];
@@ -31,13 +31,32 @@ public class QueueManager {
   private static int numqueues = 0;
 
   public static int registerQueue(int maxSize) {
-    int freequeue = numqueues;
-    queues[freequeue] = new Vector();
-    syncs[freequeue] = new Object();
-    sizes[freequeue] = maxSize;
-    readWait[freequeue] = false;
-    writeWait[freequeue] = false;
-    numqueues++;
+    int freequeue;
+    synchronized (QueueManager.class) {
+      freequeue = numqueues;
+      /* see if we got a valid free queue */
+      if (numqueues >= MAX_QUEUES) {
+        /* find new free queue */
+        for (int i=0; i < MAX_QUEUES; i++) {
+	  if (queues[i] == null) {
+	    freequeue = i;
+	    break;
+	  }
+	}
+      }
+      if (freequeue >= MAX_QUEUES) {
+        Cortado.shutdown(new Throwable ("no free queues available"));
+	return 0;
+      }
+      else {
+        queues[freequeue] = new Vector();
+        syncs[freequeue] = new Object();
+        sizes[freequeue] = maxSize;
+        readWait[freequeue] = false;
+        writeWait[freequeue] = false;
+        numqueues++;
+      }
+    }
     return freequeue;
   }
 
@@ -64,7 +83,9 @@ public class QueueManager {
   }
 
   public static void reset() {
-    numqueues = 0;
+    synchronized (QueueManager.class) {
+      numqueues = 0;
+     }
   }
   public static void adjustOthers(int id, int delta) {
     for (int i=0; i < numqueues; i++) {
@@ -105,6 +126,8 @@ public class QueueManager {
         sync.wait();
 	writeWait[id] = false;
 	//System.out.println("queue "+id+" filled done");
+	if (syncs[id] == null)
+	  return;
       }
       queue.addElement(object);
       if (readWait[id])

@@ -229,6 +229,7 @@ public class PreBuffer extends InputStream implements Runnable {
 	  
 	if (ret1 < 0) {
 	  eos = true;
+	  in = -1;
 	  Debug.log(Debug.INFO, "writer EOS");
 	  break;
 	}
