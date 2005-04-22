@@ -54,7 +54,7 @@ $(TARBALL):
 		stubs/javax/sound/sampled/*.java \
 		Makefile build.xml gen-Configure \
 		LICENSE.cortado LICENSE.jheora LICENSE.smoke \
-		ChangeLog README TODO NEWS play \
+		ChangeLog README RELEASE TODO NEWS play \
 		$(NV)/
 	tar cvzf $@ $(NV)
 	rm -rf $(NV)

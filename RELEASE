@@ -1,0 +1,39 @@
+
+Release notes for Cortado 0.1.2 "Semicolon"
+        
+
+Cortado applet
+
+  
+Features of this release
+    
+      * Multiple instances of cortado now work correctly
+      * Various buffering and playback fixes
+
+Download
+
+You can find source releases of cortado in the download directory:
+http://flumotion.net/src/cortado/
+
+Flumotion Homepage
+
+More details can be found on the project's website:
+http://flumotion.net/
+
+Support and Bugs
+
+We use an issue tracker for bug reports and feature requests:
+https://core.fluendo.com/trac/cgi-bin/trac.cgi/newticket
+
+Developers
+
+You can browse the repository of SVN code from our tracker.
+
+All code is in SVN and can be checked out from there.
+It is hosted on https://svn.fluendo.com/svn/
+
+        
+Maintainers
+    
+      * Wim Taymans
+ 
