@@ -180,7 +180,7 @@ public class Cortado extends Applet implements ImageTarget,
 
     menu = new PopupMenu();
     menu.add("About...");
-    this.add (menu);
+    /* this.add (menu); */
   }
 
   public Component getComponent() {
