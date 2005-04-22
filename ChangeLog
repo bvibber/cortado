@@ -1,3 +1,14 @@
+2005-04-22  Thomas Vander Stichele  <thomas at apestaart dot org>
+
+	* Makefile:
+	* build.xml:
+	* gen-Configure:
+	  do some more versioning
+
+2005-04-22  Wim Taymans <wim at fluendo dot com>
+
+	  make multiple instances of cortado work correctly
+
 2004-12-24  Thomas Vander Stichele  <thomas at apestaart dot org>
 
 	* Makefile:

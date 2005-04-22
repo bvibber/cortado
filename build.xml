@@ -9,7 +9,7 @@ Cortado ANT build file
   <property name="dist"  location="dist"/>
 
   <!-- set package properties -->
-  <property name="version"      value="uninstalled" />
+  <property name="version"      value="0.1.0.1" />
 
   <!-- we are still in autotool withdrawal -->
   <property name="prefix"      location="/usr/local" />
@@ -32,6 +32,7 @@ Cortado ANT build file
 <!-- generate Configure-time options class -->
   <target name="configure">
     <exec dir="${basedir}" executable="./gen-Configure">
+      <env key="VERSION" value="${version}" />
       <arg line="Built using ant." />
     </exec>
   </target>

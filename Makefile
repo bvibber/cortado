@@ -3,7 +3,7 @@ NV = cortado-$(VERSION)
 TARBALL = $(NV).tar.gz
 
 configure:
-	@./gen-Configure "Built using make."
+	@VERSION=$(VERSION) ./gen-Configure "Built using make."
 
 all: configure
 	javac -O -target 1.1 com/jcraft/jogg/*.java
@@ -27,6 +27,7 @@ clean:
 	rm -f cortado.tgz 
 	rm -rf build
 	rm -rf dist
+	rm *.jar
 
 jar:
 	jar cvf cortado.jar com/jcraft/jogg/*.class com/jcraft/jorbis/*.class com/fluendo/player/*.class com/fluendo/utils/*.class com/fluendo/jheora/*.class com/fluendo/codecs/*.class plugins.ini
@@ -60,9 +61,14 @@ cortado-ovt-$(VERSION).jar:
 	ant -Dexclude=MultiPart,JPEG,Smoke,Mulaw jar
 	cp dist/applet/cortado.jar $@
 
+cortado-ot-$(VERSION).jar:
+	ant -Dexclude=MultiPart,JPEG,Smoke,Mulaw,Vorbis jar
+	cp dist/applet/cortado.jar $@
+
 cortado-mmjs-$(VERSION).jar:
 	ant -Dexclude=Ogg,Theora,Vorbis jar
 	cp dist/applet/cortado.jar $@
 
 ovt:	cortado-ovt-$(VERSION).jar
+ot:	cortado-ot-$(VERSION).jar
 mmjs:	cortado-mmjs-$(VERSION).jar
