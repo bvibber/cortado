@@ -1,11 +1,13 @@
-VERSION = 0.1.0.1
+VERSION = 0.1.2
 NV = cortado-$(VERSION)
 TARBALL = $(NV).tar.gz
+
+all: $(TARBALL) ovt mmjs
 
 configure:
 	@VERSION=$(VERSION) ./gen-Configure "Built using make."
 
-all: configure
+compile: configure
 	javac -O -target 1.1 com/jcraft/jogg/*.java
 	javac -O -target 1.1 com/jcraft/jorbis/*.java
 	javac -O -target 1.1 com/fluendo/codecs/*.java
@@ -52,7 +54,7 @@ $(TARBALL):
 		stubs/javax/sound/sampled/*.java \
 		Makefile build.xml gen-Configure \
 		LICENSE.cortado LICENSE.jheora LICENSE.smoke \
-		ChangeLog README TODO play \
+		ChangeLog README TODO NEWS play \
 		$(NV)/
 	tar cvzf $@ $(NV)
 	rm -rf $(NV)
