@@ -59,6 +59,9 @@ public class AudioConsumer implements Runnable, DataConsumer, ClockProvider
   public void stop() {
     stopping = true;
     QueueManager.unRegisterQueue(queueid);
+    line.flush();
+    line.stop();
+    line.close();
   }
 
   public void run() {

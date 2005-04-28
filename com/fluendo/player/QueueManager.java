@@ -168,7 +168,9 @@ public class QueueManager {
 
     buf.append("queues:");
     for (int i=0; i< numqueues; i++) {
-      buf.append(" [id:"+i+", size:"+queues[i].size()+", max:"+sizes[i]+"]");
+      if (queues[i] != null) { 
+        buf.append(" [id:"+i+", size:"+queues[i].size()+", max:"+sizes[i]+"]");
+      }
     }
     Debug.log(Debug.DEBUG, buf.toString());
   }
