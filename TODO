@@ -8,6 +8,13 @@ TODO for cortado
 - network speed
 - disable sound option
 
+- pop up an error dialog for java.security.AccessControlException when
+  doing at java.net.URLConnection.getContentType(Unknown Source)
+	at com.fluendo.player.Cortado.start(Cortado.java:432)
+	at sun.applet.AppletPanel.run(Unknown Source)
+  to tell the user his stream and his applet need to be on the same server
+
+
 
 
 wim
