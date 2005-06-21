@@ -18,35 +18,31 @@
 
 package com.fluendo.plugin;
 
-import java.awt.*;
-import java.awt.image.*;
-import com.fluendo.player.*;
+import com.fluendo.jst.*;
+import com.fluendo.utils.*;
 
-public class MulawPlugin extends Plugin 
+public class FakeSink extends Sink
 {
-  public MulawPlugin() {
-    super(Plugin.TYPE_AUDIO);
-  }
-
-  public String getMime ()
+  protected int preroll (Buffer buf)
   {
-    return "audio/x-mulaw";
+    System.out.println("received preroll buffer "+buf);
+    return Pad.OK;
   }
-  public int typeFind (byte[] data, int offset, int length)
+
+  protected int render (Buffer buf)
   {
-    return Plugin.RANK_NONE;
-  }
+    System.out.println("received buffer "+buf);
+    if (buf.object != null) {
+      System.out.println("object "+buf.object);
+    }
+    else {
+      MemUtils.dump (buf.data, 0, buf.length);
+    }
+    return Pad.OK;
+  };
 
-  public void initDecoder(Component comp) {
-    rate = 8000;    
-    channels = 1;    
-  }
-
-  public MediaBuffer decode(MediaBuffer buf)
+  public String getName ()
   {
-    return buf;
-  }
-
-  public void stop() {
+    return "fakesink";
   }
 }
