@@ -16,12 +16,56 @@
  * Foundation, Inc., 59 Temple Street #330, Boston, MA 02111-1307, USA.
  */
 
-package com.fluendo.player;
+package com.fluendo.jst;
 
-public class SystemClock implements ClockProvider {
-  public long getTime()
+public class SystemClock extends Clock {
+  protected long getInternalTime()
   {
-    return System.currentTimeMillis();	  
+    return System.currentTimeMillis() * Clock.MSECOND;	  
+  }
+  protected int waitFunc(ClockID id)
+  {
+    int res;
+
+    long real = getInternalTime();
+    long entryt = id.time;
+    long now = adjust (real);
+    long diff = entryt - now;
+
+    if (diff > 0) {
+      long millis;
+      int nanos;
+
+      millis = diff / Clock.MSECOND;
+      nanos = (int) ((diff % Clock.MSECOND) * Clock.MSECOND);
+
+      synchronized (this) {
+        if (id.status == UNSCHEDULED)
+	  return id.status;
+
+        id.status = OK;
+        try {
+          wait (millis, nanos);
+        }
+        catch (InterruptedException e) {}
+      }
+      res = id.status;
+    }
+    else {
+      res = EARLY;
+    }
+    return res;
+  }
+  protected int waitAsyncFunc(ClockID id)
+  {
+    return OK;
+  }
+  protected void unscheduleFunc(ClockID id)
+  {
+    synchronized (this) {
+      id.status = UNSCHEDULED;
+      notifyAll();
+    }
   }
 }
 

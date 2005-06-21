@@ -18,7 +18,11 @@
 
 package com.fluendo.jst;
 
-public interface ClockProvider {
-  public Clock provideClock();
+public class Format {
+  public static final int UNKNOWN = 0;
+  public static final int DEFAULT = 1;
+  public static final int BYTES = 2;
+  public static final int TIME = 3;
+  public static final int BUFFERS = 4;
+  public static final int PERCENT = 5;
 }
-

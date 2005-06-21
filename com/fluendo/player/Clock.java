@@ -16,105 +16,109 @@
  * Foundation, Inc., 59 Temple Street #330, Boston, MA 02111-1307, USA.
  */
 
-package com.fluendo.player;
+package com.fluendo.jst;
 
-public class Clock {
+public abstract class Clock {
   private long adjust;
-  private long startTime;
-  private long lastMedia;
-  private boolean paused = true;
-  private ClockProvider provider;
+  private long lastTime;
+
+  public static final int USECOND = 1;
+  public static final int MSECOND = 1000 * USECOND;
+  public static final int SECOND = 1000 * MSECOND;
+
+  /* id types */
+  public static final int SINGLE = 0;
+  public static final int PERIODIC = 0;
+
+  /* status */
+  public static final int OK          =  0;
+  public static final int EARLY       =  1;
+  public static final int UNSCHEDULED =  2;
+  public static final int BUSY        =  3;
+  public static final int BADTIME     =  4;
+  public static final int ERROR       =  5;
+  public static final int UNSUPPORTED =  6;
+
+  public class ClockID {
+    long time;
+    long interval;
+    int type;
+    int status;
+    
+    public ClockID (long time, long interval, int type) {
+      this.time = time;
+      this.interval = interval;
+      this.type = type;
+    }
+
+    public long getTime() {
+      return time;
+    }
+
+    public int waitID() {
+      int res;
+      
+      if (status == UNSCHEDULED)
+        return status;
+      
+      res = waitFunc (this);
+
+      if (type == PERIODIC)
+        time += interval;
+
+      return res;
+    }
+    public void unschedule() {
+      unscheduleFunc(this);
+    }
+  }
 
   public Clock()
   {
-    provider = new SystemClock();
+    adjust = 0;
+    lastTime = 0;
   }
 
-  public synchronized void pause() {
-    if (!paused) {
-      paused = true;
-      lastMedia = getMediaTime() - adjust;
-      //System.out.println("pause "+lastMedia);
-      notifyAll();
+  protected synchronized long adjust(long internal) {
+    long ret;
+
+    ret = internal + adjust;
+    /* make sure the time is increasing, else return last_time */
+    if (ret < lastTime) {
+      ret = lastTime;
+    } else {
+      lastTime = ret;
     }
+    return ret;
   }
 
-  public synchronized void setProvider (ClockProvider prov)
-  {
-    provider = prov;
-  }
+  protected abstract long getInternalTime();
 
-  public synchronized void play() {
-    if (paused) {
-      long now;
-      long gap;
-      long media;
-      
-      now = provider.getTime();
-      if (startTime == 0) {
-        startTime = now;
-      }
-      media = getMediaTime() - adjust;
-      gap = media - lastMedia;
-    
-      paused = false;
-      //System.out.println("play "+startTime+" "+now+" "+gap+" "+lastMedia+" "+media);
-      startTime += gap;  
-      notifyAll();
-    }
-  }
+  protected abstract int waitFunc(ClockID id);
+  protected abstract int waitAsyncFunc(ClockID id);
+  protected abstract void unscheduleFunc(ClockID id);
 
-  public synchronized long getElapsedTime() {
-    return provider.getTime() - startTime;
-  }
+  public synchronized long getTime() {
+    long ret;
 
-  public synchronized long getMediaTime() {
-    return provider.getTime() - startTime + adjust;
-  }
+    ret = getInternalTime();
+    ret = adjust (ret);
 
-  public synchronized void updateAdjust(long newAdjust) {
-    //System.out.println("clock update adjust "+newAdjust);
-    adjust += newAdjust;
-    notifyAll();
+    return ret;
   }
-
   public synchronized void setAdjust(long newAdjust) {
-    //System.out.println("clock set adjust "+newAdjust);
     adjust = newAdjust;
-    notifyAll();
   }
-
-  public long getAdjust() {
+  public synchronized long getAdjust() {
     return adjust;
   }
 
-  public synchronized void checkPlay () throws InterruptedException {
-    while (paused) {
-      wait ();
-    }
+  public ClockID newSingleShotID(long time) {
+    return new ClockID (time, 0, SINGLE);
+  }
+  public ClockID newPeriodicID(long time, long interval) {
+    return new ClockID (time, interval, PERIODIC);
   }
 
-  public boolean waitForMediaTime(long time) throws InterruptedException {
-    long now;
-    long interval;
-    boolean in_time = false;
-
-    checkPlay();
-    
-    while (true) {
-      now = getMediaTime();
-      interval = time - now;
-      if (interval <= 0) {
-        //System.out.println("shortcut now="+now+" time="+time+" interval="+interval);
-        return in_time;
-      }
-      in_time = true;
-
-      synchronized (this) {
-        //System.out.println("waiting now="+now+" time="+time+" interval="+interval+"...");
-        wait (interval);
-      }
-    }
-  }
 }
 
