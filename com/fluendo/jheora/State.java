@@ -32,7 +32,6 @@ public class State
 
   private Playback pbi;
   private Decode dec;
-  private boolean need_keyframe;
 
   public void clear()
   {
@@ -51,9 +50,13 @@ public class State
     pbi = new Playback(ci);
     dec = new Decode(pbi);
     granulepos=-1;
-    need_keyframe = true;
 
     return(0);
+  }
+
+  public boolean isKeyframe (Packet op)
+  {
+    return (op.packet_base[op.packet] & 0x40) == 0;
   }
 
   public int decodePacketin (Packet op)
@@ -68,16 +71,6 @@ public class State
     ret = pbi.opb.readB(1);
 
     if (ret==0) {
-      if (need_keyframe) {
-        if ((op.packet_base[op.packet] & 0x40) == 0) {
-	  need_keyframe = false;
-	}
-	else {
-	  System.out.println("wait keyframe");
-	  return 0;
-	}
-      }
-
       ret=dec.loadAndDecode();
 
       if(ret != 0)
