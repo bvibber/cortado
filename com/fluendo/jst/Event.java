@@ -23,11 +23,11 @@ import java.util.*;
 public class Event {
 
   /* types */
-  public static final int EOS = 1;
-  public static final int FLUSH_START = 2;
-  public static final int FLUSH_END = 3;
-  public static final int SEEK = 4;
-  public static final int DISCONT = 5;
+  public static final int FLUSH_START = 1;
+  public static final int FLUSH_STOP = 2;
+  public static final int EOS = 3;
+  public static final int NEWSEGMENT = 4;
+  public static final int SEEK = 5;
 	
   private int type;
   private int format;
@@ -49,11 +49,12 @@ public class Event {
   public static Event newFlushStart() {
     return new Event(FLUSH_START);
   }
-  public static Event newFlushEnd() {
-    return new Event(FLUSH_END);
+  public static Event newFlushStop() {
+    return new Event(FLUSH_STOP);
   }
 
-  public static Event newSeek(int format, long position) {
+  public static Event newSeek(int format, long position)
+  {
     Event e = new Event(SEEK);
     e.format = format;
     e.position = position;
@@ -66,16 +67,16 @@ public class Event {
     return format;
   }
 
-  public static Event newDiscont(int format, long position) {
-    Event e = new Event(DISCONT);
+  public static Event newNewsegment(int format, long position) {
+    Event e = new Event(NEWSEGMENT);
     e.format = format;
     e.position = position;
     return e;
   }
-  public long getDiscontPosition () {
+  public long getNewsegmentPosition () {
     return position;
   }
-  public int getDiscontFormat () {
+  public int getNewsegmentFormat () {
     return format;
   }
 }

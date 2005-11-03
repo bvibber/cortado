@@ -27,9 +27,12 @@ public class Pad extends com.fluendo.jst.Object implements Runnable
 
   /* flow return values */
   public static final int OK = 0;
-  public static final int FLUSHING = -1;
-  public static final int ERROR = -2;
-  public static final int NOT_NEGOTIATED = -3;
+  public static final int NOT_LINKED = -1;
+  public static final int WRONG_STATE = -2;
+  public static final int UNEXPECTED = -3;
+  public static final int NOT_NEGOTIATED = -4;
+  public static final int ERROR = -5;
+  public static final int NOT_SUPPORTED = -6;
 
   /* modes */
   public static final int MODE_NONE = 0;
@@ -105,10 +108,10 @@ public class Pad extends com.fluendo.jst.Object implements Runnable
 
     switch (event.getType()) {
       case Event.FLUSH_START:
-      case Event.FLUSH_END:
+      case Event.FLUSH_STOP:
       case Event.EOS:
       case Event.SEEK:
-      case Event.DISCONT:
+      case Event.NEWSEGMENT:
       default:
         result = false;
         break;
@@ -124,11 +127,11 @@ public class Pad extends com.fluendo.jst.Object implements Runnable
         setFlushing (true);
         result = eventFunc (event);
         break;
-      case Event.FLUSH_END:
+      case Event.FLUSH_STOP:
         setFlushing (false);
         result = eventFunc (event);
         break;
-      case Event.DISCONT:
+      case Event.NEWSEGMENT:
       case Event.EOS:
         synchronized (streamLock) {
 	  result = eventFunc (event);
@@ -161,7 +164,7 @@ public class Pad extends com.fluendo.jst.Object implements Runnable
     synchronized (streamLock) {
       synchronized (this) {
         if (flushing) 
-	  return FLUSHING;
+	  return WRONG_STATE;
 
 	if (buffer.caps != null && buffer.caps != caps) {
 	  if (!configureSink(buffer.caps)) {

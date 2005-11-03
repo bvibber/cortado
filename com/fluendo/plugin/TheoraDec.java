@@ -87,7 +87,7 @@ public class TheoraDec extends Element
 	    needKeyframe = true;
 	  }
           break;
-        case com.fluendo.jst.Event.FLUSH_END:
+        case com.fluendo.jst.Event.FLUSH_STOP:
           result = srcpad.pushEvent(event);
 	  synchronized (streamLock) {
             lastTs = -1;

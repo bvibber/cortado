@@ -23,6 +23,7 @@ import com.fluendo.jst.*;
 import java.awt.*;
 import java.awt.event.*;
 import java.io.*;
+import java.util.*;
 
 class PlayPipeline extends Pipeline implements PadListener {
   private Element httpsrc;
@@ -33,7 +34,7 @@ class PlayPipeline extends Pipeline implements PadListener {
   private Element audiosink;
   private Element v_queue, a_queue;
 
-  public void newPad(Pad pad) {
+  public void padAdded(Pad pad) {
     if (pad.getName().equals("serial_31273")) {
       pad.link(a_queue.getPad("sink"));
     }
@@ -82,25 +83,7 @@ class PlayPipeline extends Pipeline implements PadListener {
 
     a_queue.getPad("src").link(vorbisdec.getPad("sink"));
     vorbisdec.getPad("src").link(audiosink.getPad("sink"));
-    
-    setState (Element.PAUSE);
-    getState(null, null, 0);
-    setState (Element.PLAY);
-  }
 
-  protected int doChildStateChange() {
-    super.doChildStateChange();
-
-    videosink.setState(pending);
-    audiosink.setState(pending);
-    vorbisdec.setState(pending);
-    theoradec.setState(pending);
-    v_queue.setState(pending);
-    a_queue.setState(pending);
-    oggdemux.setState(pending);
-    httpsrc.setState(pending);
-
-    return SUCCESS;
   }
 
   public boolean seek(long offset) {
@@ -113,6 +96,7 @@ class PlayPipeline extends Pipeline implements PadListener {
     long t2 = ((Sink)audiosink).getPrerollTime();
 
     streamTime = Math.min (t1, t2);
+    System.out.println ("stream time "+streamTime);
 
     setState (Element.PLAY);
 
@@ -143,15 +127,36 @@ class PlayFrame extends Frame implements AdjustmentListener {
   }
 }
 
-public class Player2 {
+public class Player2 implements BusHandler {
   private PlayPipeline pipeline;
+  private Bus bus;
   private Frame frame;
 
   public Player2 ()
   {
     pipeline = new PlayPipeline();
+    bus = pipeline.getBus();
+    bus.addHandler (this);
+
     frame = new PlayFrame(pipeline);
     frame.show();
+
+    pipeline.setState (Element.PLAY);
+  }
+
+  public void handleMessage (Message msg)
+  {
+    switch (msg.getType()) {
+      case Message.WARNING:
+      case Message.ERROR:
+        System.out.println ("got ERROR from "+msg.getSrc()+ ": "+msg);
+	break;
+      case Message.EOS:
+        System.out.println ("got EOS from "+msg.getSrc()+ ": "+msg);
+	break;
+      default:	
+	break;
+    }
   }
 
   public static void main(String args[]) {

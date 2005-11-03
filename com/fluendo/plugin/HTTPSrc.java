@@ -46,9 +46,9 @@ public class HTTPSrc extends Element
         catch (Exception e) {
           result = false;
         }
-        pushEvent (Event.newFlushEnd());
+        pushEvent (Event.newFlushStop());
 
-        pushEvent (Event.newDiscont(Format.BYTES, position));
+        pushEvent (Event.newNewsegment(Format.BYTES, position));
 
         if (result)
 	  result = startTask();
@@ -145,12 +145,12 @@ public class HTTPSrc extends Element
     }
     catch (SecurityException e) {
       e.printStackTrace();
-      postMessage("Not allowed "+urlString+"...");
+      postMessage(Message.newError (this, "Not allowed "+urlString+"..."));
       throw e;
     }
     catch (Exception e) {
       e.printStackTrace();
-      postMessage("Failed opening "+urlString+"...");
+      postMessage(Message.newError (this, "Failed opening "+urlString+"..."));
       throw e;
     }
 

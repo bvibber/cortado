@@ -22,6 +22,9 @@ public abstract class Object
 {
   protected String name;
   protected com.fluendo.jst.Object parent;
+  protected int flags;
+
+  public static final int FLAG_LAST = (1 << 4);
 
   public synchronized String getName () {
     return name;
@@ -49,6 +52,19 @@ public abstract class Object
   }
   public synchronized void unParent () {
     parent = null;
+  }
+
+  public synchronized void setFlag(int flag)
+  {
+    flags |= flag;
+  }
+  public synchronized void unsetFlag(int flag)
+  {
+    flags &= ~flag;
+  }
+  public synchronized boolean isFlagSet(int flag)
+  {
+    return (flags & flag) == flag;
   }
 
   public synchronized boolean setProperty(String name, java.lang.Object value)

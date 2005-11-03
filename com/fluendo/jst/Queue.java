@@ -89,17 +89,17 @@ public class Queue extends Element
 	   synchronized (queue) {
 	     queue.notifyAll();
 	   }
+	   break;
+        case Event.FLUSH_STOP:
+	   srcpad.pushEvent (event);
+
 	   synchronized (streamLock) {
 	     synchronized (queue) {
 	       queue.setSize(0);
 	       queue.notifyAll();
 	     }
-	     srcpad.pauseTask();
+	     srcpad.startTask();
 	   }
-	   break;
-        case Event.FLUSH_END:
-	   srcpad.pushEvent (event);
-	   srcpad.startTask();
 	   break;
 	default:
 	   synchronized (streamLock) {
@@ -119,7 +119,7 @@ public class Queue extends Element
           try {
             queue.wait();
 	    if (isFlushing())
-	      return FLUSHING;
+	      return WRONG_STATE;
 	  }
 	  catch (InterruptedException ie) {}
 	}

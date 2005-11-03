@@ -88,7 +88,7 @@ public class VorbisDec extends Element
 	    Debug.log(Debug.INFO, "synced "+this);
 	  }
 	  break;
-        case Event.FLUSH_END:
+        case Event.FLUSH_STOP:
           result = srcpad.pushEvent(event);
 	  synchronized (streamLock) {
 	    offset = -1;

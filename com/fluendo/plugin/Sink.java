@@ -26,6 +26,7 @@ public abstract class Sink extends Element
 {
   private java.lang.Object prerollLock = new java.lang.Object();
   private boolean isEOS;
+  private boolean flushing;
   private boolean havePreroll;
   private boolean needPreroll;
   private Clock.ClockID clockID;
@@ -41,26 +42,72 @@ public abstract class Sink extends Element
     {
       synchronized (prerollLock) {
         int res = OK;
+	Sink sink = (Sink) parent;
 
 	if (isFlushing())
-	  return FLUSHING;
+	  return WRONG_STATE;
 
         if (needPreroll) {
 	  prerollTime = buf.timestamp;
-	  System.out.println("Preroll "+buf+" timestamp: "+prerollTime);
-	  commitState();
-	  havePreroll = true;
-	  needPreroll = false;
-          preroll (buf);
-	  try {
-	    prerollLock.wait();
-	  }
-	  catch (InterruptedException ie) {}
 
-	  havePreroll = false;
+	  havePreroll = true;
+          preroll (buf);
+
+	  boolean postPause = false;
+	  boolean postPlaying = false;
+	  int current, next, pending;
+
+	  synchronized (sink) {
+	    current = currentState;
+	    next = nextState;
+	    pending = pendingState;
+
+	    switch (pending) {
+	      case PLAY:
+	        needPreroll = false;
+		postPlaying = true;
+		break;
+	      case PAUSE:
+	        needPreroll = true;
+		postPause = true;
+		break;
+	      case STOP:
+	        havePreroll = false;
+	        needPreroll = false;
+	        return WRONG_STATE;
+	    }
+	    if (pendingState != NONE) {
+	      currentState = pending;
+	      pendingState = NONE;
+	      nextState = NONE;
+	      lastReturn = SUCCESS;
+	    }
+	  }
+
+	  if (postPause)
+	    postMessage (Message.newStateChanged (this, current, next, NONE));
+	  if (postPlaying)
+	    postMessage (Message.newStateChanged (this, next, pending, NONE));
+
+	  if (postPause || postPlaying)
+	    postMessage (Message.newStateDirty (this));
+
+	  synchronized (sink) {
+	    sink.notifyAll();
+	  }
+
+	  if (needPreroll) {
+	    needPreroll = false;
+	    try {
+	      prerollLock.wait();
+	    }
+	    catch (InterruptedException ie) {}
+
+	    havePreroll = false;
+	  }
 	}
 	if (isFlushing())
-	  return FLUSHING;
+	  return WRONG_STATE;
 
 	return res;
       }
@@ -68,31 +115,34 @@ public abstract class Sink extends Element
 
     protected boolean eventFunc (Event event)
     {
+      Sink sink = (Sink) parent;
       doEvent(event);
 
       switch (event.getType()) {
         case Event.FLUSH_START:
-	  synchronized (parent) {
-	    ((Sink)parent).isEOS = false;
+	  synchronized (sink) {
+	    sink.flushing = true;
 	    if (clockID != null) {
 	      clockID.unschedule();
 	    }
 	  }
 	  synchronized (prerollLock) {
+	    sink.isEOS = false;
 	    needPreroll = true;
 	    prerollLock.notify();
 	    havePreroll = false;
 	  }
 	  synchronized (streamLock) {
 	    Debug.log(Debug.DEBUG, this+" flushed "+havePreroll+" "+needPreroll);
-	  }
-	  synchronized (stateLock) {
 	    lostState();
 	  }
 	  break;
-        case Event.FLUSH_END:
+        case Event.FLUSH_STOP:
+	  synchronized (streamLock) {
+	    sink.flushing = false;
+	  }
 	  break;
-        case Event.DISCONT:
+        case Event.NEWSEGMENT:
 	  break;
         case Event.EOS:
 	  break;
@@ -106,14 +156,21 @@ public abstract class Sink extends Element
     protected int chainFunc (Buffer buf)
     {
       int res;
+      int status;
 
-      if ((res = finishPreroll(buf)) != OK)
+      if ((res = finishPreroll(buf)) != Pad.OK)
         return res;
 
-      doSync(buf);
-
-      res = render (buf);
-
+      status = doSync(buf);
+      switch (status) {
+        case Clock.EARLY:
+        case Clock.OK:
+          res = render (buf);
+	  break;
+	default:
+	  res = Pad.OK;
+	  break;
+      }
       buf.free();
 
       return res;
@@ -139,15 +196,18 @@ public abstract class Sink extends Element
     return true;
   }
 
-  protected void doSync(Buffer buf) {
+  protected int doSync(Buffer buf) {
     int ret;
     long time;
     Clock.ClockID id = null;
 
     synchronized (this) {
+      if (flushing)
+        return Clock.UNSCHEDULED;
+
       time = buf.timestamp;
       if (time == -1)
-        return;
+        return Clock.OK;
 
       time += baseTime;
 
@@ -155,14 +215,16 @@ public abstract class Sink extends Element
         id = clockID = clock.newSingleShotID (time);
     }
     
-    if (id != null)
+    if (id != null) {
       ret = id.waitID();
+    }
     else
       ret = Clock.OK;
 
     synchronized (this) {
       clockID = null;
     }
+    return ret;
   }
   protected boolean setCaps (Caps caps) {
     return true;
@@ -175,13 +237,13 @@ public abstract class Sink extends Element
   public Sink () {
     super ();
     addPad (sinkpad);
+    setFlag (Element.FLAG_IS_SINK);
   }
 
-  protected int changeState () {
+  protected int changeState (int transition) {
     int result = SUCCESS;
-    int transition;
+    int presult;
 
-    transition = getTransition();
     switch (transition) {
       case STOP_PAUSE:
 	this.isEOS = false;
@@ -194,6 +256,7 @@ public abstract class Sink extends Element
       case PAUSE_PLAY:
         synchronized (prerollLock) {
           if (havePreroll) {
+            needPreroll = false;
 	    prerollLock.notify();
 	  }
 	  else {
@@ -205,7 +268,9 @@ public abstract class Sink extends Element
         break;
     }
 
-    super.changeState();
+    presult = super.changeState(transition);
+    if (presult == FAILURE)
+      return presult;
 
     switch (transition) {
       case PLAY_PAUSE:

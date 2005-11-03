@@ -195,7 +195,7 @@ public abstract class AudioSink extends Sink implements ClockProvider
         return len;
       }
       else if (sample != nextSample) {
-        System.out.println("discont found, expected "+nextSample+", got "+sample);
+        Debug.log(Debug.WARNING, "discont found, expected "+nextSample+", got "+sample);
 	setSample (sample);
       }
 
@@ -324,8 +324,9 @@ public abstract class AudioSink extends Sink implements ClockProvider
     }
   }
 
-  protected void doSync (Buffer buf)
+  protected int doSync (Buffer buf)
   {
+    return Clock.OK;
   }
   protected boolean doEvent (Event event)
   {
@@ -333,9 +334,9 @@ public abstract class AudioSink extends Sink implements ClockProvider
       case Event.FLUSH_START:
         ringBuffer.pause();
         break;
-      case Event.FLUSH_END:
+      case Event.FLUSH_STOP:
         break;
-      case Event.DISCONT:
+      case Event.NEWSEGMENT:
         break;
       case Event.EOS:
         break;
@@ -348,7 +349,7 @@ public abstract class AudioSink extends Sink implements ClockProvider
 
     result = ringBuffer.commit (buf.data, buf.time_offset, buf.offset, buf.length);
     if (result < 0) {
-      return Pad.FLUSHING;
+      return Pad.WRONG_STATE;
     }
     return Pad.OK;
   }
@@ -362,11 +363,8 @@ public abstract class AudioSink extends Sink implements ClockProvider
     return res;
   }
 
-  protected int changeState () {
-    int transition;
+  protected int changeState (int transition) {
     int result;
-
-    transition = getTransition();
 
     switch (transition) {
       case STOP_PAUSE:
@@ -375,7 +373,7 @@ public abstract class AudioSink extends Sink implements ClockProvider
       case PAUSE_PLAY:
         break;
     }
-    result = super.changeState();
+    result = super.changeState(transition);
 
     switch (transition) {
       case PLAY_PAUSE:

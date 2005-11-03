@@ -1,3 +1,61 @@
+2005-11-03  Wim Taymans  <wim@fluendo.com>
+
+	* Makefile:
+	* com/fluendo/examples/Player.java:
+	* com/fluendo/examples/Player2.java: (PlayPipeline),
+	(PlayPipeline.PlayPipeline):
+	* com/fluendo/jst/Element.java: (Element), (Element.typeFind),
+	(Element.Element), (Element.setComponent), (Element.setClock),
+	(Element.getClock), (Element.getBus), (Element.addPadListener),
+	(Element.removePadListener), (Element.doPadListeners),
+	(Element.addPad), (Element.removePad), (Element.noMorePads),
+	(Element.getState), (Element.padsActivate), (Element.commitState),
+	(Element.abortState), (Element.lostState), (Element.changeState):
+	* com/fluendo/jst/Event.java: (Event), (Event.newFlushStart),
+	(Event.getSeekFormat):
+	* com/fluendo/jst/Object.java: (Object), (Object.getParent),
+	(Object.unParent):
+	* com/fluendo/jst/Pad.java: (Pad), (Pad.eventFunc),
+	(Pad.sendEvent), (Pad.configureSink), (Pad.chain):
+	* com/fluendo/jst/PadListener.java:
+	* com/fluendo/jst/Pipeline.java: (Pipeline.BusThread),
+	(Pipeline.BusThread.BusThread), (Pipeline.BusThread.run),
+	(Pipeline.BusThread.shutDown), (Pipeline), (Pipeline.StateThread),
+	(Pipeline.StateThread.StateThread), (Pipeline.StateThread.run),
+	(Pipeline.StateThread.stateDirty), (Pipeline.Pipeline),
+	(Pipeline.useClock):
+	* com/fluendo/jst/Queue.java: (Queue.Pad):
+	* com/fluendo/player/Buffer.java:
+	* com/fluendo/player/Caps.java:
+	* com/fluendo/player/Clock.java:
+	* com/fluendo/player/ClockProvider.java:
+	* com/fluendo/player/Configure.java:
+	* com/fluendo/player/Element.java:
+	* com/fluendo/player/ElementFactory.java:
+	* com/fluendo/player/Event.java:
+	* com/fluendo/player/Format.java:
+	* com/fluendo/player/Object.java:
+	* com/fluendo/player/Pad.java:
+	* com/fluendo/player/PadListener.java:
+	* com/fluendo/player/Pipeline.java:
+	* com/fluendo/player/Queue.java:
+	* com/fluendo/player/SystemClock.java:
+	* com/fluendo/plugin/AudioSink.java: (AudioSink.RingBuffer.commit),
+	(AudioSink.RingBuffer.stop), (AudioSink.doEvent),
+	(AudioSink.render), (AudioSink.setCaps), (AudioSink.changeState):
+	* com/fluendo/plugin/HTTPSrc.java: (HTTPSrc.Pad),
+	(HTTPSrc.getInputStream):
+	* com/fluendo/plugin/OggDemux.java: (OggDemux.Pad):
+	* com/fluendo/plugin/Sink.java: (Sink), (Sink.Pad), (Sink.preroll),
+	(Sink.doEvent), (Sink.doSync), (Sink.setCaps), (Sink.render),
+	(Sink.Sink), (Sink.changeState):
+	* com/fluendo/plugin/TheoraDec.java: (TheoraDec.Pad):
+	* com/fluendo/plugin/VideoSink.java: (VideoSink.getProperty):
+	* com/fluendo/plugin/VorbisDec.java: (VorbisDec.Pad):
+	Updated jst to match latest GStreamer core, updated examples,
+	implemented bus, messages. Fix deadlocks while seeking.
+	Implemented state changes with topologocal sort.
+
 === release 0.1.2 ===
 
 2005-04-22  Thomas Vander Stichele  <thomas at apestaart dot org>

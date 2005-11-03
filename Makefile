@@ -11,7 +11,6 @@ compile: configure
 	javac -O -target 1.1 com/jcraft/jogg/*.java
 	javac -O -target 1.1 com/jcraft/jorbis/*.java
 	javac -O -target 1.1 com/fluendo/codecs/*.java
-	javac -O -target 1.1 com/fluendo/player/*.java
 	javac -O -target 1.1 com/fluendo/examples/*.java
 	javac -O -target 1.1 com/fluendo/utils/*.java
 	javac -O -target 1.1 com/fluendo/jheora/*.java

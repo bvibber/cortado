@@ -20,7 +20,7 @@ package com.fluendo.jst;
 
 public interface PadListener
 {
-  public void newPad (Pad pad);
+  public void padAdded (Pad pad);
   public void padRemoved (Pad pad);
   public void noMorePads ();
 }

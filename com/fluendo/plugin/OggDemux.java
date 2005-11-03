@@ -79,11 +79,11 @@ public class OggDemux extends Element
 	    Debug.log(Debug.DEBUG, "synced");
 	  }
 	  break;
-        case Event.FLUSH_END:
+        case Event.FLUSH_STOP:
 	  oy.reset();
 	  forwardEvent (event);
 	  break;
-        case Event.DISCONT:
+        case Event.NEWSEGMENT:
 	  forwardEvent (event);
 	  break;
         default:

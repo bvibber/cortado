@@ -102,10 +102,10 @@ public class VideoSink extends Sink
     return null;
   }
 
-  protected int changeState () {
-    if (state == STOP && pending == PAUSE) {
+  protected int changeState (int transition) {
+    if (currentState == STOP && pendingState == PAUSE) {
       frame = new Frame();
     }
-    return super.changeState();
+    return super.changeState(transition);
   }
 }
