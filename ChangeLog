@@ -1,5 +1,10 @@
 2005-11-04  Wim Taymans  <wim@fluendo.com>
 
+	* com/fluendo/jst/Query.java:
+	Added Query API.
+
+2005-11-04  Wim Taymans  <wim@fluendo.com>
+
 	* com/fluendo/examples/Player2.java: (PlayPipeline.PlayPipeline),
 	(PlayPipeline.doSendEvent):
 	Simplified after changes in the core.
