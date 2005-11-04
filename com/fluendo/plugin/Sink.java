@@ -240,6 +240,10 @@ public abstract class Sink extends Element
     setFlag (Element.FLAG_IS_SINK);
   }
 
+  public boolean sendEvent (Event event) {
+    return sinkpad.pushEvent (event);
+  }
+
   protected int changeState (int transition) {
     int result = SUCCESS;
     int presult;

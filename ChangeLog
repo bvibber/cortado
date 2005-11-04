@@ -1,3 +1,58 @@
+2005-11-04  Wim Taymans  <wim@fluendo.com>
+
+	* com/fluendo/examples/Player2.java: (PlayPipeline.PlayPipeline),
+	(PlayPipeline.doSendEvent):
+	Simplified after changes in the core.
+
+	* com/fluendo/jst/Element.java: (Element.getTransitionNext),
+	(Element.commitState), (Element.doChangeState), (Element.setState):
+	Propagate state change return values to the caller.
+
+	* com/fluendo/jst/Format.java: (Format):
+	Implement PERCENT format constants.
+
+	* com/fluendo/jst/Pad.java: (Pad):
+	Added isFlowFatal().
+
+	* com/fluendo/jst/Pipeline.java: (Pipeline.reCalcState),
+	(Pipeline.doChildStateChange), (Pipeline.changeState):
+	State change updates.
+	Send events to all sinks by default.
+
+	* com/fluendo/jst/Queue.java: (Queue), (Queue.isFilled),
+	(Queue.isEmpty), (Queue.clearQueue), (Queue.Pad):
+	Updates to queue to make it flush faster.
+	Fix refcounting of buffers when clearing the queue.
+
+	* com/fluendo/player/Configure.java:
+	* com/fluendo/plugin/AudioSink.java: (AudioSink.RingBuffer),
+	(AudioSink.RingBuffer.run), (AudioSink.RingBuffer.release),
+	(AudioSink.RingBuffer.waitSegment),
+	(AudioSink.RingBuffer.samplesPlayed), (AudioSink.RingBuffer.clear),
+	(AudioSink.RingBuffer.clearAll), (AudioSink.RingBuffer.setSample),
+	(AudioSink.RingBuffer.stop), (AudioSink), (AudioSink.doSync),
+	(AudioSink.doEvent):
+	Added setFlushing so that we never enter a blocking call again.
+
+	* com/fluendo/plugin/HTTPSrc.java: (HTTPSrc), (HTTPSrc.Pad),
+	(HTTPSrc.getInputStream), (HTTPSrc.getName), (HTTPSrc.HTTPSrc),
+	(HTTPSrc.setProperty):
+	Get Content-Length from HTTP response header to get the length of
+	the file.
+	Implement percent seeking.
+	Added property to configure readSize.
+	
+	* com/fluendo/plugin/OggDemux.java: (OggDemux.Pad):
+	Add proper locks around event handling code.
+
+	* com/fluendo/plugin/Sink.java: (Sink.Sink):
+	Implement sendEvent.
+
+	* com/fluendo/plugin/TheoraDec.java: (TheoraDec.Pad):
+	* com/fluendo/plugin/VorbisDec.java: (VorbisDec.Pad):
+	Take proper locks around event handling code.
+	free buffers when clearing the queued buffers.
+
 2005-11-03  Wim Taymans  <wim@fluendo.com>
 
 	* Makefile:

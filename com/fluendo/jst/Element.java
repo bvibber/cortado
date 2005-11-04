@@ -242,7 +242,7 @@ public abstract class Element extends com.fluendo.jst.Object
     return transition & 0x7;
   }
 
-  public int commitState()
+  public int commitState(int result)
   {
     int ret;
     int transition = 0;
@@ -255,7 +255,7 @@ public abstract class Element extends com.fluendo.jst.Object
       pending = pendingState;
 
       if (pending == NONE)
-        return SUCCESS;
+        return result;
     
       oldState = currentState;
       oldNext = nextState;
@@ -264,7 +264,7 @@ public abstract class Element extends com.fluendo.jst.Object
       if (pending == current) {
         pendingState = NONE;
         nextState = NONE;
-        lastReturn = SUCCESS;
+        lastReturn = result;
 
         notifyAll();
       }
@@ -285,7 +285,7 @@ public abstract class Element extends com.fluendo.jst.Object
       ret = doChangeState (transition);
     }
     else {
-      ret = SUCCESS;
+      ret = result;
     }
 
     return ret; 
@@ -362,14 +362,13 @@ public abstract class Element extends com.fluendo.jst.Object
 	break;
       case SUCCESS:
       case NO_PREROLL:
-        commitState();
+        result = commitState(result);
         break;
       case ASYNC:
+        synchronized (this) {
+          lastReturn = result;
+        }
         break;
-    }
-
-    synchronized (this) {
-      lastReturn = result;
     }
     return result;
   }
@@ -417,5 +416,9 @@ public abstract class Element extends com.fluendo.jst.Object
       result = doChangeState (transition);
     }
     return result;
+  }
+
+  public boolean sendEvent (Event event) {
+    return false;
   }
 }

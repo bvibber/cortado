@@ -31,10 +31,26 @@ public class HTTPSrc extends Element
   private String password;
   private String urlString;
   private InputStream input;
+  private long contentLength;
+
+  private static final int DEFAULT_READSIZE = 4096;
+
+  private int readSize = DEFAULT_READSIZE;
 
   private Pad srcpad = new Pad(Pad.SRC, "src") {
-    private boolean doSeek (long position) {
+    private boolean doSeek (Event event) {
       boolean result;
+      int format;
+      long position;
+
+      format = event.getSeekFormat();
+      position = event.getSeekPosition();
+
+      if (format == Format.PERCENT) {
+        position = position * contentLength / Format.PERCENT_MAX;
+      }
+      else if (format != Format.BYTES)
+        return false;
 
       pushEvent (Event.newFlushStart());
 
@@ -62,7 +78,7 @@ public class HTTPSrc extends Element
 
       switch (event.getType()) {
         case Event.SEEK:
-	  res = doSeek(event.getSeekPosition());
+	  res = doSeek(event);
 	  break;
         default:
           res = super.eventFunc (event);
@@ -76,10 +92,10 @@ public class HTTPSrc extends Element
       int ret;
 
       Buffer data = Buffer.create();
-      data.ensureSize (4096);
+      data.ensureSize (readSize);
       data.offset = 0;
       try {
-        data.length = input.read (data.data, 0, 4096);
+        data.length = input.read (data.data, 0, readSize);
       }
       catch (Exception e) {
 	e.printStackTrace();
@@ -139,9 +155,11 @@ public class HTTPSrc extends Element
         uc.setRequestProperty ("Authorization", "Basic " + encoding);
       }
       uc.setRequestProperty ("Range", "bytes=" + offset+"-");
-      /* FIXME, do typefind */
+      /* FIXME, do typefind ? */
       dis = uc.getInputStream();
+      contentLength = uc.getHeaderFieldInt ("Content-Length", 0) + offset;
       Debug.log(Debug.INFO, "opened "+url);
+      Debug.log(Debug.INFO, "contentLength: "+contentLength);
     }
     catch (SecurityException e) {
       e.printStackTrace();
@@ -177,6 +195,9 @@ public class HTTPSrc extends Element
     }
     else if (name.equals("password")) {
       password = String.valueOf(value);
+    }
+    else if (name.equals("readSize")) {
+      readSize = Integer.parseInt((String)value);
     }
     else {
       res = false;

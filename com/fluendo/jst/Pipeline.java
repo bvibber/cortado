@@ -383,7 +383,7 @@ public class Pipeline extends com.fluendo.jst.Element implements BusSyncHandler
       switch (res) {
         case SUCCESS:
         case NO_PREROLL:
-          commitState();
+          res = commitState(res);
           break;
         case ASYNC:
 	  lostState();
@@ -418,25 +418,26 @@ public class Pipeline extends com.fluendo.jst.Element implements BusSyncHandler
 
       result = elem.setState (next);
 
-      if (result == ASYNC) {
-        haveAsync = true;
+      switch (result) {
+        case ASYNC:
+          haveAsync = true;
+	  break;
+	case NO_PREROLL:
+          haveNoPreroll = true;
+	  break;
+	case FAILURE:
+          return result;
       }
-      if (result == NO_PREROLL) {
-        haveNoPreroll = true;
-      }
-      else if (result == FAILURE)
-        return result;
     }
 
     result = super.changeState(transition);
     if (result == FAILURE)
       return result;
 
-    if (haveAsync)
-      return ASYNC;
-
     if (haveNoPreroll)
-      return NO_PREROLL;
+      result = NO_PREROLL;
+    else if (haveAsync)
+      result = ASYNC;
 
     return result;
   }
@@ -472,12 +473,41 @@ public class Pipeline extends com.fluendo.jst.Element implements BusSyncHandler
     return result;
   }
 
-  public synchronized boolean seek(long offset)
+  protected boolean doSendEvent(Event event)
   {
+    boolean res = true;
+
+    for (Enumeration e = enumSorted(); e.hasMoreElements();) {
+      Element elem = (Element) e.nextElement();
+
+      if (elem.isFlagSet (Element.FLAG_IS_SINK)) {
+        res &= elem.sendEvent (event);
+      }
+    }
+    return res;
+  }
+
+  private boolean doSeek(Event event)
+  {
+    boolean ret;
+
     setState (Element.PAUSE);
     streamTime = 0;
-    getState (null, null, 0);
+
+    ret = doSendEvent (event);
+
     setState (Element.PLAY);
-    return true;
+
+    return ret;
+  }
+
+  public boolean sendEvent(Event event)
+  {
+    switch (event.getType()) {
+      case Event.SEEK:
+        return doSeek (event);
+      default:
+        return doSendEvent (event);
+    }
   }
 }

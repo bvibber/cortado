@@ -25,4 +25,7 @@ public class Format {
   public static final int TIME = 3;
   public static final int BUFFERS = 4;
   public static final int PERCENT = 5;
+
+  public static final long PERCENT_MAX = 1000000;
+  public static final long PERCENT_SCALE = 10000;
 }

@@ -48,6 +48,18 @@ public class TheoraDec extends Element
   private Pad sinkpad = new Pad(Pad.SINK, "sink") {
     private Vector queue = new Vector();
 
+    private void clearQueue ()
+    {
+      for (Enumeration e = queue.elements(); e.hasMoreElements();)
+      {
+        java.lang.Object obj = e.nextElement();
+
+	if (obj instanceof com.fluendo.jst.Buffer) {
+	  ((com.fluendo.jst.Buffer)obj).free();
+	}
+      }
+    }
+
     private int pushOutput (com.fluendo.jst.Buffer buf) {
       long newTime = buf.timestamp;
 
@@ -83,19 +95,24 @@ public class TheoraDec extends Element
 	  result = srcpad.pushEvent (event);
 	  synchronized (streamLock) {
 	    Debug.log(Debug.INFO, this+" synced");
+            clearQueue();
             lastTs = -1;
 	    needKeyframe = true;
 	  }
           break;
         case com.fluendo.jst.Event.FLUSH_STOP:
-          result = srcpad.pushEvent(event);
 	  synchronized (streamLock) {
+            result = srcpad.pushEvent(event);
             lastTs = -1;
 	    needKeyframe = true;
 	  }
           break;
+        case com.fluendo.jst.Event.EOS:
+        case com.fluendo.jst.Event.NEWSEGMENT:
 	default:
-          result = srcpad.pushEvent(event);
+	  synchronized (streamLock) {
+            result = srcpad.pushEvent(event);
+	  }
           break;
       }
       return result;
@@ -171,10 +188,12 @@ public class TheoraDec extends Element
             if (ts.decodePacketin(op) != 0) {
               buf.free();
               Debug.log(Debug.ERROR, "Error Decoding Theora.");
+	      postMessage (Message.newError (this, "Error decoding Theora"));
               return ERROR;
             }
             if (ts.decodeYUVout(yuv) != 0) {
               buf.free();
+	      postMessage (Message.newError (this, "Error getting the Theora picture"));
               Debug.log(Debug.ERROR, "Error getting the picture.");
               return ERROR;
 	    }
@@ -185,7 +204,8 @@ public class TheoraDec extends Element
           }
 	  catch (Exception e) {
 	    e.printStackTrace();
-            result = OK;
+	    postMessage (Message.newError (this, e.getMessage()));
+            result = ERROR;
 	  }
 	}
         else {

@@ -83,13 +83,13 @@ class PlayPipeline extends Pipeline implements PadListener {
 
     a_queue.getPad("src").link(vorbisdec.getPad("sink"));
     vorbisdec.getPad("src").link(audiosink.getPad("sink"));
-
   }
 
-  public boolean seek(long offset) {
+  protected boolean doSendEvent(com.fluendo.jst.Event event) {
+    if (event.getType() != com.fluendo.jst.Event.SEEK)
+      return false;
 
-    setState (Element.PAUSE);
-    httpsrc.getPad("src").sendEvent (com.fluendo.jst.Event.newSeek(Format.BYTES, offset));
+    httpsrc.getPad("src").sendEvent (event);
     getState(null, null, 0);
 
     long t1 = ((Sink)videosink).getPrerollTime();
@@ -97,8 +97,6 @@ class PlayPipeline extends Pipeline implements PadListener {
 
     streamTime = Math.min (t1, t2);
     System.out.println ("stream time "+streamTime);
-
-    setState (Element.PLAY);
 
     return true;
   }
@@ -111,18 +109,25 @@ class PlayFrame extends Frame implements AdjustmentListener {
   
   public PlayFrame(PlayPipeline p) {
     pipeline = p;
-    sb = new Scrollbar(Scrollbar.HORIZONTAL, 0, 2, 0, 4124322);  
+    sb = new Scrollbar(Scrollbar.HORIZONTAL, 0, 2, 0, 100);  
     sb.setSize(200, 16);
     sb.addAdjustmentListener (this);
     setSize(200,32);
     add(sb);
-    
+    pack (); 
   }
   
   public synchronized void adjustmentValueChanged(AdjustmentEvent e) {
     if (!e.getValueIsAdjusting()) {
-      int val = e.getValue();
-      pipeline.seek(val); 
+      int val;
+      com.fluendo.jst.Event event;
+
+      /* get value, convert to PERCENT and construct seek event */
+      val = e.getValue();
+      event = com.fluendo.jst.Event.newSeek (Format.PERCENT, val * Format.PERCENT_SCALE);
+
+      /* send event to pipeline */
+      pipeline.sendEvent(event);
     }
   }
 }

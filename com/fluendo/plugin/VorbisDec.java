@@ -49,6 +49,17 @@ public class VorbisDec extends Element
   private Pad sinkpad = new Pad(Pad.SINK, "sink") {
     private Vector queue = new Vector();
 
+    private void clearQueue ()
+    {
+      for (Enumeration e = queue.elements(); e.hasMoreElements();) {
+        java.lang.Object obj = e.nextElement();
+
+        if (obj instanceof com.fluendo.jst.Buffer) {
+          ((com.fluendo.jst.Buffer)obj).free();
+        }
+      }
+    }
+
     private int pushOutput (com.fluendo.jst.Buffer buf) {
       long toffset = buf.time_offset;
 
@@ -89,15 +100,17 @@ public class VorbisDec extends Element
 	  }
 	  break;
         case Event.FLUSH_STOP:
-          result = srcpad.pushEvent(event);
 	  synchronized (streamLock) {
+            result = srcpad.pushEvent(event);
 	    offset = -1;
-	    queue.setSize(0);
+	    clearQueue();
 	    vd.synthesis_init(vi);
 	  }
 	  break;
         default:
-          result = srcpad.pushEvent(event);
+	  synchronized (streamLock) {
+            result = srcpad.pushEvent(event);
+	  }
 	  break;
       }
       return result;

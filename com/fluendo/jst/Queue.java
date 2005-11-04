@@ -25,12 +25,23 @@ public class Queue extends Element
 {
   private Vector queue = new Vector();
   private static final int MAX_SIZE = 500;
+  private int srcResult = Pad.WRONG_STATE;
 
   private boolean isFilled() {
     return queue.size() > MAX_SIZE;
   }
   private boolean isEmpty() {
     return queue.size() == 0;
+  }
+
+  private void clearQueue ()
+  {
+    for (Enumeration e = queue.elements(); e.hasMoreElements();) {
+      java.lang.Object obj = e.nextElement();
+      if (obj instanceof Buffer)
+        ((Buffer)obj).free();
+    }
+    queue.setSize(0);
   }
   
   private Pad srcpad = new Pad(Pad.SRC, "src") {
@@ -39,10 +50,13 @@ public class Queue extends Element
       int res;
       
       synchronized (queue) {
+        if (srcResult != OK)
+	  return;
+	  
 	while (isEmpty()) {
           try {
             queue.wait();
-	    if (sinkpad.isFlushing()) 
+	    if (srcResult != OK) 
 	      return;
 	  }
 	  catch (InterruptedException ie) {}
@@ -55,8 +69,15 @@ public class Queue extends Element
         pushEvent((Event)obj);
       }
       else {
-        if ((res = push((Buffer)obj)) != OK) {
-	  pauseTask();
+        res = push((Buffer)obj);
+        if (res != OK) {
+	  synchronized (queue) {
+	    srcResult = res;
+	    if (isFlowFatal (res)) {
+	      postMessage (Message.newError (parent, "fatal flow error: "+res));
+	    }
+	    pauseTask();
+	  }
         }
       }
     }
@@ -67,12 +88,22 @@ public class Queue extends Element
 
       switch (mode) {
         case MODE_NONE:
+	  synchronized (queue) {
+	    srcResult = WRONG_STATE;
+	    notifyAll();
+	  }
           res = stopTask();
           break;
         case MODE_PUSH:
+	  synchronized (queue) {
+	    srcResult = OK;
+	  }
           res = startTask();
           break;
         default:
+	  synchronized (queue) {
+	    srcResult = WRONG_STATE;
+	  }
           res = false;
           break;
       }
@@ -87,6 +118,7 @@ public class Queue extends Element
         case Event.FLUSH_START:
 	   srcpad.pushEvent (event);
 	   synchronized (queue) {
+	     srcResult = WRONG_STATE;
 	     queue.notifyAll();
 	   }
 	   break;
@@ -95,7 +127,8 @@ public class Queue extends Element
 
 	   synchronized (streamLock) {
 	     synchronized (queue) {
-	       queue.setSize(0);
+	       clearQueue ();
+	       srcResult = OK;
 	       queue.notifyAll();
 	     }
 	     srcpad.startTask();
@@ -115,13 +148,23 @@ public class Queue extends Element
 
     protected int chainFunc (Buffer buf) {
       synchronized (queue) {
+        if (srcResult != OK) {
+	  buf.free();
+	  return srcResult;
+	} 
+
 	while (isFilled()) {
           try {
             queue.wait();
-	    if (isFlushing())
-	      return WRONG_STATE;
+	    if (srcResult != OK) {
+	      buf.free();
+	      return srcResult;
+	    }
 	  }
-	  catch (InterruptedException ie) {}
+	  catch (InterruptedException ie) {
+	    buf.free();
+	    return WRONG_STATE;
+	  }
 	}
         queue.add(0, buf);
         queue.notify();

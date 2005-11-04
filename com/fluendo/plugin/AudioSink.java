@@ -73,6 +73,7 @@ public abstract class AudioSink extends Sink implements ClockProvider
     private Thread thread;
     private long nextSample;
     private int bps, sps;
+    private boolean flushing;
 
     private static final int STOP = 0;
     private static final int PAUSE = 1;
@@ -121,6 +122,13 @@ public abstract class AudioSink extends Sink implements ClockProvider
       }
     }
 
+    public synchronized void setFlushing(boolean flushing) {
+      this.flushing = flushing;
+      clearAll();
+      if (flushing) {
+        pause();
+      }
+    }
     public synchronized boolean acquire(Caps caps) {
       boolean res;
 
@@ -168,6 +176,9 @@ public abstract class AudioSink extends Sink implements ClockProvider
     }
 
     private synchronized boolean waitSegment() {
+      if (flushing)
+        return false;
+
       if (state != PLAY)
         play();
 
@@ -176,6 +187,8 @@ public abstract class AudioSink extends Sink implements ClockProvider
 	  return false;
 	    
         wait();
+        if (flushing)
+          return false;
 
 	if (state != PLAY)
 	  return false;
@@ -277,6 +290,12 @@ public abstract class AudioSink extends Sink implements ClockProvider
 
       System.arraycopy (emptySeg, 0, buffer, index, segSize);
     }
+    public synchronized void clearAll () 
+    {
+      for (int i = 0; i < segTotal; i++) {
+        clear (i);
+      }
+    }
     public synchronized void setSample (long sample) {
 
       if (sample == -1)
@@ -285,15 +304,16 @@ public abstract class AudioSink extends Sink implements ClockProvider
       playSeg = sample / sps;
       nextSample = sample;
 
-      for (int i = 0; i < segTotal; i++) {
-        clear (i);
-      }
+      clearAll();
       synchronized (clock) {
         clock.notifyAll();
       }
     }
 
     public synchronized boolean play () {
+      if (flushing)
+        return false;
+
       state = PLAY;
       notifyAll();
       return true;
@@ -332,9 +352,10 @@ public abstract class AudioSink extends Sink implements ClockProvider
   {
     switch (event.getType()) {
       case Event.FLUSH_START:
-        ringBuffer.pause();
+	ringBuffer.setFlushing (true);
         break;
       case Event.FLUSH_STOP:
+	ringBuffer.setFlushing (false);
         break;
       case Event.NEWSEGMENT:
         break;

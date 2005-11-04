@@ -80,11 +80,20 @@ public class OggDemux extends Element
 	  }
 	  break;
         case Event.FLUSH_STOP:
-	  oy.reset();
-	  forwardEvent (event);
+	  synchronized (streamLock) {
+	    oy.reset();
+	    forwardEvent (event);
+	  }
 	  break;
         case Event.NEWSEGMENT:
-	  forwardEvent (event);
+	  synchronized (streamLock) {
+	    forwardEvent (event);
+	  }
+	  break;
+        case Event.EOS:
+	  synchronized (streamLock) {
+	    forwardEvent (event);
+	  }
 	  break;
         default:
 	  forwardEvent (event);
