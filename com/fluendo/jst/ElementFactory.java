@@ -73,8 +73,7 @@ public class ElementFactory
     }
     return result;
   }
-
-  public static final Element makeTypeFind(byte[] data, int offset, int length)
+  private static final Element findTypeFind(byte[] data, int offset, int length)
   {
     int best = -1;
     Element result = null;
@@ -88,6 +87,27 @@ public class ElementFactory
 	result = element;
       }
     }
+    return result;
+  }
+
+  public static final String typeFindMime(byte[] data, int offset, int length)
+  {
+    Element elem;
+    String result = null;
+
+    elem = findTypeFind (data, offset, length);
+    if (elem != null) {
+      result = elem.getMime();
+    }
+    return result;
+  }
+
+  public static final Element makeTypeFind(byte[] data, int offset, int length)
+  {
+    Element result = null;
+
+    result = findTypeFind (data, offset, length);
+    
     if (result != null) {
       result = dup (result);
     }

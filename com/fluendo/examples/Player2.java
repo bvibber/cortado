@@ -35,10 +35,13 @@ class PlayPipeline extends Pipeline implements PadListener {
   private Element v_queue, a_queue;
 
   public void padAdded(Pad pad) {
-    if (pad.getName().equals("serial_31273")) {
+    Caps caps = pad.getCaps ();
+    String mime = caps.getMime();
+    
+    if (mime.equals("audio/x-vorbis")) {
       pad.link(a_queue.getPad("sink"));
     }
-    if (pad.getName().equals("serial_31272")) {
+    if (mime.equals("video/x-theora")) {
       pad.link(v_queue.getPad("sink"));
     }
   }
@@ -51,11 +54,10 @@ class PlayPipeline extends Pipeline implements PadListener {
     System.out.println ("no more pads");
   }
 
-  public PlayPipeline ()
+  public PlayPipeline (String uri)
   {
     httpsrc = ElementFactory.makeByName("httpsrc");
-    //httpsrc.setProperty("url", "http://localhost/fluendo/src/fluendo/psvn/cortado/trunk/test8.ogg");
-    httpsrc.setProperty("url", "http://localhost/fluendo/src/fluendo/psvn/cortado/trunk/sanju.ogg");
+    httpsrc.setProperty("url", uri);
 
     oggdemux = ElementFactory.makeByName("oggdemux");
     theoradec = ElementFactory.makeByName("theoradec");
@@ -137,9 +139,9 @@ public class Player2 implements BusHandler {
   private Bus bus;
   private Frame frame;
 
-  public Player2 ()
+  public Player2 (String uri)
   {
-    pipeline = new PlayPipeline();
+    pipeline = new PlayPipeline(uri);
     bus = pipeline.getBus();
     bus.addHandler (this);
 
@@ -165,7 +167,12 @@ public class Player2 implements BusHandler {
   }
 
   public static void main(String args[]) {
-    Player2 p2 = new Player2();
+    if (args.length < 1) {
+      System.out.println ("usage: Player2 <uri>");
+      return;
+    }
+    
+    Player2 p2 = new Player2(args[0]);
 
     synchronized (p2) {
       try {

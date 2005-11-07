@@ -179,10 +179,10 @@ public abstract class Sink extends Element
     protected boolean setCapsFunc (Caps caps)
     {
       boolean res;
+      Sink sink = (Sink) parent;
       
-      if ((res = setCaps(caps))) {
-        super.setCapsFunc (caps);
-      }
+      res = sink.setCapsFunc (caps);
+
       return res;
     }
   };
@@ -226,7 +226,7 @@ public abstract class Sink extends Element
     }
     return ret;
   }
-  protected boolean setCaps (Caps caps) {
+  protected boolean setCapsFunc (Caps caps) {
     return true;
   }
 

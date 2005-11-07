@@ -152,11 +152,15 @@ public class Pad extends com.fluendo.jst.Object implements Runnable
     return result;
   }
 
+  public synchronized Caps getCaps () {
+    return this.caps;
+  }
+
   protected boolean setCapsFunc (Caps caps) {
     return true;
   }
 
-  private boolean configureSink (Caps caps) {
+  public boolean setCaps (Caps caps) {
     boolean res;
     res = setCapsFunc (caps);
     if (res) {
@@ -172,7 +176,7 @@ public class Pad extends com.fluendo.jst.Object implements Runnable
 	  return WRONG_STATE;
 
 	if (buffer.caps != null && buffer.caps != caps) {
-	  if (!configureSink(buffer.caps)) {
+	  if (!setCaps(buffer.caps)) {
 	    buffer.free();
 	    return NOT_NEGOTIATED;
 	  }

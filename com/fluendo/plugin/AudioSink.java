@@ -375,7 +375,7 @@ public abstract class AudioSink extends Sink implements ClockProvider
     return Pad.OK;
   }
 
-  protected boolean setCaps (Caps caps)
+  protected boolean setCapsFunc (Caps caps)
   {
     boolean res;
 

@@ -32,7 +32,7 @@ public class VideoSink extends Sink
   int width, height;
   int aspect_x, aspect_y;
 
-  protected boolean setCaps (Caps caps)
+  protected boolean setCapsFunc (Caps caps)
   {
     String mime = caps.getMime();
     if (!mime.equals ("video/raw"))

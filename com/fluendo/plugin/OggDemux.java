@@ -34,6 +34,7 @@ public class OggDemux extends Element
     public int serialno;
     public StreamState os;
     public boolean bos;
+    private boolean needTypefind;
 
     public OggStream (int serial) {
       super (Pad.SRC, "serial_"+serial);
@@ -43,6 +44,7 @@ public class OggDemux extends Element
       os.init(serial);
       os.reset();
       bos = true;
+      needTypefind = true;
     }
     protected boolean eventFunc (com.fluendo.jst.Event event) {
       return sinkpad.pushEvent (event);
@@ -121,15 +123,11 @@ public class OggDemux extends Element
         else {
 	  int serial = og.serialno();
 	  OggStream stream = findStream (serial);
+	  boolean needTypefind = false;
 	  if (stream == null) {
-  	    Debug.log(Debug.INFO, "new stream "+serial);
 	    stream = new OggStream(serial);
 	    streams.addElement(stream);
-
-	    /* FIXME, do typefind here */
-            addPad (stream);
 	  }
-
           res = stream.os.pagein(og);
           if (res < 0) {
             // error; stream version mismatch perhaps
@@ -147,6 +145,15 @@ public class OggDemux extends Element
             }
             else {
 	      if (stream != null) {
+	        if (stream.needTypefind) {
+	          String mime = ElementFactory.typeFindMime (op.packet_base, op.packet, op.bytes);
+  	          Debug.log(Debug.INFO, "new stream "+serial+", mime "+mime);
+
+		  stream.needTypefind = false;
+		  stream.setCaps (new Caps (mime));
+                  addPad (stream);
+	        }
+
 	        com.fluendo.jst.Buffer data = com.fluendo.jst.Buffer.create();
 
 	        data.copyData(op.packet_base, op.packet, op.bytes);

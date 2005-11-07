@@ -1,3 +1,25 @@
+2005-11-07  Wim Taymans  <wim@fluendo.com>
+
+	* com/fluendo/examples/Player2.java: (PlayPipeline),
+	(PlayPipeline.padRemoved), (PlayPipeline.noMorePads), (Player2),
+	(Player2.handleMessage):
+	Fix player to handle any uri.
+
+	* com/fluendo/jst/ElementFactory.java:
+	Added typefind.
+
+	* com/fluendo/jst/Pad.java: (Pad.sendEvent), (Pad.chain):
+	Handle setCaps().
+
+	* com/fluendo/plugin/OggDemux.java: (OggDemux.OggStream),
+	(OggDemux.OggStream.OggStream), (OggDemux.Pad):
+	Set caps.
+
+	* com/fluendo/plugin/AudioSink.java: (AudioSink.render):
+	* com/fluendo/plugin/Sink.java: (Sink.Pad), (Sink.doSync):
+	* com/fluendo/plugin/VideoSink.java: (VideoSink):
+	Handle new caps.
+
 2005-11-04  Wim Taymans  <wim@fluendo.com>
 
 	* com/fluendo/jst/Query.java:
