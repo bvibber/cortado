@@ -20,19 +20,33 @@ package com.fluendo.player;
 
 import java.awt.*;
 import java.awt.image.*;
+import java.awt.event.*;
 import java.net.*;
 import java.util.*;
 import com.fluendo.utils.*;
 
-public class Status extends Component
+public class Status extends Component implements MouseListener, MouseMotionListener
 {
   private int bufferPercent;
   private String message;
+  private String error;
   private Rectangle r;
   private Component component;
   private Font font = new Font("SansSerif", Font.PLAIN, 10);
   private boolean haveAudio;
   private boolean havePercent;
+  private boolean seekable;
+
+  private Color button1Color;
+  private Color button2Color;
+  private static final int triangleX[] = { 4, 4, 9 };
+  private static final int triangleY[] = { 3, 9, 6 };
+
+  public static final int STATE_STOPPED = 0;
+  public static final int STATE_PAUSED = 1;
+  public static final int STATE_PLAYING = 2;
+
+  private int state = STATE_STOPPED;
 
   private String speaker =
   "\0\0\0\0\0\357\0\0\357U\27" +
@@ -49,6 +63,8 @@ public class Status extends Component
   "\357\0\0\0\357\\\0\0\0" +
   "\0\0\0\357\0\0\357\\\0\0";
   private Image speakerImg;
+
+  private Vector listeners = new Vector();
   
   public Status(Component comp) {
     int[] pixels = new int[12*10];
@@ -61,6 +77,20 @@ public class Status extends Component
                   (speaker.charAt(i));
     }
     speakerImg = comp.getToolkit().createImage(new MemoryImageSource (12, 10, pixels, 0, 12));
+    button1Color = Color.black;
+    button2Color = Color.black;
+  }
+
+  public void addStatusListener(StatusListener l) {
+    listeners.add (l);
+  }
+  public void removeStatusListener(StatusListener l) {
+    listeners.remove (l);
+  }
+  public void notifyNewState(int newState) {
+    for (Enumeration e = listeners.elements(); e.hasMoreElements();) {
+      ((StatusListener)e.nextElement()).newState(newState);
+    }
   }
 
   public void update(Graphics g) {
@@ -85,8 +115,45 @@ public class Status extends Component
     if (havePercent) {
       g2.drawString(""+bufferPercent+"%", r.width-38, r.height-2);
     }
-    if (message != null) {
-      g2.drawString(message, 2, r.height-2);
+    if (seekable) {
+      /* button 1 */
+      g2.setColor(Color.darkGray);
+      g2.drawRect(1, 1, 10, 10);
+      g2.setColor(button1Color);
+      g2.fillRect(2, 2, 9, 9);
+      if (state == STATE_PLAYING) {
+        g2.setColor(Color.darkGray);
+        g2.fillRect(4, 4, 2, 5);
+        g2.fillRect(7, 4, 2, 5);
+      }
+      else {
+        g2.setColor(Color.darkGray);
+        g2.fillPolygon(triangleX, triangleY, 3);
+      }
+
+      /* button 2 */
+      g2.setColor(Color.darkGray);
+      g2.drawRect(13, 1, 10, 10);
+      g2.setColor(button2Color);
+      g2.fillRect(14, 2, 9, 9);
+      g2.setColor(Color.darkGray);
+      g2.fillRect(16, 4, 5, 5);
+      if (state == STATE_STOPPED) {
+        if (message != null) {
+          g2.setColor(Color.white);
+          g2.drawString(message, 27, r.height-2);
+        } 
+      }
+      else {
+        g2.setColor(Color.darkGray);
+        g2.drawRect(27, 2, r.width-45, 8);
+      }
+    }
+    else {
+      if (message != null) {
+        g2.setColor(Color.white);
+        g2.drawString(message, 2, r.height-2);
+      } 
     }
     if (haveAudio) {
       g2.drawImage(speakerImg,r.width-12,r.height-11,null);
@@ -98,17 +165,83 @@ public class Status extends Component
   public void setBufferPercent(int bp)
   {
     bufferPercent = bp;
+    component.repaint();
   }
   public void setMessage(String m)
   {
     message = m;
+    component.repaint();
   }
   public void setHaveAudio(boolean a)
   {
     haveAudio = a;
+    component.repaint();
   }
   public void setHavePercent(boolean p)
   {
     havePercent = p;
+    component.repaint();
+  }
+  public void setSeekable(boolean s)
+  {
+    seekable = s;
+    component.repaint();
+  }
+  public void setState(int aState)
+  {
+    state = aState;
+    component.repaint();
+  }
+
+  private boolean intersectButton1 (MouseEvent e) {
+   return (e.getX() >= 0 && e.getX() <= 10 && e.getY() > 0 && e.getY() <= 10);
+  }
+  private boolean intersectButton2 (MouseEvent e) {
+   return (e.getX() >= 12 && e.getX() <= 22 && e.getY() > 0 && e.getY() <= 10);
+  }
+  public void mouseClicked(MouseEvent e){}
+  public void mouseEntered(MouseEvent e) {}
+  public void mouseExited(MouseEvent e) {}
+  public void mousePressed(MouseEvent e) {}
+  public void mouseReleased(MouseEvent e)
+  {
+    if (seekable) {
+      e.translatePoint (-1, -1);
+      if (intersectButton1 (e)) {
+        if (state == STATE_PLAYING) {
+	  state = STATE_PAUSED;
+	  notifyNewState (state);
+	}
+        else if (state == STATE_PAUSED) {
+	  state = STATE_PLAYING;
+	  notifyNewState (state);
+	}
+      }
+      else if (intersectButton2 (e)) {
+        state = STATE_STOPPED;
+        notifyNewState (state);
+      }
+      component.repaint();
+    }
+  }
+  public void mouseDragged(MouseEvent e){}
+  public void mouseMoved(MouseEvent e)
+  {
+    if (seekable) {
+      e.translatePoint (-1, -1);
+      if (intersectButton1 (e)) {
+        button1Color = Color.gray;
+        button2Color = Color.black;
+      }
+      else if (intersectButton2 (e)) {
+        button1Color = Color.black;
+        button2Color = Color.gray;
+      }
+      else {
+        button2Color = Color.black;
+        button1Color = Color.black;
+      }
+      component.repaint();
+    }
   }
 }

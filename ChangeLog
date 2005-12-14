@@ -1,3 +1,61 @@
+2005-12-14  Wim Taymans  <wim@fluendo.com>
+
+	* Makefile:
+	Added some targets.
+
+	* com/fluendo/jst/Clock.java: (Clock.ClockID.waitID):
+	No need to check for unscheduled here, it'll be done in 
+	the waitFunc.
+
+	* com/fluendo/jst/Element.java: (Element.getTransitionNext),
+	(Element.continueState), (Element.changeState), (Element),
+	(Element.doChangeState):
+	Bring state changes up to data with GStreamer core.
+	Fix race condition that probably also exist in GST when we update
+	the lastReturn right after the element commited state ASYNC.
+	
+	* com/fluendo/jst/Pad.java: (Pad.isFlowFatal):
+	Added debugging function
+	
+	* com/fluendo/jst/Pipeline.java: (Pipeline.StateThread.run),
+	(Pipeline.reCalcState):
+	Use new API to continue state change.
+
+	* com/fluendo/jst/Query.java: (Query), (Query.newPosition),
+	(Query.newDuration):
+	Fix compilation
+
+	* com/fluendo/jst/Queue.java: (Queue.Pad):
+	Better debugging. Don't post an error when we did not cause the
+	error but instead post a stream-status message to notify that we
+	stopped streaming.
+
+	* com/fluendo/player/Configure.java:
+	* com/fluendo/player/Cortado.java:
+	* com/fluendo/player/CortadoPipeline.java:
+	* com/fluendo/player/Status.java:
+	New Applet using JST along with JST pipelines and gui.
+
+	* com/fluendo/plugin/AudioSink.java: (AudioSink.render),
+	(AudioSink.changeState):
+	* com/fluendo/plugin/Sink.java: (Sink.Pad), (Sink.changeState):
+	Update to latest GST base classes.
+
+	* com/fluendo/plugin/AudioSinkJ2.java: (AudioSinkJ2.open):
+	Post error when we cannot open the device.
+
+	* com/fluendo/plugin/HTTPSrc.java: (HTTPSrc.Pad), (HTTPSrc),
+	(HTTPSrc.getInputStream):
+	Better error handling.
+
+	* com/fluendo/plugin/VideoSink.java: (VideoSink),
+	(VideoSink.setCapsFunc), (VideoSink.preroll), (VideoSink.render),
+	(VideoSink.getName):
+	Make videosink work with foreign Components.
+
+	* com/fluendo/plugin/VorbisDec.java: (VorbisDec.Pad):
+	Forward flow errors.
+
 2005-11-07  Wim Taymans  <wim@fluendo.com>
 
 	* com/fluendo/examples/Player2.java: (PlayPipeline),

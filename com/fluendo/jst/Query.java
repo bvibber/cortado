@@ -38,7 +38,7 @@ public class Query {
   private long value;
 
   private Query(int type) {
-    position = -1;
+    value = -1;
     this.type = type;
   }
 
@@ -52,10 +52,10 @@ public class Query {
     return q;
   }
   public int parsePositionFormat() {
-    return q.format;
+    return format;
   }
   public long parsePositionValue() {
-    return q.value;
+    return value;
   }
 
   public static Query newDuration(int format) {
@@ -64,9 +64,9 @@ public class Query {
     return q;
   }
   public int parseDurationFormat() {
-    return q.format;
+    return format;
   }
   public long parseDurationValue() {
-    return q.value;
+    return value;
   }
 }

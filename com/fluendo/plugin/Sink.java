@@ -44,10 +44,12 @@ public abstract class Sink extends Element
         int res = OK;
 	Sink sink = (Sink) parent;
 
-	if (isFlushing())
+	if (isFlushing()) {
 	  return WRONG_STATE;
+	}
 
         if (needPreroll) {
+
 	  prerollTime = buf.timestamp;
 
 	  havePreroll = true;
@@ -55,37 +57,41 @@ public abstract class Sink extends Element
 
 	  boolean postPause = false;
 	  boolean postPlaying = false;
-	  int current, next, pending;
+	  int current, next, pending, postPending;
 
 	  synchronized (sink) {
 	    current = currentState;
 	    next = nextState;
 	    pending = pendingState;
+	    postPending = pending;
 
 	    switch (pending) {
 	      case PLAY:
 	        needPreroll = false;
 		postPlaying = true;
+		if (current == STOP)
+		  postPause = true;
 		break;
 	      case PAUSE:
 	        needPreroll = true;
 		postPause = true;
+		postPending = NONE;
 		break;
 	      case STOP:
 	        havePreroll = false;
 	        needPreroll = false;
 	        return WRONG_STATE;
 	    }
-	    if (pendingState != NONE) {
+	    if (pending != NONE) {
 	      currentState = pending;
-	      pendingState = NONE;
 	      nextState = NONE;
+	      pendingState = NONE;
 	      lastReturn = SUCCESS;
 	    }
 	  }
 
 	  if (postPause)
-	    postMessage (Message.newStateChanged (this, current, next, NONE));
+	    postMessage (Message.newStateChanged (this, current, next, postPending));
 	  if (postPlaying)
 	    postMessage (Message.newStateChanged (this, next, pending, NONE));
 
@@ -158,8 +164,9 @@ public abstract class Sink extends Element
       int res;
       int status;
 
-      if ((res = finishPreroll(buf)) != Pad.OK)
+      if ((res = finishPreroll(buf)) != Pad.OK) {
         return res;
+      }
 
       status = doSync(buf);
       switch (status) {
@@ -289,7 +296,7 @@ public abstract class Sink extends Element
 	  isEOS = this.isEOS;
 	}
         synchronized (prerollLock) {
-	  if (!havePreroll && !isEOS) {
+	  if (!havePreroll && !isEOS && pendingState == PAUSE) {
 	    needPreroll = true;
 	    result = ASYNC;
 	  }

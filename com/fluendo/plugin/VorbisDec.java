@@ -62,6 +62,7 @@ public class VorbisDec extends Element
 
     private int pushOutput (com.fluendo.jst.Buffer buf) {
       long toffset = buf.time_offset;
+      int ret = OK;
 
       if (toffset == -1) {
 	queue.addElement (buf);
@@ -80,13 +81,19 @@ public class VorbisDec extends Element
           for (int i = 0; i < queue.size(); i++) {
 	    com.fluendo.jst.Buffer qbuf = 
 	       (com.fluendo.jst.Buffer) queue.elementAt(i);
-            srcpad.push(qbuf);
+	    if (ret == OK)
+              ret = srcpad.push(qbuf);
+	    else
+              qbuf.free();
 	  }
 	  queue.setSize(0);
 	}
-        return srcpad.push(buf);
+	if (ret == OK)
+          ret = srcpad.push(buf);
+
+	return ret;
       }
-      return OK;
+      return ret;
     }
 
     protected boolean eventFunc (com.fluendo.jst.Event event) {

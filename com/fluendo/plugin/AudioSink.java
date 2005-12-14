@@ -368,10 +368,8 @@ public abstract class AudioSink extends Sink implements ClockProvider
   {
     int result;
 
-    result = ringBuffer.commit (buf.data, buf.time_offset, buf.offset, buf.length);
-    if (result < 0) {
-      return Pad.WRONG_STATE;
-    }
+    ringBuffer.commit (buf.data, buf.time_offset, buf.offset, buf.length);
+
     return Pad.OK;
   }
 
@@ -390,8 +388,12 @@ public abstract class AudioSink extends Sink implements ClockProvider
     switch (transition) {
       case STOP_PAUSE:
         ringBuffer = createRingBuffer();
+	ringBuffer.setFlushing(false);
         break;
       case PAUSE_PLAY:
+        break;
+      case PAUSE_STOP:
+	ringBuffer.setFlushing(true);
         break;
     }
     result = super.changeState(transition);

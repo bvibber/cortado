@@ -242,16 +242,17 @@ public abstract class Element extends com.fluendo.jst.Object
     return transition & 0x7;
   }
 
-  public int commitState(int result)
+  public int continueState(int result)
   {
-    int ret;
+    int oldRet, oldState, oldNext;
+    int current, next, pending;
+    Message message = null;
     int transition = 0;
-    Message msg = null;
-    int next, current, pending;
 
     synchronized (this) {
-      int oldState, oldNext;
 
+      oldRet = lastReturn;
+      lastReturn = result;
       pending = pendingState;
 
       if (pending == NONE)
@@ -264,31 +265,37 @@ public abstract class Element extends com.fluendo.jst.Object
       if (pending == current) {
         pendingState = NONE;
         nextState = NONE;
-        lastReturn = result;
+	transition = 0;
 
-        notifyAll();
+	if (oldState != oldNext || oldRet == ASYNC) {
+          message = Message.newStateChanged (this,
+		            oldState, oldNext, pending);
+        }
       }
       else {
         next = getStateNext (current, pending); 
         transition = getTransition (current, next);
 
 	nextState = next;
+
+        message = Message.newStateChanged (this,
+	            oldState, oldNext, pending);
       }
-      msg = Message.newStateChanged (this, oldState, oldNext, pending);
     }
 
-    if (msg != null) {
-      postMessage (msg);
-    }
+    if (message != null)
+      postMessage (message);
 
     if (transition != 0) {
-      ret = doChangeState (transition);
+      result = doChangeState (transition);
     }
     else {
-      ret = result;
+      synchronized (this) {
+        notifyAll();
+      }
     }
 
-    return ret; 
+    return result; 
   }
 
   public synchronized void abortState()
@@ -353,6 +360,10 @@ public abstract class Element extends com.fluendo.jst.Object
   private int doChangeState(int transition)
   {
     int result;
+    int current, next;
+
+    current = getTransitionCurrent (transition);
+    next = getTransitionNext (transition);
 
     result = changeState (transition);
 
@@ -362,12 +373,19 @@ public abstract class Element extends com.fluendo.jst.Object
 	break;
       case SUCCESS:
       case NO_PREROLL:
-        result = commitState(result);
+        result = continueState(result);
         break;
       case ASYNC:
-        synchronized (this) {
-          lastReturn = result;
-        }
+        if (current < next) {
+          synchronized (this) {
+	    if (pendingState != NONE) {
+              lastReturn = result;
+	    }
+          }
+	}
+	else {
+          result = continueState(SUCCESS);
+	}
         break;
     }
     return result;

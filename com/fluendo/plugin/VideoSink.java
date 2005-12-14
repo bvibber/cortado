@@ -27,10 +27,16 @@ import com.fluendo.utils.*;
 public class VideoSink extends Sink
 {
   private Component component;
+  private boolean keepAspect;
   private Frame frame;
 
-  int width, height;
-  int aspect_x, aspect_y;
+  private int width, height;
+  private int aspect_x, aspect_y;
+
+  public VideoSink ()
+  {
+    keepAspect = true;
+  }
 
   protected boolean setCapsFunc (Caps caps)
   {
@@ -54,8 +60,8 @@ public class VideoSink extends Sink
       width = width * aspect_x / aspect_y;
     }
 
-    frame.setSize (width, height);
-    frame.show();
+    component.setSize (width, height);
+    component.show();
 
     return true;
   }
@@ -68,9 +74,10 @@ public class VideoSink extends Sink
   protected int render (Buffer buf)
   {
     Image image;
+    int x, y, w, h;
     
     if (buf.object instanceof ImageProducer) {
-      image = frame.createImage((ImageProducer)buf.object);
+      image = component.createImage((ImageProducer)buf.object);
     }
     else if (buf.object instanceof Image) {
       image = (Image)buf.object;
@@ -80,12 +87,27 @@ public class VideoSink extends Sink
       return Pad.ERROR;
     }
 
-    if (!frame.isVisible())
+    if (!component.isVisible())
       return Pad.NOT_NEGOTIATED;
 
-    Dimension d = frame.getSize();
-    Graphics g = frame.getGraphics();
-    g.drawImage (image, 0, 0, d.width, d.height, null);
+    Dimension d = component.getSize();
+    Graphics graphics = component.getGraphics();
+
+    if (keepAspect) {
+      /* FIXME */
+      w = d.width;
+      h = d.height;
+      x = 0;
+      y = 0;
+    }
+    else {
+      w = d.width;
+      h = d.height;
+      x = 0;
+      y = 0;
+    }
+
+    graphics.drawImage (image, x, y, w, h, null);
 
     return Pad.OK;
   };
@@ -95,16 +117,33 @@ public class VideoSink extends Sink
     return "videosink";
   }
 
+  public boolean setProperty (String name, java.lang.Object value) {
+    if (name.equals("component")) {
+      component = (Component) value;
+    }
+    else if (name.equals("keep-aspect")) {
+      keepAspect = String.valueOf(value).equals("true");
+    }
+    else
+      return false;
+
+    return true;
+  }
+
   public java.lang.Object getProperty (String name) {
     if (name.equals("component")) {
       return component;
+    }
+    else if (name.equals("keep-aspect")) {
+      return (keepAspect ? "true": "false");
     }
     return null;
   }
 
   protected int changeState (int transition) {
-    if (currentState == STOP && pendingState == PAUSE) {
+    if (currentState == STOP && pendingState == PAUSE && component == null) {
       frame = new Frame();
+      component = (Component) frame;
     }
     return super.changeState(transition);
   }

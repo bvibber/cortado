@@ -58,9 +58,6 @@ public abstract class Clock {
     public int waitID() {
       int res;
       
-      if (status == UNSCHEDULED)
-        return status;
-      
       res = waitFunc (this);
 
       if (type == PERIODIC)

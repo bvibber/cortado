@@ -53,6 +53,7 @@ public class AudioSinkJ2 extends AudioSink
     }
     catch (javax.sound.sampled.LineUnavailableException e) {
       e.printStackTrace();
+      postMessage (Message.newError (this, e.getMessage()));
       return false;
     }
 

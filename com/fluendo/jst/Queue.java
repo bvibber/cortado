@@ -74,8 +74,9 @@ public class Queue extends Element
 	  synchronized (queue) {
 	    srcResult = res;
 	    if (isFlowFatal (res)) {
-	      postMessage (Message.newError (parent, "fatal flow error: "+res));
+	      postMessage (Message.newStreamStatus (parent, "fatal flow error: "+getFlowName (res)));
 	    }
+	    System.out.println(this + ": pause queue "+getFlowName(res));
 	    pauseTask();
 	  }
         }

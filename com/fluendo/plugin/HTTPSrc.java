@@ -109,6 +109,10 @@ public class HTTPSrc extends Element
       }
       else {
         if ((ret = push(data)) != OK) {
+	  if (isFlowFatal (ret)) {
+	    postMessage (Message.newStreamStatus (this, "reason: "+getFlowName (ret)));
+	  }
+	  System.out.println(this+": pause task: "+getFlowName (ret));
 	  pauseTask();
         }
       }
@@ -145,6 +149,7 @@ public class HTTPSrc extends Element
     InputStream dis;
 
     try {
+      postMessage(Message.newResource (this, "Opening "+urlString));
       Debug.log(Debug.INFO, "reading from url "+urlString);
       URL url = new URL(urlString);
       Debug.log(Debug.INFO, "trying to open "+url);

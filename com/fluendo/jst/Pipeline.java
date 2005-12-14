@@ -78,7 +78,7 @@ public class Pipeline extends com.fluendo.jst.Element implements BusSyncHandler
               wait();
 	    } catch (InterruptedException e) {}
 	  }
-	  stateDirty = false;
+          stateDirty = false;
         }
         synchronized (stateLock) {
           reCalcState(false);
@@ -383,7 +383,7 @@ public class Pipeline extends com.fluendo.jst.Element implements BusSyncHandler
       switch (res) {
         case SUCCESS:
         case NO_PREROLL:
-          res = commitState(res);
+          res = continueState(res);
           break;
         case ASYNC:
 	  lostState();
