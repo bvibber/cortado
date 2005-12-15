@@ -30,11 +30,17 @@ public abstract class Sink extends Element
   private boolean havePreroll;
   private boolean needPreroll;
   private Clock.ClockID clockID;
-  private long prerollTime;
+  protected long prerollTime;
+  protected long segTime;
   
   public long getPrerollTime () {
     synchronized (prerollLock) {
       return prerollTime;
+    }
+  }
+  public void setPrerollTime (long time) {
+    synchronized (prerollLock) {
+      prerollTime = time;
     }
   }
   protected Pad sinkpad = new Pad(Pad.SINK, "sink") {
@@ -149,6 +155,13 @@ public abstract class Sink extends Element
 	  }
 	  break;
         case Event.NEWSEGMENT:
+	  synchronized (streamLock) {
+	    int segFmt = event.getNewsegmentFormat();
+	    if (segFmt == Format.TIME) {
+	      segTime = event.getNewsegmentPosition();
+	      System.out.println(this+" segTime: "+segTime);
+	    }
+	  }
 	  break;
         case Event.EOS:
 	  break;
@@ -230,7 +243,7 @@ public abstract class Sink extends Element
       if (time == -1)
         return Clock.OK;
 
-      time += baseTime;
+      time = time - prerollTime + baseTime;
 
       if (clock != null)
         id = clockID = clock.newSingleShotID (time);
@@ -318,6 +331,7 @@ public abstract class Sink extends Element
         break;
       }
       case PAUSE_STOP:
+        prerollTime = 0;
         break;
       default:
         break;

@@ -49,8 +49,10 @@ public class HTTPSrc extends Element
       if (format == Format.PERCENT) {
         position = position * contentLength / Format.PERCENT_MAX;
       }
-      else if (format != Format.BYTES)
+      else if (format != Format.BYTES) {
+        Debug.log (Debug.WARNING, "can only seek in bytes");
         return false;
+      }
 
       pushEvent (Event.newFlushStart());
 
@@ -60,6 +62,7 @@ public class HTTPSrc extends Element
           result = true;
         }
         catch (Exception e) {
+	  e.printStackTrace ();
           result = false;
         }
         pushEvent (Event.newFlushStop());
@@ -104,6 +107,7 @@ public class HTTPSrc extends Element
       if (data.length <= 0) {
 	/* EOS */
 	data.free();
+        Debug.log(Debug.INFO, this+" reached EOS");
 	pushEvent (Event.newEOS());
 	pauseTask();
       }
@@ -145,7 +149,7 @@ public class HTTPSrc extends Element
 
   private InputStream getInputStream (long offset) throws Exception
   {
-    InputStream dis;
+    InputStream dis = null;
 
     try {
       postMessage(Message.newResource (this, "Opening "+urlString));
@@ -168,12 +172,10 @@ public class HTTPSrc extends Element
     catch (SecurityException e) {
       e.printStackTrace();
       postMessage(Message.newError (this, "Not allowed "+urlString+"..."));
-      throw e;
     }
     catch (Exception e) {
       e.printStackTrace();
       postMessage(Message.newError (this, "Failed opening "+urlString+"..."));
-      throw e;
     }
 
     return dis;

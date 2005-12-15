@@ -492,10 +492,10 @@ public class Pipeline extends com.fluendo.jst.Element implements BusSyncHandler
     boolean ret;
 
     setState (Element.PAUSE);
-    streamTime = 0;
 
     ret = doSendEvent (event);
 
+    streamTime = 0;
     setState (Element.PLAY);
 
     return ret;

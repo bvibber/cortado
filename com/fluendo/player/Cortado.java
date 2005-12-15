@@ -52,6 +52,7 @@ public class Cortado extends Applet implements
 
   private Thread statusThread;
   private Status status;
+  private boolean inStatus;
   private PopupMenu menu;
   private boolean stopping;
   private Hashtable params = new Hashtable();
@@ -158,6 +159,7 @@ public class Cortado extends Applet implements
     status.setVisible(true);
     status.setHaveAudio (audio);
     status.setSeekable (true);
+    inStatus = false;
 
     menu = new PopupMenu();
     menu.add("About...");
@@ -223,11 +225,15 @@ public class Cortado extends Applet implements
     if (status.isVisible() == b)
       return;
 
+    if (inStatus && !b)
+      return;
+
     status.setVisible(b);
   }
 
   private boolean intersectStatus (MouseEvent e) {
-    return e.getY() > getSize().height-12; 
+    inStatus = e.getY() > getSize().height-12; 
+    return inStatus;
   }
 
   public void mouseClicked(MouseEvent e){}
@@ -239,6 +245,8 @@ public class Cortado extends Applet implements
   public void mousePressed(MouseEvent e) 
   {
     if (intersectStatus(e)) {
+      int y = getSize().height-12;
+      e.translatePoint (0, -y);
       ((MouseListener)status).mousePressed (e);
     }
     else {
@@ -256,7 +264,18 @@ public class Cortado extends Applet implements
     }
   }
 
-  public void mouseDragged(MouseEvent e){}
+  public void mouseDragged(MouseEvent e)
+  {
+    if (intersectStatus(e)) {
+      int y = getSize().height-12;
+      setStatusVisible(true);
+      e.translatePoint (0, -y);
+      ((MouseMotionListener)status).mouseDragged (e);
+    }
+    else {
+      setStatusVisible(false);
+    }
+  }
   public void mouseMoved(MouseEvent e)
   {
     if (intersectStatus(e)) {
@@ -277,6 +296,7 @@ public class Cortado extends Applet implements
       case Message.ERROR:
         System.out.println(msg.toString());
         status.setMessage (msg.parseErrorString());
+	status.setState(Status.STATE_STOPPED);
         setStatusVisible(true);
         break;
       case Message.EOS:
@@ -305,11 +325,12 @@ public class Cortado extends Applet implements
 	    case Element.PLAY:
 	      status.setMessage ("Playing");
 	      status.setState(Status.STATE_PLAYING);
-	      status.setVisible (false);
+	      setStatusVisible (false);
 	      break;
 	    case Element.STOP:
 	      status.setMessage ("Stopped");
 	      status.setState(Status.STATE_STOPPED);
+	      setStatusVisible (true);
 	      break;
 	  }
 	}
@@ -339,7 +360,14 @@ public class Cortado extends Applet implements
     }
   }
 
-  public void newSeek(int aPos) {
+  public void newSeek(double aPos) {
+    com.fluendo.jst.Event event;
+
+    /* get value, convert to PERCENT and construct seek event */
+    event = com.fluendo.jst.Event.newSeek (Format.PERCENT, (int)(aPos * 100.0 * Format.PERCENT_SCALE));
+
+    /* send event to pipeline */
+    pipeline.sendEvent(event);
   }
   
   public void start() 

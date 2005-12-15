@@ -97,6 +97,9 @@ public class TheoraDec extends Element
       switch (event.getType()) {
         case com.fluendo.jst.Event.FLUSH_START:
 	  result = srcpad.pushEvent (event);
+	  synchronized (streamLock) {
+            Debug.log(Debug.INFO, "synced "+this);
+	  }
           break;
         case com.fluendo.jst.Event.FLUSH_STOP:
 	  synchronized (streamLock) {

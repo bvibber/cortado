@@ -86,7 +86,7 @@ public class OggDemux extends Element
         case Event.FLUSH_START:
 	  forwardEvent (event);
 	  synchronized (streamLock) {
-	    Debug.log(Debug.DEBUG, "synced");
+            Debug.log(Debug.INFO, "synced "+this);
 	  }
 	  break;
         case Event.FLUSH_STOP:
@@ -142,6 +142,7 @@ public class OggDemux extends Element
           if (res < 0) {
             // error; stream version mismatch perhaps
             System.err.println("Error reading first page of Ogg bitstream data.");
+            postMessage (Message.newError (this, "Error reading first page of Ogg bitstream data."));
             return ERROR;
           }
 	  while (flowRet == OK) {

@@ -62,24 +62,26 @@ public class Queue extends Element
 	  catch (InterruptedException ie) {}
 	}
 	obj = queue.remove(queue.size()-1);
-        queue.notify();
+        queue.notifyAll();
       }
 
       if (obj instanceof Event) {
         pushEvent((Event)obj);
+	res = OK;
       }
       else {
         res = push((Buffer)obj);
+      }
+      synchronized (queue) {
         if (res != OK) {
-	  synchronized (queue) {
-	    srcResult = res;
-            queue.notify();
-	    if (isFlowFatal (res)) {
-	      postMessage (Message.newStreamStatus (parent, "fatal flow error: "+getFlowName (res)));
-	    }
-	    pauseTask();
+	  srcResult = res;
+	  if (isFlowFatal (res)) {
+	    postMessage (Message.newStreamStatus (parent, "fatal flow error: "+getFlowName (res)));
+            pushEvent(Event.newEOS());
 	  }
+	  pauseTask();
         }
+        queue.notifyAll();
       }
     }
 
@@ -123,6 +125,7 @@ public class Queue extends Element
 	     srcResult = WRONG_STATE;
 	     queue.notifyAll();
 	   }
+	   srcpad.pauseTask();
 	   break;
         case Event.FLUSH_STOP:
 	   srcpad.pushEvent (event);
@@ -164,6 +167,7 @@ public class Queue extends Element
 	    }
 	  }
 	  catch (InterruptedException ie) {
+	    ie.printStackTrace();
 	    buf.free();
 	    return WRONG_STATE;
 	  }

@@ -37,8 +37,15 @@ public class Status extends Component implements MouseListener, MouseMotionListe
   private boolean havePercent;
   private boolean seekable;
 
+  private static final int NONE = 0;
+  private static final int BUTTON1 = 1;
+  private static final int BUTTON2 = 2;
+  private static final int SEEKBAR = 3;
+  private int clicked = NONE;
+
   private Color button1Color;
   private Color button2Color;
+  private Color seekColor;
   private static final int triangleX[] = { 4, 4, 9 };
   private static final int triangleY[] = { 3, 9, 6 };
 
@@ -47,6 +54,7 @@ public class Status extends Component implements MouseListener, MouseMotionListe
   public static final int STATE_PLAYING = 2;
 
   private int state = STATE_STOPPED;
+  private double position = 0;
 
   private String speaker =
   "\0\0\0\0\0\357\0\0\357U\27" +
@@ -79,6 +87,7 @@ public class Status extends Component implements MouseListener, MouseMotionListe
     speakerImg = comp.getToolkit().createImage(new MemoryImageSource (12, 10, pixels, 0, 12));
     button1Color = Color.black;
     button2Color = Color.black;
+    seekColor = Color.black;
   }
 
   public void addStatusListener(StatusListener l) {
@@ -92,9 +101,86 @@ public class Status extends Component implements MouseListener, MouseMotionListe
       ((StatusListener)e.nextElement()).newState(newState);
     }
   }
+  public void notifySeek(double position) {
+    for (Enumeration e = listeners.elements(); e.hasMoreElements();) {
+      ((StatusListener)e.nextElement()).newSeek(position);
+    }
+  }
 
   public void update(Graphics g) {
     paint(g);
+  }
+
+  private void paintBox (Graphics g) {
+    g.setColor(Color.darkGray);
+    g.drawRect(0, 0, r.width-1, r.height-1);
+    g.setColor(Color.black);
+    g.fillRect(1, 1, r.width-2, r.height-2);
+  }
+  private void paintPercent (Graphics g) {
+    if (havePercent) {
+      g.setColor(Color.white);
+      g.drawString(""+bufferPercent+"%", r.width-38, r.height-2);
+    }
+  }
+
+  private void paintPlayPause (Graphics g) {
+    g.setColor(Color.darkGray);
+    g.drawRect(1, 1, 10, 10);
+    g.setColor(button1Color);
+    g.fillRect(2, 2, 9, 9);
+    if (state == STATE_PLAYING) {
+      g.setColor(Color.darkGray);
+      g.fillRect(4, 4, 2, 5);
+      g.fillRect(7, 4, 2, 5);
+    }
+    else {
+      g.setColor(Color.darkGray);
+      g.fillPolygon(triangleX, triangleY, 3);
+    }
+  }
+
+  private void paintStop (Graphics g)
+  {
+    g.setColor(Color.darkGray);
+    g.drawRect(13, 1, 10, 10);
+    g.setColor(button2Color);
+    g.fillRect(14, 2, 9, 9);
+    g.setColor(Color.darkGray);
+    g.fillRect(16, 4, 5, 5);
+  }
+
+  private void paintMessage (Graphics g, int pos) {
+    if (message != null) {
+      g.setColor(Color.white);
+      g.drawString(message, pos, r.height-2);
+    } 
+  }
+  private void paintSeekBar (Graphics g) {
+    int pos;
+
+    g.setColor(Color.darkGray);
+    g.drawRect(27, 2, r.width-45, 8);
+
+    pos = (int) ((r.width-48) * position);
+    
+    g.setColor(Color.gray);
+    g.fillRect(29, 4, pos, 5);
+    g.setColor(Color.darkGray);
+
+    g.drawLine(pos+28, 1, pos+30, 1);
+    g.drawLine(pos+28, 11, pos+30, 11);
+    g.drawLine(pos+27, 2, pos+27, 10);
+    g.drawLine(pos+31, 2, pos+31, 10);
+
+    g.setColor(seekColor);
+    g.fillRect(pos+28, 2, 3, 9);
+  }
+
+  private void paintSpeaker (Graphics g) {
+    if (haveAudio) {
+      g.drawImage(speakerImg,r.width-12,r.height-11,null);
+    }
   }
 
   public void paint(Graphics g) {
@@ -105,59 +191,25 @@ public class Status extends Component implements MouseListener, MouseMotionListe
 
     Image img = component.createImage(r.width, r.height); 
     Graphics g2 = img.getGraphics();
-
-    g2.setColor(Color.darkGray);
     g2.setFont(font);
-    g2.drawRect(0, 0, r.width-1, r.height-1);
-    g2.setColor(Color.black);
-    g2.fillRect(1, 1, r.width-2, r.height-2);
-    g2.setColor(Color.white);
-    if (havePercent) {
-      g2.drawString(""+bufferPercent+"%", r.width-38, r.height-2);
-    }
-    if (seekable) {
-      /* button 1 */
-      g2.setColor(Color.darkGray);
-      g2.drawRect(1, 1, 10, 10);
-      g2.setColor(button1Color);
-      g2.fillRect(2, 2, 9, 9);
-      if (state == STATE_PLAYING) {
-        g2.setColor(Color.darkGray);
-        g2.fillRect(4, 4, 2, 5);
-        g2.fillRect(7, 4, 2, 5);
-      }
-      else {
-        g2.setColor(Color.darkGray);
-        g2.fillPolygon(triangleX, triangleY, 3);
-      }
 
-      /* button 2 */
-      g2.setColor(Color.darkGray);
-      g2.drawRect(13, 1, 10, 10);
-      g2.setColor(button2Color);
-      g2.fillRect(14, 2, 9, 9);
-      g2.setColor(Color.darkGray);
-      g2.fillRect(16, 4, 5, 5);
+    paintBox (g2);
+    paintPercent (g2);
+    if (seekable) {
+      paintPlayPause (g2);
+      paintStop (g2);
       if (state == STATE_STOPPED) {
-        if (message != null) {
-          g2.setColor(Color.white);
-          g2.drawString(message, 27, r.height-2);
-        } 
+        paintMessage (g2, 27);
       }
       else {
-        g2.setColor(Color.darkGray);
-        g2.drawRect(27, 2, r.width-45, 8);
+        paintSeekBar (g2);
       }
     }
     else {
-      if (message != null) {
-        g2.setColor(Color.white);
-        g2.drawString(message, 2, r.height-2);
-      } 
+      paintMessage (g2, 2);
     }
-    if (haveAudio) {
-      g2.drawImage(speakerImg,r.width-12,r.height-11,null);
-    }
+    paintSpeaker (g2);
+
     g.drawImage(img,r.x,r.y,null);
     img.flush();
   }
@@ -199,48 +251,116 @@ public class Status extends Component implements MouseListener, MouseMotionListe
   private boolean intersectButton2 (MouseEvent e) {
    return (e.getX() >= 12 && e.getX() <= 22 && e.getY() > 0 && e.getY() <= 10);
   }
+  private boolean intersectSeek (MouseEvent e) {
+    r = getBounds();
+
+    int pos = (int) ((r.width-48) * position) + 27;
+  
+    return (e.getX() >= pos && e.getX() <= pos+5 && e.getY() > 0 && e.getY() <= 10);
+  }
+  private int findComponent (MouseEvent e) {
+    if (intersectButton1 (e))
+      return BUTTON1;
+    else if (intersectButton2 (e))
+      return BUTTON2;
+    else if (intersectSeek (e))
+      return SEEKBAR;
+    else
+      return NONE;
+  }
+
   public void mouseClicked(MouseEvent e){}
   public void mouseEntered(MouseEvent e) {}
   public void mouseExited(MouseEvent e) {}
-  public void mousePressed(MouseEvent e) {}
-  public void mouseReleased(MouseEvent e)
+  public void mousePressed(MouseEvent e) 
   {
     if (seekable) {
       e.translatePoint (-1, -1);
-      if (intersectButton1 (e)) {
-        if (state == STATE_PLAYING) {
-	  state = STATE_PAUSED;
-	  notifyNewState (state);
-	}
-        else {
-	  state = STATE_PLAYING;
-	  notifyNewState (state);
-	}
+      clicked = findComponent (e);
+    }
+  }
+  public void mouseReleased(MouseEvent e)
+  {
+    if (seekable) {
+      int comp;
+
+      e.translatePoint (-1, -1);
+
+      comp = findComponent (e);
+      if (clicked != comp) {
+        if (clicked == SEEKBAR)
+	  comp = clicked;
+	else
+          return;
       }
-      else if (intersectButton2 (e)) {
-        state = STATE_STOPPED;
-        notifyNewState (state);
+
+      switch (comp) {
+        case BUTTON1:
+          if (state == STATE_PLAYING) {
+	    state = STATE_PAUSED;
+	    notifyNewState (state);
+	  }
+          else {
+	    state = STATE_PLAYING;
+	    notifyNewState (state);
+	  }
+	  break;
+	case BUTTON2:
+          state = STATE_STOPPED;
+          notifyNewState (state);
+	  break;
+	case SEEKBAR:
+	  notifySeek (position);
+	  break;
+	case NONE:
+	  break;
       }
+      clicked = NONE;
       component.repaint();
     }
   }
-  public void mouseDragged(MouseEvent e){}
+  public void mouseDragged(MouseEvent e) {
+    if (seekable) {
+      e.translatePoint (-1, -1);
+      if (clicked == SEEKBAR) {
+        double pos = (e.getX()-29) / (double) (r.width - 48);
+
+	if (pos < 0.0)
+	  position = 0.0;
+	else if (pos > 1.0)
+	  position = 1.0;
+        else
+	  position = pos;
+        
+        component.repaint();
+      }
+    }
+  }
   public void mouseMoved(MouseEvent e)
   {
     if (seekable) {
       e.translatePoint (-1, -1);
+
       if (intersectButton1 (e)) {
         button1Color = Color.gray;
-        button2Color = Color.black;
-      }
-      else if (intersectButton2 (e)) {
-        button1Color = Color.black;
-        button2Color = Color.gray;
       }
       else {
-        button2Color = Color.black;
         button1Color = Color.black;
+
+        if (intersectButton2 (e)) {
+          button2Color = Color.gray;
+	}
+        else {
+          button2Color = Color.black;
+
+          if (intersectSeek (e)) {
+            seekColor = Color.gray;
+	  }
+          else
+            seekColor = Color.black;
+	}
       }
+
       component.repaint();
     }
   }

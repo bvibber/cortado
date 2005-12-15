@@ -213,10 +213,6 @@ public abstract class AudioSink extends Sink implements ClockProvider
       else if (sample < 0) {
         return len;
       }
-      else if (sample != nextSample) {
-        Debug.log(Debug.WARNING, "discont found, expected "+nextSample+", got "+sample);
-	setSample (sample);
-      }
 
       idx = 0;
 
@@ -282,7 +278,6 @@ public abstract class AudioSink extends Sink implements ClockProvider
       delay = delay ();
       
       seg = Math.max (0, playSeg - 1); 
-      seg = playSeg;
 
       samples = (seg * sps);
 
@@ -376,8 +371,13 @@ public abstract class AudioSink extends Sink implements ClockProvider
   protected int render (Buffer buf)
   {
     int result;
+    long sample;
 
-    ringBuffer.commit (buf.data, buf.time_offset, buf.offset, buf.length);
+    sample = buf.time_offset;
+    sample -= (prerollTime * ringBuffer.rate / Clock.SECOND);
+    sample += (baseTime * ringBuffer.rate / Clock.SECOND);
+
+    ringBuffer.commit (buf.data, sample, buf.offset, buf.length);
 
     return Pad.OK;
   }
@@ -400,6 +400,8 @@ public abstract class AudioSink extends Sink implements ClockProvider
 	ringBuffer.setFlushing(false);
         break;
       case PAUSE_PLAY:
+        long sample = baseTime * ringBuffer.rate / Clock.SECOND;
+	ringBuffer.setSample (sample);
         break;
       case PAUSE_STOP:
 	ringBuffer.setFlushing(true);
