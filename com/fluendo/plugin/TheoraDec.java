@@ -34,7 +34,6 @@ public class TheoraDec extends Element
   private Packet op;
   private int packet;
   private YUVBuffer yuv;
-  private Caps caps;
 
   private long lastTs;
   private boolean needKeyframe;
@@ -62,6 +61,7 @@ public class TheoraDec extends Element
 
     private int pushOutput (com.fluendo.jst.Buffer buf) {
       long newTime = buf.timestamp;
+      int ret = OK;
 
       if (newTime == -1) {
         queue.addElement (buf);
@@ -79,13 +79,17 @@ public class TheoraDec extends Element
             time = newTime - ((((long)(size-i)) * 1000000 * ti.fps_denominator) / ti.fps_numerator);
 
             qbuf.timestamp = time;
-            srcpad.push(qbuf);
+	    if (ret == OK)
+              ret = srcpad.push(qbuf);
+	    else
+	      qbuf.free();
           }
           queue.setSize(0);
         }
-        return srcpad.push(buf);
+	if (ret == OK)
+          ret = srcpad.push(buf);
       }
-      return OK;
+      return ret;
     }
     protected boolean eventFunc (com.fluendo.jst.Event event) {
       boolean result;
@@ -93,16 +97,11 @@ public class TheoraDec extends Element
       switch (event.getType()) {
         case com.fluendo.jst.Event.FLUSH_START:
 	  result = srcpad.pushEvent (event);
-	  synchronized (streamLock) {
-	    Debug.log(Debug.INFO, this+" synced");
-            clearQueue();
-            lastTs = -1;
-	    needKeyframe = true;
-	  }
           break;
         case com.fluendo.jst.Event.FLUSH_STOP:
 	  synchronized (streamLock) {
             result = srcpad.pushEvent(event);
+            clearQueue();
             lastTs = -1;
 	    needKeyframe = true;
 	  }
@@ -217,12 +216,19 @@ public class TheoraDec extends Element
 
       return result;
     }
+
+    protected boolean activateFunc (int mode)
+    {
+      if (mode == MODE_NONE) {
+        clearQueue();
+      }
+      return true;
+    }
   };
 
   public TheoraDec() {
     super();
 
-    ti = new Info();
     tc = new Comment();
     ts = new State();
     yuv = new YUVBuffer();
@@ -230,10 +236,25 @@ public class TheoraDec extends Element
 
     addPad (srcpad);
     addPad (sinkpad);
+  }
 
-    lastTs = -1;
-    packet = 0;
-    needKeyframe = true;
+  protected int changeState (int transition) {
+    int res;
+
+    switch (transition) {
+      case STOP_PAUSE:
+        ti = new Info();
+        lastTs = -1;
+        packet = 0;
+        needKeyframe = true;
+	break;
+      default:
+        break;
+    }
+
+    res = super.changeState (transition);
+
+    return res;
   }
 
   public String getName ()

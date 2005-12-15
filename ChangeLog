@@ -1,3 +1,42 @@
+2005-12-15  Wim Taymans  <wim@fluendo.com>
+
+	* com/fluendo/jst/Pad.java: (Pad.setCapsFunc), (Pad.activate):
+	Allow setting null caps.
+
+	* com/fluendo/jst/Queue.java: (Queue.Pad):
+	Properly shut down the queue, avoid deadlock.
+
+	* com/fluendo/player/Configure.java:
+	* com/fluendo/player/Cortado.java: (Cortado.handleMessage):
+	Also print errors and stream status to console.
+
+	* com/fluendo/player/Status.java:
+	Allow setting playing state when in stopped.
+
+	* com/fluendo/plugin/AudioSink.java: (AudioSink),
+	(AudioSink.AudioClock.getInternalTime), (AudioSink.RingBuffer),
+	(AudioSink.RingBuffer.run), (AudioSink.RingBuffer.samplesPlayed),
+	(AudioSink.RingBuffer.play), (AudioSink.RingBuffer.pause),
+	(AudioSink.changeState):
+	Allow shutdown.
+
+	* com/fluendo/plugin/AudioSinkJ2.java:
+	(AudioSinkJ2.createRingBuffer):
+	Remove temp hack.
+
+	* com/fluendo/plugin/HTTPSrc.java: (HTTPSrc.Pad):
+	Remove stupid print.
+
+	* com/fluendo/plugin/OggDemux.java: (OggDemux.Pad):
+	Do proper shutdown.
+
+	* com/fluendo/plugin/Sink.java: (Sink.Pad), (Sink.changeState):
+	* com/fluendo/plugin/TheoraDec.java: (TheoraDec), (TheoraDec.Pad),
+	(TheoraDec.TheoraDec):
+	* com/fluendo/plugin/VorbisDec.java: (VorbisDec), (VorbisDec.Pad),
+	(VorbisDec.VorbisDec):
+	Fix shutdown.
+
 2005-12-14  Wim Taymans  <wim@fluendo.com>
 
 	* Makefile:

@@ -28,11 +28,14 @@ public abstract class AudioSink extends Sink implements ClockProvider
 
   private RingBuffer ringBuffer = null;
 
-  private Clock clock = new SystemClock() {
+  private class AudioClock extends SystemClock {
     private long lastTime = -1;
     private long diff = -1;
-    private long base;
 
+    public synchronized void reset() {
+      diff = -1;
+      lastTime = -1;
+    }
     protected synchronized long getInternalTime() {
       long samples;
       long result;
@@ -48,7 +51,6 @@ public abstract class AudioSink extends Sink implements ClockProvider
       long now = System.currentTimeMillis() * Clock.MSECOND;
       if (diff == -1) {
         diff = now;
-	base = now;
       }
 
       if (timePos != lastTime) {
@@ -62,6 +64,7 @@ public abstract class AudioSink extends Sink implements ClockProvider
       return result;
     }
   };
+  private AudioClock clock = new AudioClock();
 
   public Clock provideClock() {
     return clock;
@@ -86,7 +89,9 @@ public abstract class AudioSink extends Sink implements ClockProvider
     public int rate, channels;
 
     public void run() {
-      while (true) {
+      boolean running = true;
+
+      while (running) {
 	synchronized (this) {
 	  if (state != PLAY) {
 	    while (state == PAUSE) {
@@ -97,6 +102,7 @@ public abstract class AudioSink extends Sink implements ClockProvider
 	      catch (InterruptedException ie) {}
 	    }
 	    if (state == STOP) {
+	      running = false;
 	      break;
 	    }
 	  }
@@ -276,6 +282,7 @@ public abstract class AudioSink extends Sink implements ClockProvider
       delay = delay ();
       
       seg = Math.max (0, playSeg - 1); 
+      seg = playSeg;
 
       samples = (seg * sps);
 
@@ -321,25 +328,27 @@ public abstract class AudioSink extends Sink implements ClockProvider
     public synchronized boolean pause () {
       state = PAUSE;
       notifyAll();
-      try {
-        wait();
+      if (thread != null) {
+        try {
+          wait();
+        }
+        catch (InterruptedException ie) {}
       }
-      catch (InterruptedException ie) {}
       return true;
     }
-    public synchronized boolean stop () {
-      state = STOP;
-      notifyAll();
-
-      if (thread == null)
-        return true;
-
-      try {
-        thread.join();
-	thread = null;
+    public boolean stop () {
+      synchronized (this) {
+        state = STOP;
+        notifyAll();
       }
-      catch (InterruptedException ie) {}
 
+      if (thread != null) {
+        try {
+          thread.join();
+	  thread = null;
+        }
+        catch (InterruptedException ie) {}
+      }
       return true;
     }
   }
@@ -402,6 +411,7 @@ public abstract class AudioSink extends Sink implements ClockProvider
       case PLAY_PAUSE:
         ringBuffer.pause();
         reset();
+	clock.reset();
         break;
       case PAUSE_STOP:
         ringBuffer.stop();

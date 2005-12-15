@@ -212,7 +212,7 @@ public class Status extends Component implements MouseListener, MouseMotionListe
 	  state = STATE_PAUSED;
 	  notifyNewState (state);
 	}
-        else if (state == STATE_PAUSED) {
+        else {
 	  state = STATE_PLAYING;
 	  notifyNewState (state);
 	}

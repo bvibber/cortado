@@ -275,10 +275,12 @@ public class Cortado extends Applet implements
     switch (msg.getType()) {
       case Message.WARNING:
       case Message.ERROR:
+        System.out.println(msg.toString());
         status.setMessage (msg.parseErrorString());
         setStatusVisible(true);
         break;
       case Message.EOS:
+        System.out.println(msg.toString());
         status.setMessage ("Playback ended");
         break;
       case Message.STREAM_STATUS:

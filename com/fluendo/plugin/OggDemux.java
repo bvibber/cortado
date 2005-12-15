@@ -72,6 +72,14 @@ public class OggDemux extends Element
       }
       return true;
     }
+    private void resetStreams ()
+    {
+      for (int i=0; i<streams.size(); i++) {
+	OggStream stream = (OggStream) streams.elementAt(i);
+	stream.os.reset();
+      }
+    }
+
     protected boolean eventFunc (com.fluendo.jst.Event event)
     {
       switch (event.getType()) {
@@ -84,6 +92,7 @@ public class OggDemux extends Element
         case Event.FLUSH_STOP:
 	  synchronized (streamLock) {
 	    oy.reset();
+	    resetStreams();
 	    forwardEvent (event);
 	  }
 	  break;
@@ -106,13 +115,14 @@ public class OggDemux extends Element
     protected int chainFunc (com.fluendo.jst.Buffer buf)
     {
       int res;
+      int flowRet = OK;
 
       int index = oy.buffer(buf.length);
 
       System.arraycopy(buf.data, buf.offset, oy.data, index, buf.length);
       oy.wrote(buf.length);
   
-      while (true) {
+      while (flowRet == OK) {
         res = oy.pageout(og);
         if (res == 0)
 	  break; // need more data
@@ -134,7 +144,7 @@ public class OggDemux extends Element
             System.err.println("Error reading first page of Ogg bitstream data.");
             return ERROR;
           }
-	  while (true) {
+	  while (flowRet == OK) {
 	    res = stream.os.packetout(op);
             if(res == 0)
 	      break; // need more data
@@ -160,13 +170,21 @@ public class OggDemux extends Element
 	        data.time_offset = op.granulepos;
 	        data.timestamp = -1;
 	      
-	        stream.push(data);
+	        flowRet = stream.push(data);
 	      }
             }
           }
         }
       }
-      return OK;
+      return flowRet;
+    }
+    protected boolean activateFunc (int mode) 
+    {
+      if (mode == MODE_NONE) {
+	oy.reset();
+	resetStreams();
+      }
+      return true;
     }
   };
 

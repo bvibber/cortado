@@ -2,7 +2,7 @@ package com.fluendo.player;
 
 class Configure
 {
-  public String buildInfo = "I was built on Wed Dec 14 18:07:22 CET 2005 (version 0.1.2.1). Built using make.";
+  public String buildInfo = "I was built on Thu Dec 15 13:04:06 CET 2005 (version 0.1.2.1). Built using make.";
 
   public Configure() {
   }

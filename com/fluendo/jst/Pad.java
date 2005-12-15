@@ -181,8 +181,11 @@ public class Pad extends com.fluendo.jst.Object implements Runnable
   }
 
   public boolean setCaps (Caps caps) {
-    boolean res;
-    res = setCapsFunc (caps);
+    boolean res = true;
+
+    if (caps != null)
+      res = setCapsFunc (caps);
+
     if (res) {
       this.caps = caps;
     }
@@ -258,6 +261,7 @@ public class Pad extends com.fluendo.jst.Object implements Runnable
     }
     else {
       synchronized (streamLock) {
+        setCaps (null);
       }
     }
     mode = newMode;

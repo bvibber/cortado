@@ -192,6 +192,20 @@ public abstract class Sink extends Element
 
       return res;
     }
+    protected boolean activateFunc (int mode)
+    {
+      if (mode == MODE_NONE) {
+        synchronized (prerollLock) {
+	  if (havePreroll) {
+	    prerollLock.notify();
+	  }
+	  needPreroll = false;
+	  havePreroll = false;
+	}
+	isEOS = false;
+      }
+      return true;
+    }
   };
 
   protected int preroll (Buffer buf) {
@@ -304,17 +318,7 @@ public abstract class Sink extends Element
         break;
       }
       case PAUSE_STOP:
-      {
-        synchronized (prerollLock) {
-	  if (havePreroll) {
-	    prerollLock.notify();
-	  }
-	  needPreroll = false;
-	  havePreroll = false;
-	}
-	this.isEOS = false;
         break;
-      }
       default:
         break;
     }

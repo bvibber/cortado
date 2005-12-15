@@ -112,7 +112,6 @@ public class HTTPSrc extends Element
 	  if (isFlowFatal (ret)) {
 	    postMessage (Message.newStreamStatus (this, "reason: "+getFlowName (ret)));
 	  }
-	  System.out.println(this+": pause task: "+getFlowName (ret));
 	  pauseTask();
         }
       }

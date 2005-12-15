@@ -73,10 +73,10 @@ public class Queue extends Element
         if (res != OK) {
 	  synchronized (queue) {
 	    srcResult = res;
+            queue.notify();
 	    if (isFlowFatal (res)) {
 	      postMessage (Message.newStreamStatus (parent, "fatal flow error: "+getFlowName (res)));
 	    }
-	    System.out.println(this + ": pause queue "+getFlowName(res));
 	    pauseTask();
 	  }
         }
@@ -90,8 +90,9 @@ public class Queue extends Element
       switch (mode) {
         case MODE_NONE:
 	  synchronized (queue) {
+	    clearQueue();
 	    srcResult = WRONG_STATE;
-	    notifyAll();
+	    queue.notifyAll();
 	  }
           res = stopTask();
           break;

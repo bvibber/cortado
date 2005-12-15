@@ -27,7 +27,7 @@ import com.fluendo.utils.*;
 public class VorbisDec extends Element 
 {
   private long packet;
-  private long offset = -1;
+  private long offset;
   private Info vi;
   private Comment vc;
   private DspState vd;
@@ -36,9 +36,6 @@ public class VorbisDec extends Element
   private Packet op;
   private float[][][] _pcmf = new float[1][][];
   private int[] _index;
-  private int rate, channels;
-
-  private Caps caps;
 
   private Pad srcpad = new Pad(Pad.SRC, "src") {
     protected boolean eventFunc (com.fluendo.jst.Event event) {
@@ -90,8 +87,6 @@ public class VorbisDec extends Element
 	}
 	if (ret == OK)
           ret = srcpad.push(buf);
-
-	return ret;
       }
       return ret;
     }
@@ -109,8 +104,8 @@ public class VorbisDec extends Element
         case Event.FLUSH_STOP:
 	  synchronized (streamLock) {
             result = srcpad.pushEvent(event);
-	    offset = -1;
 	    clearQueue();
+	    offset = -1;
 	    vd.synthesis_init(vi);
 	  }
 	  break;
@@ -233,14 +228,29 @@ public class VorbisDec extends Element
     vb = new Block(vd);
     op = new Packet();
 
-    vi.init();
-    vc.init();
-
-    packet = 0;
-
     addPad (srcpad);
     addPad (sinkpad);
   }
+
+  protected int changeState (int transition) {
+    int res;
+
+    switch (transition) {
+      case STOP_PAUSE:
+        packet = 0;
+	offset = -1;
+        vi.init();
+        vc.init();
+        break;
+      default:
+        break;
+    }
+
+    res = super.changeState (transition);
+
+    return res;
+  }
+
 
   public String getName ()
   {

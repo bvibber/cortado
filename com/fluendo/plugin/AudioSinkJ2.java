@@ -32,10 +32,13 @@ public class AudioSinkJ2 extends AudioSink
   protected RingBuffer createRingBuffer() {
     return new RingBuffer() {
       private long offset = 0;
+      /*
       public synchronized long samplesPlayed () {
         long samples = Math.max (0, line.getFramePosition() - DELAY);
+	System.out.println("samplesPlayed: "+samples);
         return samples - offset;
       }
+      */
       public synchronized void setSample () {
       }
     };
