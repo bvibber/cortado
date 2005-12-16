@@ -1,20 +1,32 @@
 TODO for cortado
 
-- possibly use java2 image functions
-- make applet smaller/faster
-- solve warnings on console
+- implement Query duration/position, not sure how to do that since
+  we only have the byte position. possibly put duration as a param or
+  maybe do a single seek for the last page to get the last granule position.
+  We need position/duration in time to implement current position in the
+  GUI since using the byte position would result in values way past the
+  actual playback position because of buffering.
 
-- only start buffering after the preroll is done.
-- network speed
+- implement a network buffer, use BUFFERING messages to pause/play the
+  pipeline.
+
+- clean up some issues with pause/play stuttering.
+
+- do some testing on live streams with JST backend.
+
+- JST backend does not use newsegment events. 
+
 - disable sound option
+
+- possibly use java2 image functions?
+
+- network speed?
 
 - pop up an error dialog for java.security.AccessControlException when
   doing at java.net.URLConnection.getContentType(Unknown Source)
 	at com.fluendo.player.Cortado.start(Cortado.java:432)
 	at sun.applet.AppletPanel.run(Unknown Source)
   to tell the user his stream and his applet need to be on the same server
-
-
 
 
 wim
