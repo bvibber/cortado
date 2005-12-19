@@ -1,5 +1,15 @@
 2005-12-19  Wim Taymans  <wim@fluendo.com>
 
+	* com/fluendo/jst/Pad.java: (Pad.run), (Pad.startTask):
+	Make method public.
+
+	* com/fluendo/jst/Queue.java:
+	* com/fluendo/plugin/Queue.java:
+	* plugins.ini:
+	Move queue to plugins.
+
+2005-12-19  Wim Taymans  <wim@fluendo.com>
+
 	* com/fluendo/jst/Element.java: (Element.sendEvent):
 	Added query method.
 

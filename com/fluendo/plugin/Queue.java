@@ -16,9 +16,10 @@
  * Boston, MA 02111-1307, USA.
  */
 
-package com.fluendo.jst;
+package com.fluendo.plugin;
 
 import java.util.*;
+import com.fluendo.jst.*;
 import com.fluendo.utils.*;
 
 public class Queue extends Element 
