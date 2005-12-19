@@ -49,12 +49,17 @@ public class Status extends Component implements MouseListener, MouseMotionListe
   private static final int triangleX[] = { 4, 4, 9 };
   private static final int triangleY[] = { 3, 9, 6 };
 
+  private static final int SEEK_END = 82;
+
   public static final int STATE_STOPPED = 0;
   public static final int STATE_PAUSED = 1;
   public static final int STATE_PLAYING = 2;
 
   private int state = STATE_STOPPED;
   private double position = 0;
+
+  private long time;
+  private long duration;
 
   private String speaker =
   "\0\0\0\0\0\357\0\0\357U\27" +
@@ -157,15 +162,17 @@ public class Status extends Component implements MouseListener, MouseMotionListe
     } 
   }
   private void paintSeekBar (Graphics g) {
-    int pos;
+    int pos, end;
+
+    end = r.width - SEEK_END;
 
     g.setColor(Color.darkGray);
-    g.drawRect(27, 2, r.width-45, 8);
+    g.drawRect(27, 2, end, 8);
 
-    pos = (int) ((r.width-48) * position);
+    pos = (int) (end * position);
     
     g.setColor(Color.gray);
-    g.fillRect(29, 4, pos, 5);
+    g.fillRect(29, 5, pos, 3);
     g.setColor(Color.darkGray);
 
     g.drawLine(pos+28, 1, pos+30, 1);
@@ -175,6 +182,25 @@ public class Status extends Component implements MouseListener, MouseMotionListe
 
     g.setColor(seekColor);
     g.fillRect(pos+28, 2, 3, 9);
+  }
+
+  private void paintTime (Graphics g) {
+    long hour, min, sec;
+    int end;
+
+    sec = time % 60;
+    min = time / 60;
+    hour = min / 60;
+    min %= 60;
+
+    r = getBounds();
+
+    end = r.width - 50;
+    
+    g.setColor(Color.white);
+    g.drawString(""+hour+":"+
+                    (min<10?"0"+min:""+min)+":"+
+		    (sec<10?"0"+sec:""+sec), end, r.height-2);
   }
 
   private void paintSpeaker (Graphics g) {
@@ -203,6 +229,7 @@ public class Status extends Component implements MouseListener, MouseMotionListe
       }
       else {
         paintSeekBar (g2);
+        paintTime (g2);
       }
     }
     else {
@@ -217,6 +244,23 @@ public class Status extends Component implements MouseListener, MouseMotionListe
   public void setBufferPercent(int bp)
   {
     bufferPercent = bp;
+    component.repaint();
+  }
+  public void setTime(long seconds)
+  {
+    if (clicked == NONE) {
+      if (seconds < duration)
+        time = seconds;
+      else
+        time = duration;
+
+      position = ((double)time) / duration;
+      component.repaint();
+    }
+  }
+  public void setDuration(long seconds)
+  {
+    duration = seconds;
     component.repaint();
   }
   public void setMessage(String m)
@@ -252,9 +296,12 @@ public class Status extends Component implements MouseListener, MouseMotionListe
    return (e.getX() >= 12 && e.getX() <= 22 && e.getY() > 0 && e.getY() <= 10);
   }
   private boolean intersectSeek (MouseEvent e) {
+    int end;
+
     r = getBounds();
 
-    int pos = (int) ((r.width-48) * position) + 27;
+    end = r.width - SEEK_END;
+    int pos = (int) (end * position) + 27;
   
     return (e.getX() >= pos && e.getX() <= pos+5 && e.getY() > 0 && e.getY() <= 10);
   }
@@ -323,7 +370,7 @@ public class Status extends Component implements MouseListener, MouseMotionListe
     if (seekable) {
       e.translatePoint (-1, -1);
       if (clicked == SEEKBAR) {
-        double pos = (e.getX()-29) / (double) (r.width - 48);
+        double pos = (e.getX()-29) / (double) (r.width - SEEK_END);
 
 	if (pos < 0.0)
 	  position = 0.0;
@@ -331,6 +378,8 @@ public class Status extends Component implements MouseListener, MouseMotionListe
 	  position = 1.0;
         else
 	  position = pos;
+
+	time = (long) (duration * position);
         
         component.repaint();
       }

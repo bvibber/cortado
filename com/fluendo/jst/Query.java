@@ -51,6 +51,10 @@ public class Query {
     q.format = format;
     return q;
   }
+  public void setPosition(int format, long position) {
+    this.format = format;
+    this.value = position;
+  }
   public int parsePositionFormat() {
     return format;
   }
@@ -62,6 +66,10 @@ public class Query {
     Query q = new Query(DURATION);
     q.format = format;
     return q;
+  }
+  public void setDuration(int format, long position) {
+    this.format = format;
+    this.value = position;
   }
   public int parseDurationFormat() {
     return format;

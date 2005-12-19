@@ -510,4 +510,19 @@ public class Pipeline extends com.fluendo.jst.Element implements BusSyncHandler
         return doSendEvent (event);
     }
   }
+
+  public boolean query(Query query)
+  {
+    boolean res = true;
+
+    for (Enumeration e = enumSorted(); e.hasMoreElements();) {
+      Element elem = (Element) e.nextElement();
+
+      if (elem.isFlagSet (Element.FLAG_IS_SINK)) {
+        if ((res = elem.query (query)))
+	  break;
+      }
+    }
+    return res;
+  }
 }

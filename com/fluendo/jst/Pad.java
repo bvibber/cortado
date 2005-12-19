@@ -127,6 +127,10 @@ public class Pad extends com.fluendo.jst.Object implements Runnable
     peer = null;
   }
 
+  public synchronized Pad getPeer () {
+    return peer;
+  }
+
   protected boolean eventFunc (Event event)
   {
     boolean result;
@@ -170,6 +174,10 @@ public class Pad extends com.fluendo.jst.Object implements Runnable
         break;
     }
     return result;
+  }
+
+  public boolean query (Query query) {
+    return false;
   }
 
   public synchronized Caps getCaps () {

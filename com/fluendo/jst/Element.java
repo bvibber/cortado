@@ -439,4 +439,7 @@ public abstract class Element extends com.fluendo.jst.Object
   public boolean sendEvent (Event event) {
     return false;
   }
+  public boolean query (Query query) {
+    return false;
+  }
 }

@@ -278,6 +278,37 @@ public abstract class Sink extends Element
     return sinkpad.pushEvent (event);
   }
 
+  public boolean query (Query query) {
+    switch (query.getType()) {
+      case Query.DURATION:
+        return sinkpad.getPeer().query (query);
+      case Query.POSITION:
+      {
+	long position = -1;
+        if (query.parsePositionFormat() == Format.TIME) {
+          synchronized (this) {
+	    if (currentState == PLAY) {
+	      if (clock != null) {
+	        position = clock.getTime() - baseTime + prerollTime;
+	      }
+	    }
+	    else {
+	      position = prerollTime;
+	    }
+	  }
+	  query.setPosition(Format.TIME, position);
+	}
+	else {
+          return sinkpad.getPeer().query (query);
+	}
+        break;
+      }
+      default:
+        return sinkpad.getPeer().query (query);
+    }
+    return true;
+  }
+
   protected int changeState (int transition) {
     int result = SUCCESS;
     int presult;

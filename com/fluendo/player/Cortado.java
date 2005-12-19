@@ -49,6 +49,7 @@ public class Cortado extends Applet implements
   private int bufferLow;
   private int bufferHigh;
   private int debug;
+  private long duration;
 
   private Thread statusThread;
   private Status status;
@@ -68,6 +69,7 @@ public class Cortado extends Applet implements
     String[][] info = {
       {"url",         "URL",     "The media file to play"},
       {"local",       "boolean", "Is this a local file (default false)"},
+      {"duration",    "string",  "Total duration of the file in hmmss (default unknown)"},
       {"framerate",   "float",   "The default framerate of the video (default 5.0)"},
       {"audio",       "boolean", "Enable audio playback (default true)"},
       {"video",       "boolean", "Enable video playback (default true)"},
@@ -119,6 +121,24 @@ public class Cortado extends Applet implements
     cortado.stop();
   }
 
+  private long stringToTime (String d) {
+    int hours, min, sec;
+    int len;
+
+    if (d == null)
+      return -1;
+    
+    len = d.length();
+
+    sec = Integer.valueOf(d.substring(len-2)).intValue();
+    min = Integer.valueOf(d.substring(len-4, len-2)).intValue();
+    hours = Integer.valueOf(d.substring(0, len-4)).intValue();
+    
+    System.out.println(""+hours+":"+min+":"+sec);
+
+    return ((hours * 60) + min) * 60 + sec;
+  }
+
   public void init() {
     cortado = this;
 
@@ -127,6 +147,7 @@ public class Cortado extends Applet implements
 
     urlString = getParam("url", null);
     local = String.valueOf(getParam("local", "false")).equals("true");
+    duration = stringToTime (getParam("duration",  null));
     framerate = Double.valueOf(getParam("framerate", "5.0")).doubleValue();
     audio = String.valueOf(getParam("audio","true")).equals("true");
     video = String.valueOf(getParam("video","true")).equals("true");
@@ -159,6 +180,7 @@ public class Cortado extends Applet implements
     status.setVisible(true);
     status.setHaveAudio (audio);
     status.setSeekable (true);
+    status.setDuration (duration);
     inStatus = false;
 
     menu = new PopupMenu();
@@ -200,6 +222,8 @@ public class Cortado extends Applet implements
     Debug.log(Debug.INFO, "entering status thread");
     while (!stopping) {
       try {
+	status.setTime (pipeline.getPosition() / Clock.SECOND);
+
         Thread.sleep(1000);
       }
       catch (Exception e) {
@@ -381,28 +405,18 @@ public class Cortado extends Applet implements
     status.addStatusListener(this);
 
     res = pipeline.setState (Element.PLAY);
-  }
-
-  private final void interruptThread (Thread t) 
-  {
-    try {
-      if (t != null)
-        t.interrupt();
-    } catch (Exception e) { }
-  }
-
-  private final void joinThread (Thread t) 
-  {
-    try {
-      if (t != null)
-        t.join();
-    } catch (Exception e) { }
+    statusThread = new Thread(this);
+    statusThread.start();
   }
 
   public void stop() {
     stopping = true;
     pipeline.setState (Element.STOP);
-    interruptThread (statusThread);
-    joinThread(statusThread);
+    try {
+      statusThread.interrupt();
+    } catch (Exception e) { }
+    try {
+      statusThread.join();
+    } catch (Exception e) { }
   }
 }

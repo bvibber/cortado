@@ -1,3 +1,33 @@
+2005-12-19  Wim Taymans  <wim@fluendo.com>
+
+	* com/fluendo/jst/Element.java: (Element.sendEvent):
+	Added query method.
+
+	* com/fluendo/jst/Pad.java: (Pad.unlink), (Pad.sendEvent):
+	Add query and getpeer methods.
+
+	* com/fluendo/jst/Pipeline.java: (Pipeline.sendEvent):
+	Forward queries to the sinks,
+
+	* com/fluendo/jst/Query.java: (Query.newPosition),
+	(Query.parsePositionValue), (Query), (Query.newDuration):
+	Implement setting query result.
+
+	* com/fluendo/player/Cortado.java: (Cortado),
+	(Cortado.getParameterInfo), (Cortado.shutdown),
+	(Cortado.stringToTime), (Cortado.init), (Cortado.getGraphics),
+	(Cortado.getSize), (Cortado.update), (Cortado.run),
+	(Cortado.realRun), (Cortado.newState), (Cortado.newSeek),
+	(Cortado.start):
+	Added option to configure the duration.
+	start thread to update current position in statusbar.
+
+	* com/fluendo/player/Status.java:
+	Paint current position in time.
+
+	* com/fluendo/plugin/Sink.java: (Sink.sendEvent):
+	Implement POSITION query.
+
 2005-12-15  Wim Taymans  <wim@fluendo.com>
 
 	* com/fluendo/jst/Pipeline.java: (Pipeline.doSeek):
