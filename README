@@ -52,6 +52,8 @@ Embed the applet in a web page with code like this:
            archive="cortado.jar" 
 	   width="352" height="288">
      <param name="url" value="http://localhost/test6.ogg"/>
+     <param name="local" value="false"/>
+     <param name="duration" value="00352"/>
      <param name="framerate" value="29"/>
      <param name="keepAspect" value="true"/>
      <param name="video" value="true"/>

@@ -64,8 +64,8 @@ class PlayPipeline extends Pipeline implements PadListener {
     vorbisdec = ElementFactory.makeByName("vorbisdec");
     audiosink = ElementFactory.makeByName("audiosinkj2");
     videosink = ElementFactory.makeByName("videosink");
-    v_queue = new Queue();
-    a_queue = new Queue();
+    v_queue = ElementFactory.makeByName("queue");
+    a_queue = ElementFactory.makeByName("queue");
 
     oggdemux.addPadListener (this);
 

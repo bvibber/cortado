@@ -46,6 +46,8 @@ public class Message {
 
   private com.fluendo.jst.Object src;
   private int type;
+  private boolean bool;
+  private int value;
   private String string;
   private int old, next, pending;
 
@@ -65,6 +67,8 @@ public class Message {
     switch (type) {
       case EOS:
         return "[Message]: "+src+" type: EOS";
+      case BUFFERING:
+        return "[Message]: "+src+" type: BUFFERING, busy:"+bool+", percent:"+value;
       case STATE_CHANGED:
         return "[Message]: "+src+" type: STATE_CHANGED, old:"+old+", next:"+next+", pending:"+pending;
       case STATE_DIRTY:
@@ -91,6 +95,22 @@ public class Message {
   }
   public String parseErrorString() {
     return string;
+  }
+
+  public static Message newBuffering(com.fluendo.jst.Object src, boolean busy, int percent) {
+    Message msg;
+    
+    msg = new Message(src, BUFFERING);
+    msg.bool = busy;
+    msg.value = percent;
+
+    return msg;
+  }
+  public boolean parseBufferingBusy() {
+    return bool;
+  }
+  public int parseBufferingPercent() {
+    return value;
   }
 
   public static Message newStateChanged(com.fluendo.jst.Object src, int old, int next, int pending) {

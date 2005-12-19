@@ -57,6 +57,8 @@ public class HTTPSrc extends Element
       pushEvent (Event.newFlushStart());
 
       synchronized (streamLock) {
+        Debug.log(Debug.INFO, "synced "+this);
+
         try {
           input = getInputStream (position);
           result = true;
@@ -69,8 +71,10 @@ public class HTTPSrc extends Element
 
         pushEvent (Event.newNewsegment(Format.BYTES, position));
 
-        if (result)
+        if (result) {
 	  result = startTask();
+          Debug.log(Debug.INFO, "restarted "+this);
+	}
       }
       return result;
     }
@@ -132,6 +136,8 @@ public class HTTPSrc extends Element
         case MODE_PUSH:
 	  try {
 	    input = getInputStream(0); 
+	    if (input == null)
+	      res = false;
 	  }
 	  catch (Exception e) {
 	    res = false;

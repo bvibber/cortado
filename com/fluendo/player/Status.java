@@ -220,11 +220,11 @@ public class Status extends Component implements MouseListener, MouseMotionListe
     g2.setFont(font);
 
     paintBox (g2);
-    paintPercent (g2);
     if (seekable) {
       paintPlayPause (g2);
       paintStop (g2);
       if (state == STATE_STOPPED) {
+        paintPercent (g2);
         paintMessage (g2, 27);
       }
       else {
@@ -234,6 +234,7 @@ public class Status extends Component implements MouseListener, MouseMotionListe
     }
     else {
       paintMessage (g2, 2);
+      paintTime (g2);
     }
     paintSpeaker (g2);
 

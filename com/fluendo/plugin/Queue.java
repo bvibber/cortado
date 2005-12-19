@@ -24,12 +24,30 @@ import com.fluendo.utils.*;
 
 public class Queue extends Element 
 {
+  private static final int DEFAULT_MAX_BUFFERS = 50;
+  private static final int DEFAULT_MAX_SIZE = -1;
+  private static final boolean DEFAULT_IS_BUFFER = false;
+  private static final int DEFAULT_LOW_PERCENT = 10;
+  private static final int DEFAULT_HIGH_PERCENT = 70;
+
   private Vector queue = new Vector();
-  private static final int MAX_SIZE = 500;
   private int srcResult = Pad.WRONG_STATE;
+  private int size;
+  private boolean buffering;
+
+  private int maxBuffers = DEFAULT_MAX_BUFFERS;
+  private int maxSize = DEFAULT_MAX_SIZE;
+  private boolean isBuffer = DEFAULT_IS_BUFFER;
+  private int lowPercent = DEFAULT_LOW_PERCENT;
+  private int highPercent = DEFAULT_HIGH_PERCENT;
 
   private boolean isFilled() {
-    return queue.size() > MAX_SIZE;
+    if (maxSize != -1) {
+      return size >= maxSize;
+    }
+    else {
+      return queue.size() > maxBuffers;
+    }
   }
   private boolean isEmpty() {
     return queue.size() == 0;
@@ -43,6 +61,61 @@ public class Queue extends Element
         ((Buffer)obj).free();
     }
     queue.setSize(0);
+    size = 0;
+    buffering = true;
+  }
+
+  private void updateBuffering () {
+    if (!isBuffer || srcResult != Pad.OK)
+      return;
+
+    /* figure out the percentage we are filled */
+    int percent = size * 100 / maxSize;
+    if (percent > 100)
+      percent = 100;
+
+    if (buffering) {
+      if (percent >= highPercent) {
+        buffering = false;
+        srcpad.startTask();
+      }
+      postMessage (Message.newBuffering (this, buffering, percent));
+    }
+    else {
+      if (percent < lowPercent) {
+        buffering = true;
+        srcpad.pauseTask();
+      }
+    }
+  }
+
+  private boolean start() {
+    boolean res;
+
+    if (!isBuffer) {
+      buffering = false;
+      res = srcpad.startTask();
+    }
+    else {
+      buffering = true;
+      postMessage (Message.newBuffering (this, true, 0)); 
+      res = true;
+    }
+    return res;
+  }
+  
+  private boolean stop() {
+    boolean res;
+
+    if (!isBuffer) {
+      buffering = false;
+      res = srcpad.stopTask();
+    }
+    else {
+      buffering = true;
+      res = true;
+    }
+    return res;
   }
   
   private Pad srcpad = new Pad(Pad.SRC, "src") {
@@ -71,7 +144,11 @@ public class Queue extends Element
 	res = OK;
       }
       else {
-        res = push((Buffer)obj);
+        Buffer buf = (Buffer) obj;
+
+	size -= buf.length;
+
+        res = push(buf);
       }
       synchronized (queue) {
         if (res != OK) {
@@ -82,6 +159,7 @@ public class Queue extends Element
 	  }
 	  pauseTask();
         }
+	updateBuffering ();
         queue.notifyAll();
       }
     }
@@ -102,8 +180,16 @@ public class Queue extends Element
         case MODE_PUSH:
 	  synchronized (queue) {
 	    srcResult = OK;
+	    /* if we buffer, we start when we are hitting the
+	     * high watermark */
+	    if (!isBuffer) {
+              res = startTask();
+	    }
+	    else {
+	      buffering = true;
+	      postMessage (Message.newBuffering (this, true, 0)); 
+	    }
 	  }
-          res = startTask();
           break;
         default:
 	  synchronized (queue) {
@@ -126,6 +212,9 @@ public class Queue extends Element
 	     srcResult = WRONG_STATE;
 	     queue.notifyAll();
 	   }
+	   synchronized (streamLock) {
+	     Debug.log(Debug.INFO, "synced "+this);
+	   }
 	   srcpad.pauseTask();
 	   break;
         case Event.FLUSH_STOP:
@@ -137,7 +226,13 @@ public class Queue extends Element
 	       srcResult = OK;
 	       queue.notifyAll();
 	     }
-	     srcpad.startTask();
+	     if (!isBuffer) {
+	       srcpad.startTask();
+	     }
+	     else {
+	       buffering = true;
+	       postMessage (Message.newBuffering (this, true, 0)); 
+	     }
 	   }
 	   break;
 	default:
@@ -173,6 +268,9 @@ public class Queue extends Element
 	    return WRONG_STATE;
 	  }
 	}
+	size += buf.length;
+	updateBuffering();
+
         queue.add(0, buf);
         queue.notify();
       }
@@ -189,5 +287,37 @@ public class Queue extends Element
   public String getName ()
   {
     return "queue";
+  }
+
+  public boolean setProperty (String name, java.lang.Object value) {
+    if (name.equals("maxBuffers"))
+      maxBuffers = Integer.valueOf(value.toString()).intValue();
+    else if (name.equals("maxSize")) 
+      maxSize = Integer.valueOf(value.toString()).intValue();
+    else if (name.equals("isBuffer"))
+      isBuffer = String.valueOf(value).equalsIgnoreCase("true");
+    else if (name.equals("lowPercent"))
+      lowPercent = Integer.valueOf(value.toString()).intValue();
+    else if (name.equals("highPercent"))
+      highPercent = Integer.valueOf(value.toString()).intValue();
+    else
+      return false;
+
+    return true;
+  }
+
+  public java.lang.Object getProperty (String name) {
+    if (name.equals("maxBuffers"))
+      return new Integer (maxBuffers);
+    else if (name.equals("maxSize"))
+      return new Integer (maxSize);
+    else if (name.equals("isBuffer")) 
+      return (isBuffer ? "true" : "false");
+    else if (name.equals("lowPercent"))
+      return new Integer (lowPercent);
+    else if (name.equals("highPercent"))
+      return new Integer (highPercent);
+
+    return null;
   }
 }

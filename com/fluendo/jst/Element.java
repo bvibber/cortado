@@ -186,8 +186,17 @@ public abstract class Element extends com.fluendo.jst.Object
   public synchronized int getState(int[] resState, int[] resPending, long timeout) {
     if (lastReturn == ASYNC) {
       if (pendingState != NONE) {
+        long t;
+	
+	if (timeout == 0)
+	  t = 0;
+	else if (timeout < 1000)
+	  t = 1;
+	else 
+	  t = timeout / 1000;
+
         try {
-          wait (timeout);
+          wait (t);
 	}
 	catch (InterruptedException e) {}
       }

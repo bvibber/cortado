@@ -38,6 +38,7 @@ public class Cortado extends Applet implements
 
   private String urlString;
   private boolean local;
+  private boolean seekable;
   private double framerate;
   private boolean audio;
   private boolean video;
@@ -69,6 +70,7 @@ public class Cortado extends Applet implements
     String[][] info = {
       {"url",         "URL",     "The media file to play"},
       {"local",       "boolean", "Is this a local file (default false)"},
+      {"seekable",    "boolean", "Can you seek in this file (default false)"},
       {"duration",    "string",  "Total duration of the file in hmmss (default unknown)"},
       {"framerate",   "float",   "The default framerate of the video (default 5.0)"},
       {"audio",       "boolean", "Enable audio playback (default true)"},
@@ -147,6 +149,7 @@ public class Cortado extends Applet implements
 
     urlString = getParam("url", null);
     local = String.valueOf(getParam("local", "false")).equals("true");
+    seekable = String.valueOf(getParam("seekable", "false")).equals("true");
     duration = stringToTime (getParam("duration",  null));
     framerate = Double.valueOf(getParam("framerate", "5.0")).doubleValue();
     audio = String.valueOf(getParam("audio","true")).equals("true");
@@ -168,6 +171,9 @@ public class Cortado extends Applet implements
     pipeline.setPassword (password);
     pipeline.enableAudio (audio);
     pipeline.enableVideo (video);
+    pipeline.setBufferSize (bufferSize);
+    pipeline.setBufferLow (bufferLow);
+    pipeline.setBufferHigh (bufferHigh);
 
     pipeline.setComponent (this);
     pipeline.getBus().addHandler (this);
@@ -179,7 +185,8 @@ public class Cortado extends Applet implements
     status = new Status(this);
     status.setVisible(true);
     status.setHaveAudio (audio);
-    status.setSeekable (true);
+    status.setHavePercent (true);
+    status.setSeekable (seekable);
     status.setDuration (duration);
     inStatus = false;
 
@@ -246,13 +253,17 @@ public class Cortado extends Applet implements
   }
 
   private void setStatusVisible (boolean b) {
+    /* no change, do nothing */
     if (status.isVisible() == b)
       return;
 
+    /* don't make invisible when the mouse pointer is inside
+     * status area */
     if (inStatus && !b)
       return;
 
     status.setVisible(b);
+    repaint();
   }
 
   private boolean intersectStatus (MouseEvent e) {
@@ -334,6 +345,10 @@ public class Cortado extends Applet implements
         status.setMessage (msg.parseResourceString());
         setStatusVisible(true);
         break;
+      case Message.BUFFERING:
+	status.setBufferPercent (msg.parseBufferingPercent());
+        setStatusVisible(true);
+        break;
       case Message.STATE_CHANGED:
         if (msg.getSrc() == pipeline) {
 	  int old, next;
@@ -388,7 +403,8 @@ public class Cortado extends Applet implements
     com.fluendo.jst.Event event;
 
     /* get value, convert to PERCENT and construct seek event */
-    event = com.fluendo.jst.Event.newSeek (Format.PERCENT, (int)(aPos * 100.0 * Format.PERCENT_SCALE));
+    event = com.fluendo.jst.Event.newSeek (Format.PERCENT, 
+        (int)(aPos * 100.0 * Format.PERCENT_SCALE));
 
     /* send event to pipeline */
     pipeline.sendEvent(event);
@@ -413,10 +429,13 @@ public class Cortado extends Applet implements
     stopping = true;
     pipeline.setState (Element.STOP);
     try {
-      statusThread.interrupt();
+      if (statusThread != null)
+        statusThread.interrupt();
     } catch (Exception e) { }
     try {
-      statusThread.join();
+      if (statusThread != null)
+        statusThread.join();
     } catch (Exception e) { }
+    statusThread = null;
   }
 }
