@@ -1,3 +1,36 @@
+2005-12-20  Wim Taymans  <wim@fluendo.com>
+
+	* com/fluendo/jst/Event.java: (Event.newSeek),
+	(Event.newNewsegment):
+	Make method names consistent as in Query/Message.
+
+	* com/fluendo/jst/Pipeline.java: (Pipeline.doChildStateChange),
+	(Pipeline.calcPrerollTime), (Pipeline), (Pipeline.changeState),
+	(Pipeline.doSendEvent), (Pipeline.doSeek), (Pipeline.sendEvent),
+	(Pipeline.query):
+	Do correct preroll time distribution in pipeline.
+
+	* com/fluendo/player/Cortado.java: (Cortado.newState),
+	(Cortado.newSeek):
+	Warn when seek failed.
+
+	* com/fluendo/player/CortadoPipeline.java:
+	The pipeline used by the applet.
+
+	* com/fluendo/player/StatusListener.java:
+	Get info on actions performed in the Status area.
+
+	* com/fluendo/plugin/JPEGDec.java:
+	* com/fluendo/plugin/MulawDec.java:
+	* com/fluendo/plugin/MultipartDemux.java:
+	* com/fluendo/plugin/SmokeDec.java:
+	* plugins.ini:
+	New plugins added.
+
+	* com/fluendo/plugin/HTTPSrc.java: (HTTPSrc.Pad):
+	* com/fluendo/plugin/Sink.java: (Sink.Pad):
+	Update for name change.
+
 2005-12-19  Wim Taymans  <wim@fluendo.com>
 
 	* README:

@@ -43,8 +43,8 @@ public class HTTPSrc extends Element
       int format;
       long position;
 
-      format = event.getSeekFormat();
-      position = event.getSeekPosition();
+      format = event.parseSeekFormat();
+      position = event.parseSeekPosition();
 
       if (format == Format.PERCENT) {
         position = position * contentLength / Format.PERCENT_MAX;

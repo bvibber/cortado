@@ -400,6 +400,7 @@ public class Cortado extends Applet implements
   }
 
   public void newSeek(double aPos) {
+    boolean res;
     com.fluendo.jst.Event event;
 
     /* get value, convert to PERCENT and construct seek event */
@@ -407,7 +408,10 @@ public class Cortado extends Applet implements
         (int)(aPos * 100.0 * Format.PERCENT_SCALE));
 
     /* send event to pipeline */
-    pipeline.sendEvent(event);
+    res = pipeline.sendEvent(event);
+    if (!res) {
+      Debug.log(Debug.WARNING, "seek failed");
+    }
   }
   
   public void start() 

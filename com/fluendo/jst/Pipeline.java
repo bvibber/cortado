@@ -442,6 +442,29 @@ public class Pipeline extends com.fluendo.jst.Element implements BusSyncHandler
     return result;
   }
 
+  private void calcPrerollTime () {
+    boolean res = true;
+    long min = Long.MAX_VALUE;
+
+    for (Enumeration e = enumSinks(); e.hasMoreElements();) {
+      Element elem = (Element) e.nextElement();
+      if (elem instanceof Sink) {
+        Sink sink = (Sink)elem;
+	min = Math.min (min, sink.getPrerollTime());
+      }
+    }
+    if (min == Long.MAX_VALUE)
+      return;
+
+    for (Enumeration e = enumSinks(); e.hasMoreElements();) {
+      Element elem = (Element) e.nextElement();
+      if (elem instanceof Sink) {
+        Sink sink = (Sink)elem;
+	sink.setPrerollTime(min);
+      }
+    }
+  }
+
   public int changeState(int transition)
   {
     int result;
@@ -451,6 +474,7 @@ public class Pipeline extends com.fluendo.jst.Element implements BusSyncHandler
         break;
       case PAUSE_PLAY:
         baseTime = defClock.getTime() - streamTime;
+	calcPrerollTime();
         break;
       default:
         break;
@@ -477,12 +501,10 @@ public class Pipeline extends com.fluendo.jst.Element implements BusSyncHandler
   {
     boolean res = true;
 
-    for (Enumeration e = enumSorted(); e.hasMoreElements();) {
+    for (Enumeration e = enumSinks(); e.hasMoreElements();) {
       Element elem = (Element) e.nextElement();
 
-      if (elem.isFlagSet (Element.FLAG_IS_SINK)) {
-        res &= elem.sendEvent (event);
-      }
+      res &= elem.sendEvent (event);
     }
     return res;
   }
@@ -515,13 +537,11 @@ public class Pipeline extends com.fluendo.jst.Element implements BusSyncHandler
   {
     boolean res = true;
 
-    for (Enumeration e = enumSorted(); e.hasMoreElements();) {
+    for (Enumeration e = enumSinks(); e.hasMoreElements();) {
       Element elem = (Element) e.nextElement();
 
-      if (elem.isFlagSet (Element.FLAG_IS_SINK)) {
-        if ((res = elem.query (query)))
-	  break;
-      }
+      if ((res = elem.query (query)))
+        break;
     }
     return res;
   }

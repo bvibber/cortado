@@ -156,9 +156,9 @@ public abstract class Sink extends Element
 	  break;
         case Event.NEWSEGMENT:
 	  synchronized (streamLock) {
-	    int segFmt = event.getNewsegmentFormat();
+	    int segFmt = event.parseNewsegmentFormat();
 	    if (segFmt == Format.TIME) {
-	      segTime = event.getNewsegmentPosition();
+	      segTime = event.parseNewsegmentPosition();
 	      System.out.println(this+" segTime: "+segTime);
 	    }
 	  }

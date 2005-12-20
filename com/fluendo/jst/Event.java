@@ -60,10 +60,10 @@ public class Event {
     e.position = position;
     return e;
   }
-  public long getSeekPosition () {
+  public long parseSeekPosition () {
     return position;
   }
-  public int getSeekFormat () {
+  public int parseSeekFormat () {
     return format;
   }
 
@@ -73,10 +73,10 @@ public class Event {
     e.position = position;
     return e;
   }
-  public long getNewsegmentPosition () {
+  public long parseNewsegmentPosition () {
     return position;
   }
-  public int getNewsegmentFormat () {
+  public int parseNewsegmentFormat () {
     return format;
   }
 }
