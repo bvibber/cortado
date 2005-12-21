@@ -1,3 +1,35 @@
+2005-12-21  Wim Taymans  <wim@fluendo.com>
+
+	* com/fluendo/examples/Player3.java: (Player3.Player3):
+	Enable multipart.
+
+	* com/fluendo/jst/Pad.java: (Pad):
+	Return NOT_LINKED when there is no peer.
+
+	* com/fluendo/player/CortadoPipeline.java: (CortadoPipeline),
+	(CortadoPipeline.padAdded), (CortadoPipeline.setBufferHigh),
+	(CortadoPipeline.getBufferHigh), (CortadoPipeline.buildOgg),
+	(CortadoPipeline.buildMultipart), (CortadoPipeline.build):
+	Check for null caps.
+	Add multipart jpeg pipelines,
+
+	* com/fluendo/plugin/JPEGDec.java: (JPEGDec), (JPEGDec.Pad),
+	(JPEGDec.JPEGDec), (JPEGDec.changeState):
+	Send images downstream after we created them in the media tracker.
+
+	* com/fluendo/plugin/MulawDec.java: (MulawDec), (MulawDec.Pad),
+	(MulawDec.MulawDec):
+	Make variable names java-like.
+
+	* com/fluendo/plugin/MultipartDemux.java: (MultipartDemux),
+	(MultipartDemux.MultipartStream),
+	(MultipartDemux.MultipartStream.MultipartStream),
+	(MultipartDemux.MultipartStream.eventFunc), (MultipartDemux.Pad),
+	(MultipartDemux.getName), (MultipartDemux.getMime),
+	(MultipartDemux.typeFind), (MultipartDemux.MultipartDemux):
+	Implement the multipart demuxer.
+
+
 2005-12-20  Wim Taymans  <wim@fluendo.com>
 
 	* com/fluendo/jst/Event.java: (Event.newSeek),

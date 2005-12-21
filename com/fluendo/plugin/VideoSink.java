@@ -75,7 +75,7 @@ public class VideoSink extends Sink
   {
     Image image;
     int x, y, w, h;
-    
+
     if (buf.object instanceof ImageProducer) {
       image = component.createImage((ImageProducer)buf.object);
     }

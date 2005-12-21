@@ -26,6 +26,8 @@ import com.fluendo.utils.*;
 public class JPEGDec extends Element 
 {
   private Toolkit toolkit;
+  private Component component;
+  private MediaTracker mediaTracker;
   private int width, height;
 
   private Pad srcpad = new Pad(Pad.SRC, "src") {
@@ -66,9 +68,24 @@ public class JPEGDec extends Element
 
       img = toolkit.createImage(buf.data, buf.offset, buf.length);
       if (img != null) {
-        if (img.getWidth(null) != width || img.getHeight(null) != height) {
-	  width = img.getWidth(null);
-	  height = img.getHeight(null);
+        int imgWidth, imgHeight;
+	 
+        try {
+          mediaTracker.addImage(img, 0);
+          mediaTracker.waitForID(0);
+          mediaTracker.removeImage(img, 0);
+        }
+        catch (Exception e) {
+          e.printStackTrace();
+          return Pad.ERROR;
+        }
+
+	imgWidth = img.getWidth(null);
+	imgHeight = img.getHeight(null);
+
+        if (imgWidth != width || imgHeight != height) {
+	  width = imgWidth;
+	  height = imgHeight;
 
           Debug.log(Debug.INFO, "jpeg frame: "+width+","+height);
 
@@ -84,7 +101,8 @@ public class JPEGDec extends Element
         ret = srcpad.push(buf);
       }
       else {
-	Debug.log (Debug.WARNING, "could not decode jpeg image");
+	System.out.println ("could not decode jpeg image");
+	Debug.log (Debug.WARNING, "could not decode jpeg image, continueing");
         buf.free();
 	ret = OK;
       }
@@ -117,6 +135,25 @@ public class JPEGDec extends Element
 
     return res;
   }
+
+  public boolean setProperty (String name, java.lang.Object value) {
+    if (name.equals("component")) {
+      component = (Component) value;
+      toolkit = component.getToolkit();
+      mediaTracker = new MediaTracker (component);
+    }
+    else
+      return false;
+
+    return true;
+  }
+  public java.lang.Object getProperty (String name) {
+    if (name.equals("component")) {
+      return component;
+    }
+    return null;
+  }
+
 
   public String getName ()
   {

@@ -48,6 +48,12 @@ public class CortadoPipeline extends Pipeline implements PadListener {
 
   public void padAdded(Pad pad) {
     Caps caps = pad.getCaps ();
+
+    if (caps == null) {
+      System.out.println("pad added without caps");
+      return;
+    }
+
     String mime = caps.getMime();
     
     if (enableAudio && mime.equals("audio/x-vorbis")) {
@@ -55,6 +61,9 @@ public class CortadoPipeline extends Pipeline implements PadListener {
     }
     if (enableVideo && mime.equals("video/x-theora")) {
       pad.link(v_queue.getPad("sink"));
+    }
+    if (enableVideo && mime.equals("image/jpeg")) {
+      pad.link(videodec.getPad("sink"));
     }
   }
   
@@ -133,6 +142,17 @@ public class CortadoPipeline extends Pipeline implements PadListener {
     demux = ElementFactory.makeByName("oggdemux");
     add(demux);
 
+    buffer = ElementFactory.makeByName("queue");
+    buffer.setProperty("isBuffer", Boolean.TRUE);
+    if (bufferSize != -1)
+      buffer.setProperty("maxSize", new Integer (bufferSize * 1024));
+    if (bufferLow != -1)
+      buffer.setProperty("lowPercent", new Integer (bufferLow));
+    if (bufferHigh != -1)
+      buffer.setProperty("highercent", new Integer (bufferHigh));
+    add(buffer);
+
+    httpsrc.getPad("src").link(buffer.getPad("sink"));
     buffer.getPad("src").link(demux.getPad("sink"));
 
     if (enableAudio) {
@@ -171,33 +191,17 @@ public class CortadoPipeline extends Pipeline implements PadListener {
     demux = ElementFactory.makeByName("multipartdemux");
     add(demux);
 
-    buffer.getPad("src").link(demux.getPad("sink"));
+    httpsrc.getPad("src").link(demux.getPad("sink"));
 
-    if (enableAudio) {
-      a_queue = ElementFactory.makeByName("queue");
-      audiodec = ElementFactory.makeByName("vorbisdec");
-      audiosink = ElementFactory.makeByName("audiosinkj2");
+    videodec = ElementFactory.makeByName("jpegdec");
+    videodec.setProperty ("component", component);
+    videosink = ElementFactory.makeByName("videosink");
+    videosink.setProperty ("component", component);
 
-      add(a_queue);
-      add(audiodec);
-      add(audiosink);
-
-      a_queue.getPad("src").link(audiodec.getPad("sink"));
-      audiodec.getPad("src").link(audiosink.getPad("sink"));
-    }
-    if (enableVideo) {
-      v_queue = ElementFactory.makeByName("queue");
-      videodec = ElementFactory.makeByName("theoradec");
-      videosink = ElementFactory.makeByName("videosink");
-      videosink.setProperty ("component", component);
-
-      add(v_queue);
-      add(videodec);
-      add(videosink);
+    add(videodec);
+    add(videosink);
       
-      v_queue.getPad("src").link(videodec.getPad("sink"));
-      videodec.getPad("src").link(videosink.getPad("sink"));
-    }
+    videodec.getPad("src").link(videosink.getPad("sink"));
 
     demux.addPadListener (this);
 
@@ -213,18 +217,6 @@ public class CortadoPipeline extends Pipeline implements PadListener {
     httpsrc.setProperty("userId", userId);
     httpsrc.setProperty("password", password);
     add(httpsrc);
-
-    buffer = ElementFactory.makeByName("queue");
-    buffer.setProperty("isBuffer", Boolean.TRUE);
-    if (bufferSize != -1)
-      buffer.setProperty("maxSize", new Integer (bufferSize * 1024));
-    if (bufferLow != -1)
-      buffer.setProperty("lowPercent", new Integer (bufferLow));
-    if (bufferHigh != -1)
-      buffer.setProperty("highercent", new Integer (bufferHigh));
-    add(buffer);
-
-    httpsrc.getPad("src").link(buffer.getPad("sink"));
 
     //res = buildOgg();
     res = buildMultipart();

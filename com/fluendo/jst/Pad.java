@@ -225,10 +225,8 @@ public class Pad extends com.fluendo.jst.Object implements Runnable
 
   public final int push (Buffer buffer) {
     if (peer == null) {
-      System.out.println ("no peer");
-      return ERROR;
+      return NOT_LINKED;
     }
-
     return peer.chain (buffer);
   }
 

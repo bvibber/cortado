@@ -25,33 +25,33 @@ public class MulawDec extends Element
 {
   private int rate, channels;
 
-  private Pad srcpad = new Pad(Pad.SRC, "src") {
+  private Pad srcPad = new Pad(Pad.SRC, "src") {
     protected boolean eventFunc (com.fluendo.jst.Event event) {
-      return sinkpad.pushEvent(event);
+      return sinkPad.pushEvent(event);
     }
   };
 
-  private Pad sinkpad = new Pad(Pad.SINK, "sink") {
+  private Pad sinkPad = new Pad(Pad.SINK, "sink") {
     protected boolean eventFunc (com.fluendo.jst.Event event) {
       boolean result;
 
       switch (event.getType()) {
         case com.fluendo.jst.Event.FLUSH_START:
-          result = srcpad.pushEvent (event);
+          result = srcPad.pushEvent (event);
           synchronized (streamLock) {
             Debug.log(Debug.INFO, "synced "+this);
           }
           break;
         case com.fluendo.jst.Event.FLUSH_STOP:
           synchronized (streamLock) {
-            result = srcpad.pushEvent(event);
+            result = srcPad.pushEvent(event);
           }
           break;
         case com.fluendo.jst.Event.EOS:
         case com.fluendo.jst.Event.NEWSEGMENT:
         default:
           synchronized (streamLock) {
-            result = srcpad.pushEvent(event);
+            result = srcPad.pushEvent(event);
           }
           break;
       }
@@ -71,7 +71,7 @@ public class MulawDec extends Element
 
       buf.caps = caps;
 
-      ret = srcpad.push(buf);
+      ret = srcPad.push(buf);
 
       return ret;
     }
@@ -82,6 +82,9 @@ public class MulawDec extends Element
 
     rate = 8000;    
     channels = 1;    
+
+    addPad (srcPad);
+    addPad (sinkPad);
   }
 
   public String getName ()

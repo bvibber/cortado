@@ -159,7 +159,6 @@ public abstract class Sink extends Element
 	    int segFmt = event.parseNewsegmentFormat();
 	    if (segFmt == Format.TIME) {
 	      segTime = event.parseNewsegmentPosition();
-	      System.out.println(this+" segTime: "+segTime);
 	    }
 	  }
 	  break;

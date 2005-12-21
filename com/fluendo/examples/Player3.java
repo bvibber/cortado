@@ -37,16 +37,17 @@ public class Player3 extends Frame {
     applet.setParam ("framerate", "60");
     applet.setParam ("keepaspect", "true");
     applet.setParam ("video", "true");
-    applet.setParam ("audio", "true");
+    //applet.setParam ("audio", "true");
+    applet.setParam ("audio", "false");
     applet.setParam ("bufferSize", "200");
     applet.setParam ("userId", "wim");
     applet.setParam ("password", "taymans");
 
     add(applet);
+    show();
 
     applet.init();
     applet.start();
-    show();
   }
 
   public static void main(String args[]) {
