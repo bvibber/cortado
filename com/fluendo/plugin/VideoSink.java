@@ -61,7 +61,7 @@ public class VideoSink extends Sink
     }
 
     component.setSize (width, height);
-    component.show();
+    component.setVisible(true);
 
     return true;
   }

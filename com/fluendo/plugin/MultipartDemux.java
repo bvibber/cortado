@@ -263,7 +263,6 @@ public class MultipartDemux extends Element
 	  state = STATE_FIND_DATA_END;
 	  /* fallthrough */
         case STATE_FIND_DATA_END:
-	{
           if (!findDataEnd())
 	    break;
 
@@ -284,7 +283,6 @@ public class MultipartDemux extends Element
           flowRet = currentStream.push(data);
 	  state = STATE_FIND_BOUNDARY;
 	  break;
-	}
 	default:
 	  flowRet = ERROR;
 	  break;

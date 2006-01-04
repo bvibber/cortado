@@ -59,10 +59,13 @@ public class CortadoPipeline extends Pipeline implements PadListener {
     if (enableAudio && mime.equals("audio/x-vorbis")) {
       pad.link(a_queue.getPad("sink"));
     }
-    if (enableVideo && mime.equals("video/x-theora")) {
+    else if (enableVideo && mime.equals("video/x-theora")) {
       pad.link(v_queue.getPad("sink"));
     }
-    if (enableVideo && mime.equals("image/jpeg")) {
+    else if (enableVideo && mime.equals("image/jpeg")) {
+      pad.link(videodec.getPad("sink"));
+    }
+    else if (enableVideo && mime.equals("video/x-smoke")) {
       pad.link(videodec.getPad("sink"));
     }
   }
@@ -186,7 +189,7 @@ public class CortadoPipeline extends Pipeline implements PadListener {
     return true;
   }
 
-  public boolean buildMultipart()
+  public boolean buildMultipartJPEG()
   {
     demux = ElementFactory.makeByName("multipartdemux");
     add(demux);
@@ -194,6 +197,28 @@ public class CortadoPipeline extends Pipeline implements PadListener {
     httpsrc.getPad("src").link(demux.getPad("sink"));
 
     videodec = ElementFactory.makeByName("jpegdec");
+    videodec.setProperty ("component", component);
+    videosink = ElementFactory.makeByName("videosink");
+    videosink.setProperty ("component", component);
+
+    add(videodec);
+    add(videosink);
+      
+    videodec.getPad("src").link(videosink.getPad("sink"));
+
+    demux.addPadListener (this);
+
+    return true;
+  }
+
+  public boolean buildMultipartSmoke()
+  {
+    demux = ElementFactory.makeByName("multipartdemux");
+    add(demux);
+
+    httpsrc.getPad("src").link(demux.getPad("sink"));
+
+    videodec = ElementFactory.makeByName("smokedec");
     videodec.setProperty ("component", component);
     videosink = ElementFactory.makeByName("videosink");
     videosink.setProperty ("component", component);
@@ -219,7 +244,8 @@ public class CortadoPipeline extends Pipeline implements PadListener {
     add(httpsrc);
 
     //res = buildOgg();
-    res = buildMultipart();
+    res = buildMultipartJPEG();
+    //res = buildMultipartSmoke();
 
     return res;
   }

@@ -1,3 +1,29 @@
+2006-01-04  Wim Taymans  <wim@fluendo.com>
+
+	* Makefile:
+	Some updates.
+	Compile with deprecation warnings.
+
+	* com/fluendo/player/CortadoPipeline.java:
+	(CortadoPipeline.padAdded), (CortadoPipeline.buildOgg),
+	(CortadoPipeline.buildMultipartJPEG),
+	(CortadoPipeline.buildMultipartSmoke), (CortadoPipeline),
+	(CortadoPipeline.build):
+	Added Smoke pipeline,
+
+	* com/fluendo/plugin/MultipartDemux.java: (MultipartDemux.Pad):
+	Small cleanup.
+
+	* com/fluendo/plugin/SmokeDec.java: (SmokeDec.Pad), (SmokeDec),
+	(SmokeDec.SmokeDec):
+	Add property to configure component.
+
+	* com/fluendo/plugin/VideoSink.java: (VideoSink.setCapsFunc):
+	Replace deprecated method.
+
+	* plugins.ini:
+	Add smoke plugins to registry.
+
 2005-12-21  Wim Taymans  <wim@fluendo.com>
 
 	* com/fluendo/examples/Player3.java: (Player3.Player3):

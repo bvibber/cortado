@@ -88,7 +88,9 @@ public class SmokeDec extends Element
         ret = srcPad.push(buf);
       }
       else {
-        Debug.log (Debug.WARNING, "could not decode jpeg image");
+        if ((smoke.flags & SmokeCodec.KEYFRAME) != 0) {
+          Debug.log (Debug.WARNING, "could not decode jpeg image");
+	}
         buf.free();
         ret = OK;
       }
@@ -99,12 +101,27 @@ public class SmokeDec extends Element
   public SmokeDec() {
     super();
 
-    component = null;
-    mediaTracker = new MediaTracker (component);
-    smoke = new SmokeCodec (component, mediaTracker);
-    
     addPad(srcPad);
     addPad(sinkPad);
+  }
+
+  public boolean setProperty (String name, java.lang.Object value) {
+    if (name.equals("component")) {
+      component = (Component) value;
+      mediaTracker = new MediaTracker (component);
+      smoke = new SmokeCodec (component, mediaTracker);
+    }
+    else
+      return false;
+
+    return true;
+  }
+
+  public java.lang.Object getProperty (String name) {
+    if (name.equals("component")) {
+      return component;
+    }
+    return null;
   }
 
   public String getName ()
