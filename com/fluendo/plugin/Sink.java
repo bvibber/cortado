@@ -30,7 +30,8 @@ public abstract class Sink extends Element
   private boolean havePreroll;
   private boolean needPreroll;
   private Clock.ClockID clockID;
-  protected long prerollTime;
+  protected long prerollTime = -1;
+  protected long syncOffset = 0;
   protected long segTime;
   
   public long getPrerollTime () {
@@ -38,9 +39,9 @@ public abstract class Sink extends Element
       return prerollTime;
     }
   }
-  public void setPrerollTime (long time) {
+  public void setSyncOffset (long time) {
     synchronized (prerollLock) {
-      prerollTime = time;
+      syncOffset = time;
     }
   }
   protected Pad sinkpad = new Pad(Pad.SINK, "sink") {
@@ -57,6 +58,7 @@ public abstract class Sink extends Element
         if (needPreroll) {
 
 	  prerollTime = buf.timestamp;
+	  //System.out.println(this+" preroll: "+ prerollTime);
 
 	  havePreroll = true;
           preroll (buf);
@@ -242,7 +244,7 @@ public abstract class Sink extends Element
       if (time == -1)
         return Clock.OK;
 
-      time = time - prerollTime + baseTime;
+      time = time - syncOffset+ baseTime;
 
       if (clock != null)
         id = clockID = clock.newSingleShotID (time);
@@ -288,11 +290,11 @@ public abstract class Sink extends Element
           synchronized (this) {
 	    if (currentState == PLAY) {
 	      if (clock != null) {
-	        position = clock.getTime() - baseTime + prerollTime;
+	        position = clock.getTime() - baseTime + syncOffset;
 	      }
 	    }
 	    else {
-	      position = prerollTime;
+	      position = syncOffset;
 	    }
 	  }
 	  query.setPosition(Format.TIME, position);
@@ -314,6 +316,8 @@ public abstract class Sink extends Element
 
     switch (transition) {
       case STOP_PAUSE:
+        prerollTime = -1;
+        syncOffset = 0;
 	this.isEOS = false;
         synchronized (prerollLock) {
           needPreroll = true;
@@ -361,7 +365,6 @@ public abstract class Sink extends Element
         break;
       }
       case PAUSE_STOP:
-        prerollTime = 0;
         break;
       default:
         break;

@@ -124,7 +124,7 @@ public class SmokeDec extends Element
     return null;
   }
 
-  public String getName ()
+  public String getFactoryName ()
   {
     return "smokedec";
   }

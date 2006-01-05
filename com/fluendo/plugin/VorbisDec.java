@@ -252,7 +252,7 @@ public class VorbisDec extends Element
   }
 
 
-  public String getName ()
+  public String getFactoryName ()
   {
     return "vorbisdec";
   }

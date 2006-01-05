@@ -339,13 +339,14 @@ public class Cortado extends Applet implements
         status.setMessage ("Playback ended");
         break;
       case Message.STREAM_STATUS:
-        System.out.println(msg.toString());
+        //System.out.println(msg.toString());
         break;
       case Message.RESOURCE:
         status.setMessage (msg.parseResourceString());
         setStatusVisible(true);
         break;
       case Message.BUFFERING:
+	//System.out.println(msg);
 	status.setBufferPercent (msg.parseBufferingPercent());
         setStatusVisible(true);
         break;

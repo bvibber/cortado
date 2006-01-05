@@ -189,7 +189,7 @@ public class OggDemux extends Element
     }
   };
 
-  public String getName ()
+  public String getFactoryName ()
   {
     return "oggdemux";
   }

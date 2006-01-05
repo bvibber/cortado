@@ -77,13 +77,17 @@ public class Queue extends Element
     if (buffering) {
       if (percent >= highPercent) {
         buffering = false;
-        srcpad.startTask();
       }
       postMessage (Message.newBuffering (this, buffering, percent));
+      if (!buffering) {
+	postMessage (Message.newStreamStatus (srcpad, true, Pad.OK, "buffer filled"));
+        srcpad.startTask();
+      }
     }
     else {
       if (percent < lowPercent) {
         buffering = true;
+	postMessage (Message.newStreamStatus (srcpad, false, Pad.OK, "buffer empty"));
         srcpad.pauseTask();
       }
     }
@@ -94,6 +98,7 @@ public class Queue extends Element
 
     if (!isBuffer) {
       buffering = false;
+      postMessage (Message.newStreamStatus (srcpad, true, Pad.OK, "starting"));
       res = srcpad.startTask();
     }
     else {
@@ -154,9 +159,9 @@ public class Queue extends Element
         if (res != OK) {
 	  srcResult = res;
 	  if (isFlowFatal (res)) {
-	    postMessage (Message.newStreamStatus (parent, "fatal flow error: "+getFlowName (res)));
             pushEvent(Event.newEOS());
 	  }
+	  postMessage (Message.newStreamStatus (this, false, res, "flow stopped"));
 	  pauseTask();
         }
 	updateBuffering ();
@@ -183,6 +188,7 @@ public class Queue extends Element
 	    /* if we buffer, we start when we are hitting the
 	     * high watermark */
 	    if (!isBuffer) {
+	      postMessage (Message.newStreamStatus (this, true, Pad.OK, "activating"));
               res = startTask();
 	    }
 	    else {
@@ -215,6 +221,7 @@ public class Queue extends Element
 	   synchronized (streamLock) {
 	     Debug.log(Debug.INFO, "synced "+this);
 	   }
+	   postMessage (Message.newStreamStatus (srcpad, false, Pad.WRONG_STATE, "flush start"));
 	   srcpad.pauseTask();
 	   break;
         case Event.FLUSH_STOP:
@@ -227,6 +234,7 @@ public class Queue extends Element
 	       queue.notifyAll();
 	     }
 	     if (!isBuffer) {
+	       postMessage (Message.newStreamStatus (srcpad, true, Pad.OK, "restart after flush"));
 	       srcpad.startTask();
 	     }
 	     else {
@@ -284,8 +292,7 @@ public class Queue extends Element
     addPad (sinkpad);
   }
 
-  public String getName ()
-  {
+  public String getFactoryName() {
     return "queue";
   }
 

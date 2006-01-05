@@ -1,3 +1,63 @@
+2006-01-05  Wim Taymans  <wim@fluendo.com>
+
+	* com/fluendo/jst/Clock.java: (Clock):
+	* com/fluendo/player/Cortado.java: (Cortado.handleMessage):
+	Small cleanups.
+
+	* com/fluendo/jst/Element.java: (Element.getMime):
+	An element must provide a factoryName.
+
+	* com/fluendo/jst/ElementFactory.java:
+	Allow setting custom element names.
+
+	* com/fluendo/jst/Message.java: (Message.toString),
+	(Message.newStateDirty):
+	More info in stream status messages.
+
+	* com/fluendo/jst/Pad.java: (Pad.isFlowFatal):
+	Make flowname usable by other classes.
+
+	* com/fluendo/jst/Pipeline.java: (Pipeline.Pipeline),
+	(Pipeline.calcPrerollTime), (Pipeline), (Pipeline.changeState):
+	Calc syncOffset and distribute after a seek.
+
+	* com/fluendo/examples/Player2.java: (PlayPipeline):
+	* com/fluendo/player/CortadoPipeline.java: (CortadoPipeline),
+	(CortadoPipeline.buildOgg), (CortadoPipeline.build):
+	Name elements properly.
+
+	* com/fluendo/plugin/AudioSink.java: (AudioSink.AudioClock),
+	(AudioSink.AudioClock.getInternalTime),
+	(AudioSink.RingBuffer.commit),
+	(AudioSink.RingBuffer.samplesPlayed), (AudioSink.RingBuffer),
+	(AudioSink.RingBuffer.clear), (AudioSink.RingBuffer.clearAll),
+	(AudioSink.RingBuffer.setSample), (AudioSink.RingBuffer.play),
+	(AudioSink.RingBuffer.pause), (AudioSink.doEvent), (AudioSink),
+	(AudioSink.render), (AudioSink.setCapsFunc),
+	(AudioSink.changeState):
+	* com/fluendo/plugin/AudioSinkJ2.java: (AudioSinkJ2):
+	* com/fluendo/plugin/FakeSink.java: (FakeSink.render):
+	* com/fluendo/plugin/HTTPSrc.java: (HTTPSrc.Pad),
+	(HTTPSrc.getInputStream):
+	* com/fluendo/plugin/JPEGDec.java: (JPEGDec.getProperty):
+	* com/fluendo/plugin/MulawDec.java: (MulawDec.MulawDec):
+	* com/fluendo/plugin/MultipartDemux.java: (MultipartDemux.Pad):
+	* com/fluendo/plugin/OggDemux.java: (OggDemux.Pad):
+	* com/fluendo/plugin/Queue.java: (Queue.updateBuffering), (Queue),
+	(Queue.start), (Queue.Pad), (Queue.Queue):
+	* com/fluendo/plugin/Sink.java: (Sink), (Sink.getPrerollTime),
+	(Sink.Pad), (Sink.doSync), (Sink.query), (Sink.changeState):
+	* com/fluendo/plugin/SmokeDec.java: (SmokeDec.getProperty):
+	* com/fluendo/plugin/TheoraDec.java: (TheoraDec.changeState):
+	* com/fluendo/plugin/VideoSink.java: (VideoSink.render):
+	* com/fluendo/plugin/VorbisDec.java: (VorbisDec.changeState):
+	Fix factory names.
+	Remove ringbuffer sync hack.
+	Preroll and syncOffset implemented in Sink.
+	Post stream status.
+	Don't run the clock when we are paused in the audiosink.
+
+
 2006-01-04  Wim Taymans  <wim@fluendo.com>
 
 	* Makefile:

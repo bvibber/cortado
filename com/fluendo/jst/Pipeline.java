@@ -95,6 +95,10 @@ public class Pipeline extends com.fluendo.jst.Element implements BusSyncHandler
     this (null);
   }
 
+  public String getFactoryName () {
+    return "pipeline";
+  }
+
   public Pipeline(String name) {
     super (name);
 
@@ -456,11 +460,13 @@ public class Pipeline extends com.fluendo.jst.Element implements BusSyncHandler
     if (min == Long.MAX_VALUE)
       return;
 
+    //System.out.println ("Preroll time: "+min);
+
     for (Enumeration e = enumSinks(); e.hasMoreElements();) {
       Element elem = (Element) e.nextElement();
       if (elem instanceof Sink) {
         Sink sink = (Sink)elem;
-	sink.setPrerollTime(min);
+	sink.setSyncOffset(min);
       }
     }
   }
@@ -473,12 +479,18 @@ public class Pipeline extends com.fluendo.jst.Element implements BusSyncHandler
       case STOP_PAUSE:
         break;
       case PAUSE_PLAY:
-        baseTime = defClock.getTime() - streamTime;
-	calcPrerollTime();
+        long now = defClock.getTime();
+        //System.out.println ("pause->play: old Base: "+baseTime+" stream: "+streamTime+" now: "+now);
+	if (streamTime == 0) {
+          calcPrerollTime();
+	}
+        baseTime = now - streamTime;
+        //System.out.println ("pause->play: new Base: "+baseTime+" stream: "+streamTime+" now: "+now);
         break;
       default:
         break;
     }
+
     result = doChildStateChange(transition);
 
     switch (transition) {
@@ -486,7 +498,10 @@ public class Pipeline extends com.fluendo.jst.Element implements BusSyncHandler
         streamTime = 0;
 	break;
       case PLAY_PAUSE:
-        streamTime = defClock.getTime() - baseTime;
+        long now = defClock.getTime();
+        //System.out.println ("play->pause: old Base: "+baseTime+" stream: "+streamTime+" now: "+now);
+        streamTime = now - baseTime;
+        //System.out.println ("play->pause: new Base: "+baseTime+" stream: "+streamTime+" now: "+now);
         break;
       case PAUSE_STOP:
         break;

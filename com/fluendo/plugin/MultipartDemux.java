@@ -292,7 +292,7 @@ public class MultipartDemux extends Element
     }
   };
 
-  public String getName ()
+  public String getFactoryName ()
   {
     return "multipartdemux";
   }

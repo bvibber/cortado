@@ -74,7 +74,8 @@ public class Message {
       case STATE_DIRTY:
         return "[Message]: "+src+" type: STATE_DIRTY";
       case STREAM_STATUS:
-        return "[Message]: "+src+" type: STREAM_STATUS, "+string;
+        return "[Message]: "+src+" type: STREAM_STATUS, "+(bool?"start":"stop")+", reason: "+
+			Pad.getFlowName(value)+", "+string;
       case ERROR:
         return "[Message]: "+src+" type: ERROR, "+string;
       default:
@@ -134,13 +135,21 @@ public class Message {
     return new Message(src, STATE_DIRTY);
   }
 
-  public static Message newStreamStatus(com.fluendo.jst.Object src, String aString) {
+  public static Message newStreamStatus(com.fluendo.jst.Object src, boolean start, int reason, String aString) {
     Message msg = new Message(src, STREAM_STATUS);
     msg.string = aString;
+    msg.bool = start;
+    msg.value = reason;
     return msg;
   }
   public String parseStreamStatusString() {
     return string;
+  }
+  public boolean parseStreamStatusStart() {
+    return bool;
+  }
+  public int parseStreamStatusReason() {
+    return value;
   }
 
   public static Message newResource(com.fluendo.jst.Object src, String aString) {

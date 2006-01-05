@@ -68,6 +68,8 @@ public abstract class Element extends com.fluendo.jst.Object
   {
     return null;
   }
+  public abstract String getFactoryName ();
+
   public int typeFind (byte[] data, int offset, int length)
   {
     return -1;

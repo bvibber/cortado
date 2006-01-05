@@ -87,7 +87,7 @@ public class MulawDec extends Element
     addPad (sinkPad);
   }
 
-  public String getName ()
+  public String getFactoryName ()
   {
     return "mulawdec";
   }

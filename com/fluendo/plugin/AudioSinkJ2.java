@@ -30,15 +30,7 @@ public class AudioSinkJ2 extends AudioSink
   private static final int DELAY = 4096;
 
   protected RingBuffer createRingBuffer() {
-    return new RingBuffer() {
-      private long offset = 0;
-      public synchronized long samplesPlayed () {
-        long samples = Math.max (0, line.getFramePosition() - DELAY);
-        return samples - offset;
-      }
-      public synchronized void setSample () {
-      }
-    };
+    return new RingBuffer();
   }
 
   protected boolean open (RingBuffer ring) {
@@ -90,7 +82,7 @@ public class AudioSinkJ2 extends AudioSink
     line.flush();
   }
 
-  public String getName ()
+  public String getFactoryName ()
   {
     return "audiosinkj2";
   }

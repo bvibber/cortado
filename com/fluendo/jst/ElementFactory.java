@@ -60,13 +60,16 @@ public class ElementFactory
     }
   }
 
-  private static final Element dup (Element element) {
+  private static final Element dup (Element element, String name) {
     Element result = null;
 
     Class cl = element.getClass();
     try {
       result = (Element) cl.newInstance();
       Debug.log(Debug.INFO, "create element: "+element);
+      if (result != null && name != null) {
+        result.setName (name);
+      }
     }
     catch (Exception e) {
       e.printStackTrace();
@@ -102,19 +105,19 @@ public class ElementFactory
     return result;
   }
 
-  public static final Element makeTypeFind(byte[] data, int offset, int length)
+  public static final Element makeTypeFind(byte[] data, int offset, int length, String name)
   {
     Element result = null;
 
     result = findTypeFind (data, offset, length);
     
     if (result != null) {
-      result = dup (result);
+      result = dup (result, name);
     }
     return result;
   }
 
-  public static final Element makeByMime(String mime)
+  public static final Element makeByMime(String mime, String name)
   {
     Element result = null;
 
@@ -122,22 +125,22 @@ public class ElementFactory
       Element element = (Element) e.nextElement();
 
       if (mime.equals(element.getMime())) {
-        result = dup (element);
+        result = dup (element, name);
         break;
       }
     }
     return result;
   }
 
-  public static final Element makeByName(String name)
+  public static final Element makeByName(String name, String elemName)
   {
     Element result = null;
 
     for (Enumeration e = elements.elements(); e.hasMoreElements();) {
       Element element = (Element) e.nextElement();
 
-      if (name.equals(element.getName())) {
-        result = dup (element);
+      if (name.equals(element.getFactoryName())) {
+        result = dup (element, elemName);
         break;
       }
     }

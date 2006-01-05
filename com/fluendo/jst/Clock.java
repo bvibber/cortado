@@ -96,10 +96,10 @@ public abstract class Clock {
   protected abstract void unscheduleFunc(ClockID id);
 
   public synchronized long getTime() {
-    long ret;
+    long internal, ret;
 
-    ret = getInternalTime();
-    ret = adjust (ret);
+    internal = getInternalTime();
+    ret = adjust (internal);
 
     return ret;
   }

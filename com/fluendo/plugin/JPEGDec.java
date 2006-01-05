@@ -155,7 +155,7 @@ public class JPEGDec extends Element
   }
 
 
-  public String getName ()
+  public String getFactoryName ()
   {
     return "jpegdec";
   }

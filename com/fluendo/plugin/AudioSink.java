@@ -31,11 +31,16 @@ public abstract class AudioSink extends Sink implements ClockProvider
   private class AudioClock extends SystemClock {
     private long lastTime = -1;
     private long diff = -1;
+    private boolean started = false;
 
-    public synchronized void reset() {
-      diff = -1;
-      lastTime = -1;
+    public synchronized void setStarted(boolean s) {
+      started = s;
+      if (started) {
+        diff = -1;
+        lastTime = -1;
+      }
     }
+
     protected synchronized long getInternalTime() {
       long samples;
       long result;
@@ -47,19 +52,25 @@ public abstract class AudioSink extends Sink implements ClockProvider
       samples = ringBuffer.samplesPlayed();
       timePos = samples * Clock.SECOND / ringBuffer.rate;
 
-      /* interpolate as the position can jump a lot */
-      long now = System.currentTimeMillis() * Clock.MSECOND;
-      if (diff == -1) {
-        diff = now;
+      if (started) {
+        /* interpolate as the position can jump a lot */
+        long now = System.currentTimeMillis() * Clock.MSECOND;
+        if (diff == -1) {
+          diff = now;
+        }
+
+        if (timePos != lastTime) {
+          lastTime = timePos;
+          diff = now - timePos;
+        }
+        result = now - diff;
+        //System.out.println("time: "+result+", now: "+now+", diff: "+diff+", timePos: "+timePos);
+      }
+      else {
+        result = timePos;
+        //System.out.println("time: "+result);
       }
 
-      if (timePos != lastTime) {
-        lastTime = timePos;
-        diff = now - timePos;
-      }
-      result = now - diff;
-
-      //System.out.println("time: "+result+", now: "+now+", diff: "+diff+", timePos: "+timePos);
 
       return result;
     }
@@ -238,6 +249,7 @@ public abstract class AudioSink extends Sink implements ClockProvider
             /* we need to drop one segment at a time, pretend we wrote a
              * segment. */
             writeLen = Math.min (segSize, len);
+	    //System.out.println("dropped "+diff);
             break;
           }
 	  else {
@@ -247,6 +259,7 @@ public abstract class AudioSink extends Sink implements ClockProvider
               break;
 
             /* else we need to wait for the segment to become writable. */
+	    //System.out.println("wait "+diff);
             if (!waitSegment ()) {
               return -1;
 	    }
@@ -299,6 +312,7 @@ public abstract class AudioSink extends Sink implements ClockProvider
       }
     }
     public synchronized void setSample (long sample) {
+      //System.out.println("setSample: "+sample);
 
       if (sample == -1)
         sample = 0;
@@ -317,6 +331,7 @@ public abstract class AudioSink extends Sink implements ClockProvider
         return false;
 
       state = PLAY;
+      clock.setStarted(true);
       notifyAll();
       return true;
     }
@@ -329,12 +344,14 @@ public abstract class AudioSink extends Sink implements ClockProvider
         }
         catch (InterruptedException ie) {}
       }
+      clock.setStarted(false);
       return true;
     }
     public boolean stop () {
       synchronized (this) {
         state = STOP;
         notifyAll();
+        clock.setStarted(false);
       }
 
       if (thread != null) {
@@ -374,8 +391,10 @@ public abstract class AudioSink extends Sink implements ClockProvider
     long sample;
 
     sample = buf.time_offset;
-    sample -= (prerollTime * ringBuffer.rate / Clock.SECOND);
+    sample -= (syncOffset * ringBuffer.rate / Clock.SECOND);
     sample += (baseTime * ringBuffer.rate / Clock.SECOND);
+
+    //System.out.println("render sample: "+sample+" time: "+buf.timestamp);
 
     ringBuffer.commit (buf.data, sample, buf.offset, buf.length);
 
@@ -400,8 +419,8 @@ public abstract class AudioSink extends Sink implements ClockProvider
 	ringBuffer.setFlushing(false);
         break;
       case PAUSE_PLAY:
-        long sample = baseTime * ringBuffer.rate / Clock.SECOND;
-	ringBuffer.setSample (sample);
+        //long sample = baseTime * ringBuffer.rate / Clock.SECOND;
+	//ringBuffer.setSample (sample);
         break;
       case PAUSE_STOP:
 	ringBuffer.setFlushing(true);
@@ -411,9 +430,8 @@ public abstract class AudioSink extends Sink implements ClockProvider
 
     switch (transition) {
       case PLAY_PAUSE:
-        ringBuffer.pause();
         reset();
-	clock.reset();
+        ringBuffer.pause();
         break;
       case PAUSE_STOP:
         ringBuffer.stop();

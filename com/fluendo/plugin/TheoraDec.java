@@ -260,7 +260,7 @@ public class TheoraDec extends Element
     return res;
   }
 
-  public String getName ()
+  public String getFactoryName ()
   {
     return "theoradec";
   }

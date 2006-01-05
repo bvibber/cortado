@@ -59,7 +59,7 @@ public class Pad extends com.fluendo.jst.Object implements Runnable
   {
     return ret <= UNEXPECTED;
   }
-  public String getFlowName (int ret) {
+  public static final String getFlowName (int ret) {
     switch (ret) {
       case OK:
         return "ok";

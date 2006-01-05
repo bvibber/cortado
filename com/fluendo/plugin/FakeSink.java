@@ -41,7 +41,7 @@ public class FakeSink extends Sink
     return Pad.OK;
   };
 
-  public String getName ()
+  public String getFactoryName ()
   {
     return "fakesink";
   }

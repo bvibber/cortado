@@ -73,6 +73,7 @@ public class HTTPSrc extends Element
 
         if (result) {
 	  result = startTask();
+	  postMessage (Message.newStreamStatus (this, true, Pad.OK, "restart after seek"));
           Debug.log(Debug.INFO, "restarted "+this);
 	}
       }
@@ -113,13 +114,12 @@ public class HTTPSrc extends Element
 	data.free();
         Debug.log(Debug.INFO, this+" reached EOS");
 	pushEvent (Event.newEOS());
+	postMessage (Message.newStreamStatus (this, false, Pad.UNEXPECTED, "reached EOS"));
 	pauseTask();
       }
       else {
         if ((ret = push(data)) != OK) {
-	  if (isFlowFatal (ret)) {
-	    postMessage (Message.newStreamStatus (this, "reason: "+getFlowName (ret)));
-	  }
+	  postMessage (Message.newStreamStatus (this, false, ret, "reason: "+getFlowName (ret)));
 	  pauseTask();
         }
       }
@@ -142,8 +142,10 @@ public class HTTPSrc extends Element
 	  catch (Exception e) {
 	    res = false;
 	  }
-	  if (res)
+	  if (res) {
+	    postMessage (Message.newStreamStatus (this, true, Pad.OK, "activating"));
 	    res = startTask();
+	  }
 	  break;
 	default:
 	  res = false;
@@ -187,7 +189,7 @@ public class HTTPSrc extends Element
     return dis;
   }
 
-  public String getName () {
+  public String getFactoryName () {
     return "httpsrc";
   }
 

@@ -56,16 +56,16 @@ class PlayPipeline extends Pipeline implements PadListener {
 
   public PlayPipeline (String uri)
   {
-    httpsrc = ElementFactory.makeByName("httpsrc");
+    httpsrc = ElementFactory.makeByName("httpsrc", "httpsrc");
     httpsrc.setProperty("url", uri);
 
-    oggdemux = ElementFactory.makeByName("oggdemux");
-    theoradec = ElementFactory.makeByName("theoradec");
-    vorbisdec = ElementFactory.makeByName("vorbisdec");
-    audiosink = ElementFactory.makeByName("audiosinkj2");
-    videosink = ElementFactory.makeByName("videosink");
-    v_queue = ElementFactory.makeByName("queue");
-    a_queue = ElementFactory.makeByName("queue");
+    oggdemux = ElementFactory.makeByName("oggdemux", "oggdemux");
+    theoradec = ElementFactory.makeByName("theoradec", "theoradec");
+    vorbisdec = ElementFactory.makeByName("vorbisdec", "vorbisdec");
+    audiosink = ElementFactory.makeByName("audiosinkj2", "audiosink");
+    videosink = ElementFactory.makeByName("videosink", "videosink");
+    v_queue = ElementFactory.makeByName("queue", "v_queue");
+    a_queue = ElementFactory.makeByName("queue", "a_queue");
 
     oggdemux.addPadListener (this);
 
