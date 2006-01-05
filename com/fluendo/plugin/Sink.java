@@ -244,7 +244,7 @@ public abstract class Sink extends Element
       if (time == -1)
         return Clock.OK;
 
-      time = time - syncOffset+ baseTime;
+      time = time - syncOffset + baseTime;
 
       if (clock != null)
         id = clockID = clock.newSingleShotID (time);

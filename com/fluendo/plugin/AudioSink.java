@@ -162,6 +162,9 @@ public abstract class AudioSink extends Sink implements ClockProvider
       if ((res = open (this)) == false)
         return res;
 
+      Debug.log(Debug.INFO, "audio: segSize: "+ segSize);
+      Debug.log(Debug.INFO, "audio: segTotal: "+ segTotal);
+
       buffer = new byte[segSize * segTotal];
       bps = 2 * channels;
       sps = segSize / bps;
@@ -221,13 +224,16 @@ public abstract class AudioSink extends Sink implements ClockProvider
       if (sample == -1) {
         sample = nextSample;
       }
-      else if (sample < 0) {
+      if (sample < 0) {
         return len;
+      }
+      if (sample != nextSample) {
+        System.out.println("discont: found "+sample+" expected "+nextSample);
       }
 
       idx = 0;
 
-      nextSample = sample + len / bps;
+      nextSample = sample + (len / bps);
       while (len > 0) {
         long writeSeg;
 	int writeOff;
@@ -290,7 +296,7 @@ public abstract class AudioSink extends Sink implements ClockProvider
       /* get the number of samples not yet played */
       delay = delay ();
       
-      seg = Math.max (0, playSeg - 1); 
+      seg = Math.max (0, playSeg); 
 
       samples = (seg * sps);
 

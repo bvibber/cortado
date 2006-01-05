@@ -1,5 +1,31 @@
 2006-01-05  Wim Taymans  <wim@fluendo.com>
 
+	* com/fluendo/examples/Player3.java: (Player3.Player3):
+	New testcase.
+
+	* com/fluendo/jst/ElementFactory.java:
+	Print real element names.
+
+	* com/fluendo/jst/Pipeline.java: (Pipeline.calcPrerollTime),
+	(Pipeline.changeState):
+	Remove debugging.
+
+	* com/fluendo/player/Cortado.java: (Cortado.handleMessage):
+	More debugging.
+
+	* com/fluendo/plugin/AudioSink.java:
+	(AudioSink.RingBuffer.acquire), (AudioSink.RingBuffer.commit),
+	(AudioSink.RingBuffer), (AudioSink.RingBuffer.samplesPlayed):
+	* com/fluendo/plugin/AudioSinkJ2.java: (AudioSinkJ2.open):
+	Make sure we have at least 4 segments to work with.
+	Detect disconts.
+
+	* com/fluendo/plugin/Sink.java: (Sink.doSync):
+	Small cleanups.
+
+
+2006-01-05  Wim Taymans  <wim@fluendo.com>
+
 	* com/fluendo/jst/Clock.java: (Clock):
 	* com/fluendo/player/Cortado.java: (Cortado.handleMessage):
 	Small cleanups.

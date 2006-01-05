@@ -460,8 +460,6 @@ public class Pipeline extends com.fluendo.jst.Element implements BusSyncHandler
     if (min == Long.MAX_VALUE)
       return;
 
-    //System.out.println ("Preroll time: "+min);
-
     for (Enumeration e = enumSinks(); e.hasMoreElements();) {
       Element elem = (Element) e.nextElement();
       if (elem instanceof Sink) {
@@ -480,12 +478,10 @@ public class Pipeline extends com.fluendo.jst.Element implements BusSyncHandler
         break;
       case PAUSE_PLAY:
         long now = defClock.getTime();
-        //System.out.println ("pause->play: old Base: "+baseTime+" stream: "+streamTime+" now: "+now);
 	if (streamTime == 0) {
           calcPrerollTime();
 	}
         baseTime = now - streamTime;
-        //System.out.println ("pause->play: new Base: "+baseTime+" stream: "+streamTime+" now: "+now);
         break;
       default:
         break;
@@ -499,9 +495,7 @@ public class Pipeline extends com.fluendo.jst.Element implements BusSyncHandler
 	break;
       case PLAY_PAUSE:
         long now = defClock.getTime();
-        //System.out.println ("play->pause: old Base: "+baseTime+" stream: "+streamTime+" now: "+now);
         streamTime = now - baseTime;
-        //System.out.println ("play->pause: new Base: "+baseTime+" stream: "+streamTime+" now: "+now);
         break;
       case PAUSE_STOP:
         break;

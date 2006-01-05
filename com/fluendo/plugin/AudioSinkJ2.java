@@ -55,6 +55,11 @@ public class AudioSinkJ2 extends AudioSink
 
     ring.segSize = SEGSIZE;
     ring.segTotal = line.getBufferSize() / ring.segSize;
+    while (ring.segTotal < 4) {
+      ring.segSize >>= 1;
+      ring.segTotal = line.getBufferSize() / ring.segSize;
+    }
+
     ring.emptySeg = new byte[ring.segSize];
 
     line.start();

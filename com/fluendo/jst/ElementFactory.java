@@ -66,10 +66,10 @@ public class ElementFactory
     Class cl = element.getClass();
     try {
       result = (Element) cl.newInstance();
-      Debug.log(Debug.INFO, "create element: "+element);
       if (result != null && name != null) {
         result.setName (name);
       }
+      Debug.log(Debug.INFO, "create element: "+result);
     }
     catch (Exception e) {
       e.printStackTrace();
