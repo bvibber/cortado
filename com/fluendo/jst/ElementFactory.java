@@ -37,10 +37,10 @@ public class ElementFactory
         is = ElementFactory.class.getResourceAsStream("/plugins.ini");
       }
       if (is != null) {
-        DataInputStream dis = new DataInputStream (is); 
+        BufferedReader br = new BufferedReader (new InputStreamReader(is));
 
         do {
-	  String str = dis.readLine();
+	  String str = br.readLine();
 	  if (str == null)
 	    break;
 	  Class cl = Class.forName(str);

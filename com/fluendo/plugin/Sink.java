@@ -177,12 +177,20 @@ public abstract class Sink extends Element
     {
       int res;
       int status;
+      long time;
+
+      time = buf.timestamp;
 
       if ((res = finishPreroll(buf)) != Pad.OK) {
         return res;
       }
 
-      status = doSync(buf);
+      if (time != -1 && time < syncOffset) {
+	buf.free();
+        return Pad.OK;
+      }
+
+      status = doSync(time);
       switch (status) {
         case Clock.EARLY:
         case Clock.OK:
@@ -231,16 +239,14 @@ public abstract class Sink extends Element
     return true;
   }
 
-  protected int doSync(Buffer buf) {
+  protected int doSync(long time) {
     int ret;
-    long time;
     Clock.ClockID id = null;
 
     synchronized (this) {
       if (flushing)
         return Clock.UNSCHEDULED;
 
-      time = buf.timestamp;
       if (time == -1)
         return Clock.OK;
 

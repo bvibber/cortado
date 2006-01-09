@@ -449,15 +449,20 @@ public class Pipeline extends com.fluendo.jst.Element implements BusSyncHandler
   private void calcPrerollTime () {
     boolean res = true;
     long min = Long.MAX_VALUE;
+    long max = 0;
 
     for (Enumeration e = enumSinks(); e.hasMoreElements();) {
       Element elem = (Element) e.nextElement();
       if (elem instanceof Sink) {
         Sink sink = (Sink)elem;
-	min = Math.min (min, sink.getPrerollTime());
+	long time = sink.getPrerollTime();
+	min = Math.min (min, time);
+	max = Math.max (max, time);
       }
     }
     if (min == Long.MAX_VALUE)
+      return;
+    if (max == 0)
       return;
 
     for (Enumeration e = enumSinks(); e.hasMoreElements();) {
@@ -465,6 +470,7 @@ public class Pipeline extends com.fluendo.jst.Element implements BusSyncHandler
       if (elem instanceof Sink) {
         Sink sink = (Sink)elem;
 	sink.setSyncOffset(min);
+	//sink.setSyncOffset(max);
       }
     }
   }

@@ -74,7 +74,6 @@ public class HTTPSrc extends Element
         if (result) {
 	  result = startTask();
 	  postMessage (Message.newStreamStatus (this, true, Pad.OK, "restart after seek"));
-          Debug.log(Debug.INFO, "restarted "+this);
 	}
       }
       return result;

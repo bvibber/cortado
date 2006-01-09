@@ -371,7 +371,7 @@ public abstract class AudioSink extends Sink implements ClockProvider
     }
   }
 
-  protected int doSync (Buffer buf)
+  protected int doSync (long time)
   {
     return Clock.OK;
   }
@@ -398,6 +398,9 @@ public abstract class AudioSink extends Sink implements ClockProvider
 
     sample = buf.time_offset;
     sample -= (syncOffset * ringBuffer.rate / Clock.SECOND);
+    if (sample < 0)
+      return Pad.OK;
+
     sample += (baseTime * ringBuffer.rate / Clock.SECOND);
 
     //System.out.println("render sample: "+sample+" time: "+buf.timestamp);

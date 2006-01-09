@@ -1,3 +1,20 @@
+2006-01-09  Wim Taymans  <wim@fluendo.com>
+
+	* com/fluendo/jst/ElementFactory.java:
+	Fix deprecated method.
+
+	* com/fluendo/jst/Pipeline.java: (Pipeline.calcPrerollTime):
+	Max/min syncOffset handling.
+
+	* com/fluendo/plugin/AudioSink.java: (AudioSink.RingBuffer.stop),
+	(AudioSink.render):
+	* com/fluendo/plugin/Sink.java: (Sink.Pad), (Sink), (Sink.preroll),
+	(Sink.doEvent):
+	Don't render buffers before the syncOffset.
+
+	* com/fluendo/plugin/HTTPSrc.java: (HTTPSrc.Pad):
+	Remove debug.
+
 2006-01-05  Wim Taymans  <wim@fluendo.com>
 
 	* com/fluendo/examples/Player3.java: (Player3.Player3):
