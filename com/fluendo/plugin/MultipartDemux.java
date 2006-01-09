@@ -24,7 +24,8 @@ import com.fluendo.utils.*;
 
 public class MultipartDemux extends Element
 {
-  private static final String DEFAULT_BOUNDARY = "--ThisRandomString\n";
+  private static final String MIME = "multipart/x-mixed-replace";
+  private static final String DEFAULT_BOUNDARY = "--ThisRandomString";
 
   private Vector streams;
   private byte[] accum;
@@ -67,6 +68,26 @@ public class MultipartDemux extends Element
 
   private Pad sinkpad = new Pad(Pad.SINK, "sink") {
    
+    protected boolean setCapsFunc (Caps caps) {
+      String mime = caps.getMime();
+      String capsBoundary;
+
+      if (!mime.equals (MIME)) {
+        postMessage (Message.newError (this, "expected \""+mime+"\", got \""+mime+"\""));
+        return false;
+      }
+
+      capsBoundary = caps.getFieldString ("boundary", DEFAULT_BOUNDARY);
+
+      Debug.log(Debug.INFO, this+" boundary string: \""+capsBoundary+"\"");
+
+      boundaryString = capsBoundary +"\n";
+      boundary = boundaryString.getBytes();
+      boundaryLen = boundary.length;
+
+
+      return true;
+    }
     private MultipartStream findStream (String mime) {
       MultipartStream stream = null;
       for (int i=0; i<streams.size(); i++) {
@@ -298,7 +319,7 @@ public class MultipartDemux extends Element
   }
   public String getMime ()
   {
-    return "multipart/x-mixed-replace";
+    return MIME;
   }
   public int typeFind (byte[] data, int offset, int length)
   {

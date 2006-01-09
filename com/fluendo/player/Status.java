@@ -187,6 +187,9 @@ public class Status extends Component implements MouseListener, MouseMotionListe
   private void paintTime (Graphics g) {
     long hour, min, sec;
     int end;
+    
+    if (time < 0)
+      return;
 
     sec = time % 60;
     min = time / 60;

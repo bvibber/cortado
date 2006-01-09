@@ -32,6 +32,8 @@ public class HTTPSrc extends Element
   private String urlString;
   private InputStream input;
   private long contentLength;
+  private String mime;
+  private Caps outCaps;
 
   private static final int DEFAULT_READSIZE = 4096;
 
@@ -117,6 +119,7 @@ public class HTTPSrc extends Element
 	pauseTask();
       }
       else {
+        data.caps = outCaps;
         if ((ret = push(data)) != OK) {
 	  postMessage (Message.newStreamStatus (this, false, ret, "reason: "+getFlowName (ret)));
 	  pauseTask();
@@ -173,8 +176,13 @@ public class HTTPSrc extends Element
       /* FIXME, do typefind ? */
       dis = uc.getInputStream();
       contentLength = uc.getHeaderFieldInt ("Content-Length", 0) + offset;
+      mime = uc.getContentType();
+      outCaps = new Caps (mime);
+      srcpad.setCaps (outCaps);
+
       Debug.log(Debug.INFO, "opened "+url);
       Debug.log(Debug.INFO, "contentLength: "+contentLength);
+      Debug.log(Debug.INFO, "contentType: "+mime);
     }
     catch (SecurityException e) {
       e.printStackTrace();

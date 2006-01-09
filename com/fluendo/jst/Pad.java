@@ -18,6 +18,8 @@
 
 package com.fluendo.jst;
 
+import java.util.*;
+
 public class Pad extends com.fluendo.jst.Object implements Runnable
 {
   /* pad directions */
@@ -44,6 +46,7 @@ public class Pad extends com.fluendo.jst.Object implements Runnable
   protected boolean flushing;
   protected java.lang.Object streamLock =  new java.lang.Object();
   int mode;
+  private Vector capsListeners = new Vector();
 
   protected Caps caps;
   
@@ -90,6 +93,21 @@ public class Pad extends com.fluendo.jst.Object implements Runnable
 
   public String toString () {
     return "Pad: "+parent.getName()+":"+getName()+" ["+super.toString()+"]";
+  }
+  public synchronized void addCapsListener(CapsListener listener)
+  {
+    capsListeners.addElement (listener);
+  }
+  public synchronized void removeCapsListener(CapsListener listener)
+  {
+    capsListeners.removeElement (listener);
+  }
+  private synchronized void doCapsListeners(Caps caps)
+  {
+    for (Enumeration e = capsListeners.elements(); e.hasMoreElements();) {
+      CapsListener listener = (CapsListener) e.nextElement();
+      listener.capsChanged (caps);
+    }
   }
 
   public synchronized boolean link (Pad newPeer) {
@@ -196,6 +214,7 @@ public class Pad extends com.fluendo.jst.Object implements Runnable
 
     if (res) {
       this.caps = caps;
+      doCapsListeners (caps);
     }
     return res;
   }

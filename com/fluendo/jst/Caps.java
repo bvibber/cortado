@@ -34,7 +34,25 @@ public class Caps
 
   public Caps(String mime) {
     super();
-    this.mime = mime;
+    int sep1, sep2, sep3;
+    int len;
+    
+    len = mime.length();
+    sep1 = 0;
+    sep2 = mime.indexOf (';');
+    if (sep2 == -1)
+      sep2 = len;
+
+    this.mime = mime.substring(0, sep2);
+    while (sep2 < len) {
+      sep1 = sep2+1;
+      sep2 = mime.indexOf ('=', sep1);
+      sep3 = mime.indexOf (';', sep2);
+      if (sep3 == -1)
+        sep3 = len;
+      setField (mime.substring(sep1, sep2), mime.substring(sep2+1, sep3));
+      sep2 = sep3+1;
+    }
   }
 
   public String toString () {
@@ -45,7 +63,7 @@ public class Caps
     buf.append("\n");
     for (Enumeration e = fields.keys(); e.hasMoreElements();) {
       String key = (String) e.nextElement();
-      buf.append(" ").append(key).append(": ").append(fields.get(key)).append("\n");
+      buf.append(" \"").append(key).append("\": \"").append(fields.get(key)).append("\"\n");
     }
     return buf.toString();
   }
@@ -66,5 +84,12 @@ public class Caps
       return def;
 
     return i.intValue();
+  }
+  public String getFieldString (String key, String def) {
+    String s = (String) fields.get(key);
+    if (s == null)
+      return def;
+
+    return s;
   }
 }

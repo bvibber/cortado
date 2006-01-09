@@ -25,7 +25,7 @@ import java.awt.event.*;
 import java.io.*;
 import java.util.*;
 
-public class CortadoPipeline extends Pipeline implements PadListener {
+public class CortadoPipeline extends Pipeline implements PadListener, CapsListener {
 
   private String url;
   private String userId;
@@ -57,16 +57,54 @@ public class CortadoPipeline extends Pipeline implements PadListener {
     String mime = caps.getMime();
     
     if (enableAudio && mime.equals("audio/x-vorbis")) {
+      a_queue = ElementFactory.makeByName("queue", "a_queue");
+      audiodec = ElementFactory.makeByName("vorbisdec", "audiodec");
+
+      add(a_queue);
+      add(audiodec);
+
       pad.link(a_queue.getPad("sink"));
+      a_queue.getPad("src").link(audiodec.getPad("sink"));
+      audiodec.getPad("src").link(audiosink.getPad("sink"));
+
+      audiodec.setState (PAUSE);
+      a_queue.setState (PAUSE);
     }
     else if (enableVideo && mime.equals("video/x-theora")) {
+      v_queue = ElementFactory.makeByName("queue", "v_queue");
+      videodec = ElementFactory.makeByName("theoradec", "videodec");
+
+      add(v_queue);
+      add(videodec);
+
       pad.link(v_queue.getPad("sink"));
+      v_queue.getPad("src").link(videodec.getPad("sink"));
+      videodec.getPad("src").link(videosink.getPad("sink"));
+
+      videodec.setState (PAUSE);
+      v_queue.setState (PAUSE);
     }
     else if (enableVideo && mime.equals("image/jpeg")) {
+      videodec = ElementFactory.makeByName("jpegdec", "videodec");
+      videodec.setProperty ("component", component);
+
+      add(videodec);
+      
+      videodec.getPad("src").link(videosink.getPad("sink"));
       pad.link(videodec.getPad("sink"));
+
+      videodec.setState (PAUSE);
     }
     else if (enableVideo && mime.equals("video/x-smoke")) {
+      videodec = ElementFactory.makeByName("smokedec", "videodec");
+      videodec.setProperty ("component", component);
+
+      add(videodec);
+      
+      videodec.getPad("src").link(videosink.getPad("sink"));
       pad.link(videodec.getPad("sink"));
+
+      videodec.setState (PAUSE);
     }
   }
   
@@ -157,80 +195,33 @@ public class CortadoPipeline extends Pipeline implements PadListener {
 
     httpsrc.getPad("src").link(buffer.getPad("sink"));
     buffer.getPad("src").link(demux.getPad("sink"));
-
-    if (enableAudio) {
-      a_queue = ElementFactory.makeByName("queue", "a_queue");
-      audiodec = ElementFactory.makeByName("vorbisdec", "audiodec");
-      audiosink = ElementFactory.makeByName("audiosinkj2", "audiosink");
-
-      add(a_queue);
-      add(audiodec);
-      add(audiosink);
-
-      a_queue.getPad("src").link(audiodec.getPad("sink"));
-      audiodec.getPad("src").link(audiosink.getPad("sink"));
-    }
-    if (enableVideo) {
-      v_queue = ElementFactory.makeByName("queue", "v_queue");
-      videodec = ElementFactory.makeByName("theoradec", "videodec");
-      videosink = ElementFactory.makeByName("videosink", "videosink");
-      videosink.setProperty ("component", component);
-
-      add(v_queue);
-      add(videodec);
-      add(videosink);
-      
-      v_queue.getPad("src").link(videodec.getPad("sink"));
-      videodec.getPad("src").link(videosink.getPad("sink"));
-    }
-
     demux.addPadListener (this);
+
+    buffer.setState(PAUSE);
+    demux.setState(PAUSE);
 
     return true;
   }
 
-  public boolean buildMultipartJPEG()
+  public boolean buildMultipart()
   {
     demux = ElementFactory.makeByName("multipartdemux", "demux");
     add(demux);
 
     httpsrc.getPad("src").link(demux.getPad("sink"));
 
-    videodec = ElementFactory.makeByName("jpegdec", "videodec");
-    videodec.setProperty ("component", component);
-    videosink = ElementFactory.makeByName("videosink", "videosink");
-    videosink.setProperty ("component", component);
-
-    add(videodec);
-    add(videosink);
-      
-    videodec.getPad("src").link(videosink.getPad("sink"));
-
     demux.addPadListener (this);
 
     return true;
   }
 
-  public boolean buildMultipartSmoke()
-  {
-    demux = ElementFactory.makeByName("multipartdemux", "demux");
-    add(demux);
-
-    httpsrc.getPad("src").link(demux.getPad("sink"));
-
-    videodec = ElementFactory.makeByName("smokedec", "videodec");
-    videodec.setProperty ("component", component);
-    videosink = ElementFactory.makeByName("videosink", "videosink");
-    videosink.setProperty ("component", component);
-
-    add(videodec);
-    add(videosink);
-      
-    videodec.getPad("src").link(videosink.getPad("sink"));
-
-    demux.addPadListener (this);
-
-    return true;
+  public void capsChanged(Caps caps) {
+    if (caps.getMime().equals ("application/ogg")) {
+      buildOgg();
+    }
+    else if (caps.getMime().equals ("multipart/x-mixed-replace")) {
+      buildMultipart();
+    }
   }
 
   public boolean build()
@@ -243,11 +234,25 @@ public class CortadoPipeline extends Pipeline implements PadListener {
     httpsrc.setProperty("password", password);
     add(httpsrc);
 
-    res = buildOgg();
+    httpsrc.getPad("src").addCapsListener (this);
+
+    if (enableAudio) {
+      audiosink = ElementFactory.makeByName("audiosinkj2", "audiosink");
+
+      add(audiosink);
+    }
+    if (enableVideo) {
+      videosink = ElementFactory.makeByName("videosink", "videosink");
+      videosink.setProperty ("component", component);
+
+      add(videosink);
+    }
+
+    //res = buildOgg();
     //res = buildMultipartJPEG();
     //res = buildMultipartSmoke();
 
-    return res;
+    return true;
   }
 
   protected boolean doSendEvent(com.fluendo.jst.Event event) {

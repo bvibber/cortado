@@ -1,5 +1,40 @@
 2006-01-09  Wim Taymans  <wim@fluendo.com>
 
+	* com/fluendo/jst/Caps.java: (Caps), (Caps.Caps), (Caps.toString),
+	(Caps.setField), (Caps.setFieldInt), (Caps.getField),
+	(Caps.getFieldInt):
+	Parse extra properties on caps.
+
+	* com/fluendo/jst/CapsListener.java:
+	Added capslistener.
+
+	* com/fluendo/jst/Pad.java: (Pad), (Pad.Pad), (Pad.toString),
+	(Pad.query), (Pad.getCaps), (Pad.setCapsFunc), (Pad.setCaps):
+	Notify capslisteners when caps changed.
+
+	* com/fluendo/player/CortadoPipeline.java:
+	(CortadoPipeline.padAdded), (CortadoPipeline.getComponent),
+	(CortadoPipeline), (CortadoPipeline.setBufferSize),
+	(CortadoPipeline.getBufferSize), (CortadoPipeline.setBufferLow),
+	(CortadoPipeline.getBufferLow), (CortadoPipeline.setBufferHigh),
+	(CortadoPipeline.getBufferHigh), (CortadoPipeline.buildOgg),
+	(CortadoPipeline.build):
+	Autoplug based on mime type.
+
+	* com/fluendo/player/Status.java:
+	Don't show unknown position values.
+
+	* com/fluendo/plugin/HTTPSrc.java: (HTTPSrc), (HTTPSrc.Pad),
+	(HTTPSrc.getInputStream):
+	Parse mimetype and set as caps on the buffers and pad.
+
+	* com/fluendo/plugin/MultipartDemux.java:
+	(MultipartDemux.MultipartStream), (MultipartDemux),
+	(MultipartDemux.Pad), (MultipartDemux.getFactoryName):
+	Parse input caps and use caps boundary string field.
+
+2006-01-09  Wim Taymans  <wim@fluendo.com>
+
 	* com/fluendo/jst/ElementFactory.java:
 	Fix deprecated method.
 
