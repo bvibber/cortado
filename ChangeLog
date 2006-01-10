@@ -1,3 +1,21 @@
+2006-01-10  Wim Taymans  <wim@fluendo.com>
+
+	* com/fluendo/player/CortadoPipeline.java: (CortadoPipeline.build):
+	Enable sun.audio backend.
+
+	* com/fluendo/plugin/AudioSink.java: (AudioSink.provideClock),
+	(AudioSink.RingBuffer.run), (AudioSink.RingBuffer.setFlushing),
+	(AudioSink.RingBuffer.startWriteThread), (AudioSink.RingBuffer),
+	(AudioSink.RingBuffer.acquire), (AudioSink.RingBuffer.release),
+	(AudioSink.RingBuffer.waitSegment), (AudioSink.RingBuffer.commit),
+	(AudioSink.RingBuffer.samplesPlayed):
+	Make fields protected.
+	Abstract the reader thread.
+
+	* com/fluendo/plugin/AudioSinkSA.java:
+	* plugins.ini:
+	Added sun.audio backend.
+
 2006-01-09  Wim Taymans  <wim@fluendo.com>
 
 	* com/fluendo/jst/Caps.java: (Caps), (Caps.Caps), (Caps.toString),

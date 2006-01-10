@@ -82,17 +82,17 @@ public abstract class AudioSink extends Sink implements ClockProvider
   }
 
   protected class RingBuffer implements Runnable {
-    private byte[] buffer;
+    protected byte[] buffer;
     private int state;
     private Thread thread;
     private long nextSample;
-    private int bps, sps;
     private boolean flushing;
 
     private static final int STOP = 0;
     private static final int PAUSE = 1;
     private static final int PLAY = 2;
 
+    public int bps, sps;
     public byte[] emptySeg;
     public long playSeg;
     public int segTotal;
@@ -126,6 +126,8 @@ public abstract class AudioSink extends Sink implements ClockProvider
         toWrite = segSize;
         while (toWrite > 0) {
 	  ret = write (buffer, index, segSize);
+	  if (ret == -1)
+	    break;
 
 	  toWrite -= ret;
 	}
@@ -146,6 +148,17 @@ public abstract class AudioSink extends Sink implements ClockProvider
         pause();
       }
     }
+
+    protected void startWriteThread ()
+    {
+      thread = new Thread(this);
+      thread.start();
+      try {
+        wait();
+      }
+      catch (InterruptedException ie) {}
+    }
+
     public synchronized boolean acquire(Caps caps) {
       boolean res;
 
@@ -158,6 +171,7 @@ public abstract class AudioSink extends Sink implements ClockProvider
 
       rate = caps.getFieldInt("rate", 44100);
       channels = caps.getFieldInt("channels", 1);
+      bps = 2 * channels;
 
       if ((res = open (this)) == false)
         return res;
@@ -166,19 +180,13 @@ public abstract class AudioSink extends Sink implements ClockProvider
       Debug.log(Debug.INFO, "audio: segTotal: "+ segTotal);
 
       buffer = new byte[segSize * segTotal];
-      bps = 2 * channels;
       sps = segSize / bps;
 
       state = PAUSE;
       nextSample = 0;
       playSeg = 0;
 
-      thread = new Thread(this);
-      thread.start();
-      try {
-        wait();
-      }
-      catch (InterruptedException ie) {}
+      startWriteThread();
 
       return res;
     }
@@ -203,8 +211,10 @@ public abstract class AudioSink extends Sink implements ClockProvider
         play();
 
       try {
-	if (state != PLAY)
+	if (state != PLAY) {
+	  //System.out.println("waitSegment: not playing");
 	  return false;
+	}
 	    
         wait();
         if (flushing)
@@ -267,6 +277,7 @@ public abstract class AudioSink extends Sink implements ClockProvider
             /* else we need to wait for the segment to become writable. */
 	    //System.out.println("wait "+diff);
             if (!waitSegment ()) {
+	      //System.out.println("flushing");
               return -1;
 	    }
 	  }
@@ -296,12 +307,14 @@ public abstract class AudioSink extends Sink implements ClockProvider
       /* get the number of samples not yet played */
       delay = delay ();
       
-      seg = Math.max (0, playSeg); 
+      seg = Math.max (0, playSeg - 1); 
 
       samples = (seg * sps);
 
       if (samples >= delay)
         samples -= delay;
+      else
+        samples = 0;
 
       return samples;
     }

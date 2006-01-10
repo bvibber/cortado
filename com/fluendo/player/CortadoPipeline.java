@@ -237,7 +237,8 @@ public class CortadoPipeline extends Pipeline implements PadListener, CapsListen
     httpsrc.getPad("src").addCapsListener (this);
 
     if (enableAudio) {
-      audiosink = ElementFactory.makeByName("audiosinkj2", "audiosink");
+      //audiosink = ElementFactory.makeByName("audiosinkj2", "audiosink");
+      audiosink = ElementFactory.makeByName("audiosinksa", "audiosink");
 
       add(audiosink);
     }
