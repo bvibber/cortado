@@ -1,3 +1,9 @@
+2006-01-16  Thomas Vander Stichele  <thomas at apestaart dot org>
+
+	* custom/mp-jpeg.sh:
+	* custom/theora-ogg.sh:
+	  remove old custom scripts
+
 2006-01-10  Wim Taymans  <wim@fluendo.com>
 
 	* com/fluendo/player/CortadoPipeline.java: (CortadoPipeline.build):
