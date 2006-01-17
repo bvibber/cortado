@@ -20,7 +20,6 @@ package com.fluendo.player;
 
 import java.applet.*;
 import java.awt.*;
-import java.awt.image.*;
 import java.awt.event.*;
 import java.util.*;
 import com.fluendo.utils.*;

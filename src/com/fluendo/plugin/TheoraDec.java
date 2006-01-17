@@ -18,8 +18,6 @@
 
 package com.fluendo.plugin;
 
-import java.awt.*;
-import java.awt.image.*;
 import java.util.*;
 import com.jcraft.jogg.*;
 import com.fluendo.jheora.*;

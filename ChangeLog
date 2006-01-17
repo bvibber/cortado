@@ -1,5 +1,26 @@
 2006-01-17  Thomas Vander Stichele  <thomas at apestaart dot org>
 
+	* build.properties:
+	* src/com/fluendo/codecs/SmokeCodec.java:
+	* src/com/fluendo/jheora/DCTDecode.java:
+	* src/com/fluendo/jheora/Info.java:
+	* src/com/fluendo/jheora/YUVBuffer.java:
+	* src/com/fluendo/jst/Element.java:
+	* src/com/fluendo/jst/Event.java:
+	* src/com/fluendo/jst/Message.java:
+	* src/com/fluendo/jst/Pipeline.java:
+	* src/com/fluendo/jst/Query.java:
+	* src/com/fluendo/player/Cortado.java:
+	* src/com/fluendo/player/CortadoPipeline.java:
+	* src/com/fluendo/player/Status.java:
+	* src/com/fluendo/plugin/JPEGDec.java:
+	* src/com/fluendo/plugin/Sink.java:
+	* src/com/fluendo/plugin/SmokeDec.java:
+	* src/com/fluendo/plugin/TheoraDec.java:
+	  remove unneeded imports
+
+2006-01-17  Thomas Vander Stichele  <thomas at apestaart dot org>
+
 	* merged "build" branch:
 	  svn merge -r 2703:HEAD branches/build/ trunk/
 

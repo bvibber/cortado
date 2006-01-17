@@ -24,7 +24,6 @@
 
 package com.fluendo.jheora;
 
-import com.jcraft.jogg.*;
 import com.fluendo.utils.*;
 
 public class DCTDecode 

@@ -24,7 +24,6 @@
 
 package com.fluendo.jheora;
 
-import com.fluendo.utils.*;
 import com.jcraft.jogg.*;
 
 public class Info {

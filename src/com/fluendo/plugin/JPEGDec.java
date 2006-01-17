@@ -19,7 +19,6 @@
 package com.fluendo.plugin;
 
 import java.awt.*;
-import java.awt.image.*;
 import com.fluendo.jst.*;
 import com.fluendo.utils.*;
 

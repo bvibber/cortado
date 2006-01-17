@@ -18,8 +18,6 @@
 
 package com.fluendo.jst;
 
-import java.util.*;
-
 public class Message {
 
   /* types */

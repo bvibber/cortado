@@ -24,7 +24,6 @@
 
 package com.fluendo.jheora;
 
-import java.awt.*;
 import java.awt.image.*;
 
 public class YUVBuffer implements ImageProducer

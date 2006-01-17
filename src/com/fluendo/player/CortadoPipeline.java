@@ -18,12 +18,8 @@
 
 package com.fluendo.player;
 
-import com.fluendo.plugin.*;
 import com.fluendo.jst.*;
 import java.awt.*;
-import java.awt.event.*;
-import java.io.*;
-import java.util.*;
 
 public class CortadoPipeline extends Pipeline implements PadListener, CapsListener {
 

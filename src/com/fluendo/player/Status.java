@@ -21,9 +21,7 @@ package com.fluendo.player;
 import java.awt.*;
 import java.awt.image.*;
 import java.awt.event.*;
-import java.net.*;
 import java.util.*;
-import com.fluendo.utils.*;
 
 public class Status extends Component implements MouseListener, MouseMotionListener
 {

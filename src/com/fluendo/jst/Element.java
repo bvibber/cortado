@@ -19,11 +19,7 @@
 package com.fluendo.jst;
 
 import java.awt.*;
-import java.io.*;
-import java.net.*;
 import java.util.*;
-import com.fluendo.plugin.*;
-import com.fluendo.utils.*;
 
 public abstract class Element extends com.fluendo.jst.Object
 {

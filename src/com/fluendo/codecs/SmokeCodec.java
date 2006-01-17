@@ -20,7 +20,6 @@
 package com.fluendo.codecs;
 
 import java.awt.*;
-import java.util.*;
 
 public class SmokeCodec {
   private static final int IDX_TYPE       = 0;
