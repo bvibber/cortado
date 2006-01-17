@@ -23,8 +23,8 @@ import java.util.*;
 
 public abstract class Element extends com.fluendo.jst.Object
 {
-  public static final int FLAG_IS_SINK = (com.fluendo.jst.Object.FLAG_LAST << 1);
-  public static final int FLAG_LAST    = (com.fluendo.jst.Object.FLAG_LAST << 16);
+  public static final int FLAG_IS_SINK         = (com.fluendo.jst.Object.OBJECT_FLAG_LAST << 1);
+  public static final int ELEMENT_FLAG_LAST    = (com.fluendo.jst.Object.OBJECT_FLAG_LAST << 16);
 
   protected Vector pads = new Vector();
   protected java.lang.Object stateLock =  new java.lang.Object();
@@ -58,8 +58,6 @@ public abstract class Element extends com.fluendo.jst.Object
   protected int pendingState;
   protected int lastReturn;
 
-  protected Component component;
-  
   public String getMime ()
   {
     return null;
@@ -85,11 +83,6 @@ public abstract class Element extends com.fluendo.jst.Object
   public String toString ()
   {
     return "Element: ["+getName()+"]";
-  }
-
-  public synchronized void setComponent(Component comp)
-  {
-    component = comp;
   }
 
   public synchronized void setClock (Clock newClock) {

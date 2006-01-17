@@ -142,7 +142,7 @@ public class Pipeline extends com.fluendo.jst.Element implements BusSyncHandler
 
   private class SortedEnumerator implements Enumeration
   {
-    private Enumeration e;
+    private Enumeration enumerator;
     private Vector queue;
     private Hashtable hash;
     private java.lang.Object next;
@@ -186,7 +186,7 @@ public class Pipeline extends com.fluendo.jst.Element implements BusSyncHandler
     }
 
     public SortedEnumerator() {
-      e = enumElements();
+      enumerator = enumElements();
       queue = new Vector();
       hash = new Hashtable();
 

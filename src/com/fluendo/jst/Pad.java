@@ -51,9 +51,9 @@ public class Pad extends com.fluendo.jst.Object implements Runnable
   protected Caps caps;
   
   /* task stuff */
-  private final int T_STOP = 0;
-  private final int T_PAUSE = 1;
-  private final int T_START = 2;
+  private static final int T_STOP = 0;
+  private static final int T_PAUSE = 1;
+  private static final int T_START = 2;
   private Thread thread;
   private int taskState;
   private java.lang.Object taskLock = new java.lang.Object();

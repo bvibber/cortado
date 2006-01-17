@@ -24,7 +24,7 @@ public abstract class Object
   protected com.fluendo.jst.Object parent;
   protected int flags;
 
-  public static final int FLAG_LAST = (1 << 4);
+  public static final int OBJECT_FLAG_LAST = (1 << 4);
 
   public synchronized String getName () {
     return name;

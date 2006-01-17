@@ -352,17 +352,17 @@ public abstract class Sink extends Element
     switch (transition) {
       case PLAY_PAUSE:
       {
-        boolean isEOS;
+        boolean checkEOS;
 
         /* unlock clock */
         synchronized (this) {
 	  if (clockID != null) {
 	    clockID.unschedule();
 	  }
-	  isEOS = this.isEOS;
+	  checkEOS = this.isEOS;
 	}
         synchronized (prerollLock) {
-	  if (!havePreroll && !isEOS && pendingState == PAUSE) {
+	  if (!havePreroll && !checkEOS && pendingState == PAUSE) {
 	    needPreroll = true;
 	    result = ASYNC;
 	  }
