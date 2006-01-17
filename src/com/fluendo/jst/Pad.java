@@ -111,7 +111,6 @@ public class Pad extends com.fluendo.jst.Object implements Runnable
   }
 
   public synchronized boolean link (Pad newPeer) {
-    boolean res;
 
     /* already was connected */
     if (peer != null)

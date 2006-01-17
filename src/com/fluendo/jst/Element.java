@@ -142,8 +142,6 @@ public abstract class Element extends com.fluendo.jst.Object
     return null; 
   }
   public synchronized boolean addPad(Pad newPad) {
-    boolean res;
-
     if (newPad.setParent (this) == false)
       return false;
 
@@ -224,7 +222,7 @@ public abstract class Element extends com.fluendo.jst.Object
 
   public int getStateNext (int current, int pending)
   {
-    int sign, result;
+    int sign;
 
     sign = pending - current;
     if (sign > 0) sign = 1;

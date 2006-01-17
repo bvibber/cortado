@@ -1,5 +1,18 @@
 2006-01-17  Thomas Vander Stichele  <thomas at apestaart dot org>
 
+	* src/com/fluendo/codecs/SmokeCodec.java: (SmokeCodec):
+	* src/com/fluendo/jheora/DCTDecode.java:
+	(DCTDecode.....UpdateUMV_HBorders):
+	* src/com/fluendo/jheora/Info.java: (Info._tp_readlsbint):
+	* src/com/fluendo/jheora/iDCT.java: (iDCT.IDct10):
+	* src/com/fluendo/jst/Element.java: (Element.getPad):
+	* src/com/fluendo/jst/Pad.java: (Pad.doCapsListeners):
+	* src/com/fluendo/jst/Pipeline.java: (Pipeline.doChildStateChange):
+	* src/com/fluendo/player/CortadoPipeline.java: (CortadoPipeline):
+	  remove unused vars
+
+2006-01-17  Thomas Vander Stichele  <thomas at apestaart dot org>
+
 	* build.properties:
 	* src/com/fluendo/codecs/SmokeCodec.java:
 	* src/com/fluendo/jheora/DCTDecode.java:

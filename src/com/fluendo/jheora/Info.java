@@ -80,8 +80,6 @@ public class Info {
   }
 
   private int unpackInfo(Buffer opb){
-    long ret;
-
     version_major = (byte)opb.readB(8);
     version_minor = (byte)opb.readB(8);
     version_subminor = (byte)opb.readB(8);

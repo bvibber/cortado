@@ -446,7 +446,6 @@ public class Pipeline extends com.fluendo.jst.Element implements BusSyncHandler
   }
 
   private void calcPrerollTime () {
-    boolean res = true;
     long min = Long.MAX_VALUE;
     long max = 0;
 

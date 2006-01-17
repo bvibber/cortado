@@ -234,7 +234,6 @@ public final class iDCT
 
     int _A, _B, _C, _D, _Ad, _Bd, _Cd, _Dd, _E, _F, _G, _H;
     int _Ed, _Gd, _Add, _Bdd, _Fd, _Hd;
-    int t1, t2;
 
     dequant_slow10 (QuantMatrix, InputData, ip);
 

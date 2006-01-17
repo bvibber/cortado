@@ -359,7 +359,6 @@ public class DCTDecode
     DestPtr2 = SrcPtr2;
     DestOff2 = SrcOff2 + PlaneStride;
 
-    int off = 0;
     /* Now copy the top and bottom source lines into each line of the
        respective borders */
     for ( i = 0; i < PlaneBorderWidth; i++ ) {

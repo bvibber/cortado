@@ -86,7 +86,6 @@ public class SmokeCodec {
   
   public Image decode (byte[] in, int offset, int length) 
   { 
-    Image res;
     int b1,b2; 
 
     parseHeader(in, offset, length);

@@ -222,8 +222,6 @@ public class CortadoPipeline extends Pipeline implements PadListener, CapsListen
 
   public boolean build()
   {
-    boolean res;
-
     httpsrc = ElementFactory.makeByName("httpsrc", "httpsrc");
     httpsrc.setProperty("url", url);
     httpsrc.setProperty("userId", userId);
