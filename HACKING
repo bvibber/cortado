@@ -1,0 +1,45 @@
+HACKING NOTES for Cortado
+-------------------------
+
+directory layout:
+
+- src:             source code
+  - com/jcraft:    copy of JCraft JOgg and Jorbis source code, plus some changes
+  - com/fluendo:   Source code written by Fluendo
+    - utils:       utitity classes used by jst, jheora, examples
+    - jst:         a java port of the GStreamer 0.10 design
+    - jheora:      a java implementation of the Theora video codec
+    - codecs:      additional codecs; currently contains the Smoke codec
+    - plugin:      plugins implementing/wrapping sources/decoders/sinks
+    - examples:    example programs
+
+- stubs:           stubs that contain minimal definitions for other classes
+                   to allow compilation
+  - sun/audio:     stubs for sun.audio.*
+  - javax/sound:
+    - sampled:     stubs for javax.sound.sampled.*
+
+- output:          files generated as part of the build
+  - build:         built class files
+  - dist:          resulting jar files
+
+
+NOTES
+-----
+- the plan is to:
+  - build com.fluendo.utils in a jar
+  - build com.jcraft in a jar
+  - build com.fluendo.jheora in a jar (relying on jcraft and utils jars)
+  - build com.fluendo.jst in a jar (relying on utils)
+  - build com.fluendo.plugin into a jar (all combined, relying on all above)
+
+- FIXME: what to do with the examples ?
+
+HISTORY
+------
+
+- applet sizes:
+  - cortado-ovt-0.1.2.1.jar:
+    - 2005-04-29: 179327 bytes
+    - 2006-01-17: 191901 bytes (after JST implementation)
+

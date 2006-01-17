@@ -1,15 +1,26 @@
 <project name="cortado" default="dist" basedir=".">
+
     <description>
 Cortado ANT build file
     </description>
 
-  <!-- set global properties for this build -->
-  <property name="src" location="com"/>
-  <property name="build" location="build"/>
-  <property name="dist"  location="dist"/>
+  <!-- ==================================== -->
+  <!-- ======== PROPERTY DEFINITION ======= -->
+  <!-- ==================================== -->
 
-  <!-- set package properties -->
-  <property name="version"      value="0.1.2.1" />
+  <property file="build.config"/>
+  <property file="build.properties"/>
+
+  <property name="src"                value="${basedir}/src"/>
+  <property name="examples"           value="${basedir}/examples"/>
+  <property name="config"             value="${basedir}/config"/>
+  <property name="archive"            value="${basedir}/archive"/>
+
+  <property name="out"                value="${basedir}/output"/>
+  <property name="out.build"          value="${out}/build"/>
+  <property name="out.dist"           value="${out}/dist"/>
+  <property name="out.dist.examples"  value="${out.dist}/examples"/>
+
 
   <!-- we are still in autotool withdrawal -->
   <property name="prefix"      location="/usr/local" />
@@ -26,10 +37,11 @@ Cortado ANT build file
     <!-- Create the time stamp -->
     <tstamp/>
     <!-- Create the build directory structure used by compile -->
-    <mkdir dir="${build}"/>
+    <mkdir dir="${out}"/>
+    <mkdir dir="${out.build}"/>
   </target>
 
-<!-- generate Configure-time options class -->
+<!-- generate Configure-time options class as src/com/fluendo/player/Configure.java -->
   <target name="configure">
     <exec dir="${basedir}" executable="./gen-Configure">
       <env key="VERSION" value="${version}" />
@@ -65,134 +77,152 @@ Cortado ANT build file
 <!-- generate includes and plugins.ini -->
   <target name="includes"
           depends="plugins,includes-delete,include-JPEG,include-Mulaw,include-MultiPart,include-Ogg,include-Smoke,include-Theora,include-Vorbis">
-    <echo>Generating ${build}/includes</echo>
+    <echo>Generating ${out.build}/includes</echo>
   </target>
 
   <target name="includes-delete" depends="init">
-    <touch file="${build}/includes" />
-    <delete file="${build}/includes" />
-    <echo file="${build}/includes" append="true"
->fluendo/player/*
-fluendo/utils/*
+    <touch file="${out.build}/includes" />
+    <delete file="${out.build}/includes" />
+    <echo file="${out.build}/includes" append="true"
+>com/fluendo/player/*
+com/fluendo/utils/*
 </echo>
-    <delete file="${build}/plugins.ini" />
-    <touch file="${build}/plugins.ini" />
+    <delete file="${out.build}/plugins.ini" />
+    <touch file="${out.build}/plugins.ini" />
 
   </target>
 
   <target name="include-JPEG" unless="plugin.JPEG.false">
     <echo>Including JPEG</echo>
-    <echo file="${build}/includes" append="true"
->fluendo/plugin/JPEG*
+    <echo file="${out.build}/includes" append="true"
+>com/fluendo/plugin/JPEG*
 </echo>
-    <echo file="${build}/plugins.ini" append="true"
+    <echo file="${out.build}/plugins.ini" append="true"
 >com.fluendo.plugin.JPEGPlugin
 </echo>
   </target>
 
   <target name="include-Mulaw" unless="plugin.Mulaw.false">
     <echo>Including Mulaw</echo>
-    <echo file="${build}/includes" append="true"
->fluendo/plugin/Mulaw*
+    <echo file="${out.build}/includes" append="true"
+>com/fluendo/plugin/Mulaw*
 </echo>
-    <echo file="${build}/plugins.ini" append="true"
+    <echo file="${out.build}/plugins.ini" append="true"
 >com.fluendo.plugin.MulawPlugin
 </echo>
   </target>
 
   <target name="include-MultiPart" unless="plugin.MultiPart.false">
     <echo>Including MultiPart</echo>
-    <echo file="${build}/includes" append="true"
->fluendo/plugin/MultiPart*
+    <echo file="${out.build}/includes" append="true"
+>com/fluendo/plugin/MultiPart*
 </echo>
-    <echo file="${build}/plugins.ini" append="true"
+    <echo file="${out.build}/plugins.ini" append="true"
 >com.fluendo.plugin.MultiPartPlugin
 </echo>
   </target>
 
   <target name="include-Ogg" unless="plugin.Ogg.false">
     <echo>Including Ogg</echo>
-    <echo file="${build}/includes" append="true"
->jcraft/jogg/*
+    <echo file="${out.build}/includes" append="true"
+>com/jcraft/jogg/*
 fluendo/plugin/Ogg*
 </echo>
-    <echo file="${build}/plugins.ini" append="true"
+    <echo file="${out.build}/plugins.ini" append="true"
 >com.fluendo.plugin.OggPlugin
 </echo>
   </target>
 
   <target name="include-Smoke" unless="plugin.Smoke.false">
     <echo>Including Smoke</echo>
-    <echo file="${build}/includes" append="true"
->fluendo/codecs/Smoke*
-fluendo/plugin/Smoke*
+    <echo file="${out.build}/includes" append="true"
+>com/fluendo/codecs/Smoke*
+com/fluendo/plugin/Smoke*
 </echo>
-    <echo file="${build}/plugins.ini" append="true"
+    <echo file="${out.build}/plugins.ini" append="true"
 >com.fluendo.plugin.SmokePlugin
 </echo>
   </target>
 
   <target name="include-Theora" unless="plugin.Theora.false">
     <echo>Including Theora</echo>
-    <echo file="${build}/includes" append="true"
->fluendo/jheora/*
-fluendo/plugin/Theora*
+    <echo file="${out.build}/includes" append="true"
+>com/fluendo/jheora/*
+com/fluendo/plugin/Theora*
 </echo>
-    <echo file="${build}/plugins.ini" append="true"
+    <echo file="${out.build}/plugins.ini" append="true"
 >com.fluendo.plugin.TheoraPlugin
 </echo>
   </target>
 
   <target name="include-Vorbis" unless="plugin.Vorbis.false">
     <echo>Including Vorbis</echo>
-    <echo file="${build}/includes" append="true"
->jcraft/jorbis/*
-fluendo/plugin/Vorbis*
+    <echo file="${out.build}/includes" append="true"
+>com/jcraft/jorbis/*
+com/fluendo/plugin/Vorbis*
 </echo>
-    <echo file="${build}/plugins.ini" append="true"
+    <echo file="${out.build}/plugins.ini" append="true"
 >com.fluendo.plugin.VorbisPlugin
 </echo>
   </target>
 
 <!-- compilation steps -->
-  <target name="compile" depends="init,includes,configure,compile-jikes" />
 
-<!-- sun java build -->
-  <target name="compile-sun"
-        description="compile the source using sun java (set JAVA_HOME)" >
-    <!-- Compile the java code from ${src} into ${build} -->
-    <!-- with a 1.1 target -->
+  <!-- FIXME: not used currently -->
+  <!-- set compiler flags -->
+  <target name="compile-flags"
+        description="determine compile flags">
 
-    <javac 
-           compiler="modern"
-           srcdir="${src}" destdir="${build}" 
-           target="1.1"
-           includesfile="${build}/includes" />
+      <!-- jikes seemed to use to ignore the target settings, so we had
+           additional settings.  This seems to work fine now though -->
+<!--
+      <condition property="compiler.flags.target" value="-target 1.1">
+        <equals arg1="${build.compiler}" arg2="jikes" />
+      </condition>
+-->
+  </target>
+
+  <!-- determine if we need to use stubs -->
+  <target name="compile-stubs"
+        description="determine if we need the stubs">
+      <condition property="stubs" value="stubs">
+        <equals arg1="${build.compiler}" arg2="jikes" />
+      </condition>
   </target>
 
  
-<!-- jikes build -->
-  <target name="compile-jikes"
-        description="compile the source " >
-    <!-- Compile the java code from ${src} into ${build} -->
-    <!-- using our stubs as classpath, and with a 1.1 target -->
+  <target name="compile"
+          description="compile the source"
+          depends="init,includes,configure,compile-stubs"
+   >
+    <!-- Compile the java code from ${src} into ${out.build} -->
+    <!-- possibly using our stubs as classpath, and with a 1.1 target -->
 <!--
+          depends="compile-flags"
+           debug="${project.build.debug}"
+           debug="true" debuglevel="lines,vars,source"
 -->
 
+<!-- note: ant 1.6.5 does handle debuglevel for jikes, but 1.6.2 doesn't -->
     <javac 
-           compiler="jikes" 
-           classpath="stubs"
-           srcdir="${src}" destdir="${build}" 
-           includesfile="${build}/includes"
+           classpath="${stubs}"
+           destdir="${out.build}" 
+           includesfile="${out.build}/includes"
+           debug="true"
+           debuglevel="none"
            target="1.1">
-      <!-- for some reason jikes ignores the target given above this -->
-      <compilerarg line="-target 1.1" />
+      <src path="${src}" />
+
+<!-- FIXME: -g:none should be handleable by debuglevel above
+      <compilerarg line="${compiler.flags.target} -g:none" />
+      <compilerarg line="${compiler.flags.target}" />
+-->
     </javac>
   </target>
 
   <!-- generate plugins.ini -->
   <target name="ini" description="generate plugins.ini">
-    <copy todir="${build}">
+    <copy todir="${out.build}">
       <fileset file="plugins.ini" />
     </copy>
   </target>
@@ -211,10 +241,10 @@ fluendo/plugin/Vorbis*
   <target name="jar" depends="clean,compile,ini"
         description="generate the jar file">
     <!-- Create the distribution directory -->
-    <mkdir dir="${dist}/applet"/>
+    <mkdir dir="${out.dist}/applet"/>
 
-    <!-- Put everything in ${build} into the cortado.jar file -->
-    <jar jarfile="${dist}/applet/cortado.jar" basedir="${build}"
+    <!-- Put everything in ${out.build} into the cortado.jar file -->
+    <jar jarfile="${out.dist}/applet/cortado.jar" basedir="${out.build}"
          excludes="includes,sun/audio/*,sun/audio,sun,javax/sound/sampled/spi/*,javax/sound/sampled/*, javax/sound/sampled,javax/sound,javax"/>
   </target>
 
@@ -223,12 +253,12 @@ fluendo/plugin/Vorbis*
     <!-- Create the installation locations -->
     <mkdir dir="${libdir}/cortado"/>
 
-    <!-- Put everything in ${build} into $libdir/cortado -->
+    <!-- Put everything in ${out.build} into $libdir/cortado -->
     <copy todir="${libdir}/cortado">
-      <fileset dir="build">
+      <fileset dir="out.build">
         <include name="com/jcraft/*/*.class"/>
         <include name="com/fluendo/*/*.class"/>
-        <include name="${build}/applet/cortado.jar"/>
+        <include name="${out.build}/applet/cortado.jar"/>
       </fileset>
     </copy>
 
@@ -243,8 +273,8 @@ fluendo/plugin/Vorbis*
 
   <target name="clean"
         description="clean up" >
-    <!-- Delete the ${build} and ${dist} directory trees -->
-    <delete dir="${build}"/>
-    <delete dir="${dist}"/>
+    <!-- Delete the ${out.build} and ${out.dist} directory trees -->
+    <delete dir="${out.build}"/>
+    <delete dir="${out.dist}"/>
   </target>
 </project>

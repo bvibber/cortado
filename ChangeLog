@@ -1,3 +1,25 @@
+2006-01-17  Thomas Vander Stichele  <thomas at apestaart dot org>
+
+	* merged "build" branch:
+	  svn merge -r 2703:HEAD branches/build/ trunk/
+
+2006-01-17  Thomas Vander Stichele  <thomas at apestaart dot org>
+
+	* Makefile:
+	* build.properties:
+	* build.xml:
+	  add build.properties
+	  merge sun and jikes build in one, should now be adaptable
+	  to all compilers
+
+2006-01-17  Thomas Vander Stichele  <thomas at apestaart dot org>
+
+	* Makefile:
+	* build.xml:
+	* HACKING:
+	  reorganize build further.  "make ovt" and "make mmjs" seem to
+	  produce applets. add HACING notes
+
 2006-01-16  Thomas Vander Stichele  <thomas at apestaart dot org>
 
 	* custom/mp-jpeg.sh:
