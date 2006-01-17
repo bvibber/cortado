@@ -190,6 +190,27 @@ com/fluendo/plugin/Vorbis*
       </condition>
   </target>
 
+<!-- FIXME: figure out how to use this in the other compile section -->
+  <target name="compile-jcraft"
+          description="compile the JCraft source"
+          depends="init"
+   >
+    <!-- Compile the java code from ${src} into ${out.build}
+         and ignore warnings on it since it's not our code -->
+    <javac 
+           destdir="${out.build}" 
+           target="1.1"
+           nowarn="yes"
+    >
+      <src path="${src}/com/jcraft" />
+
+
+<!-- FIXME: -g:none should be handleable by debuglevel above
+      <compilerarg line="${compiler.flags.target} -g:none" />
+      <compilerarg line="${compiler.flags.target}" />
+-->
+    </javac>
+  </target>
  
   <target name="compile"
           description="compile the source"
@@ -237,6 +258,19 @@ com/fluendo/plugin/Vorbis*
   <target name="test" if="testyes" depends="testcheck">
     <echo>${test}</echo>
   </target>
+
+<!-- JAR CREATION -->
+  <target name="jar-jcraft" depends="compile-jcraft"
+        description="generate the jcraft jar file">
+    <!-- Create the distribution directory -->
+    <mkdir dir="${out.dist}/applet"/>
+
+    <!-- Put everything in ${out.build} into the cortado.jar file -->
+    <jar jarfile="${out.dist}/jcraft.jar" basedir="${out.build}"
+         includes="com/jcraft/*/*" />
+  </target>
+
+
 
   <target name="jar" depends="clean,compile,ini"
         description="generate the jar file">

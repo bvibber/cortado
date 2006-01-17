@@ -1,5 +1,11 @@
 2006-01-17  Thomas Vander Stichele  <thomas at apestaart dot org>
 
+	* build.xml:
+	  make compile-jcraft and jar-jcraft targets and shut up warnings
+	  for them
+
+2006-01-17  Thomas Vander Stichele  <thomas at apestaart dot org>
+
 	* src/com/fluendo/codecs/SmokeCodec.java: (SmokeCodec):
 	* src/com/fluendo/jheora/DCTDecode.java:
 	(DCTDecode.....UpdateUMV_HBorders):
