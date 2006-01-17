@@ -1,4 +1,4 @@
-<project name="cortado" default="dist" basedir=".">
+<project name="cortado" default="all" basedir=".">
 
     <description>
 Cortado ANT build file
@@ -17,7 +17,6 @@ Cortado ANT build file
   <property name="archive"            value="${basedir}/archive"/>
 
   <property name="out"                value="${basedir}/output"/>
-  <property name="out.build"          value="${out}/build"/>
   <property name="out.dist"           value="${out}/dist"/>
   <property name="out.dist.examples"  value="${out.dist}/examples"/>
 
@@ -46,12 +45,15 @@ Cortado ANT build file
   <target name="type">
     <echo message="Building ${build.type} version" />
     <propertycopy name="build.flags" from="build.${build.type}.flags" />
+    <!-- we make out.build depend on the release type -->
+    <property name="out.build"   value="${out}/build/${build.type}" />
   </target>
 
   <!-- show us some info to make sure we are checking things correctly -->
   <target name="info" depends="type">
     <echo message="compiler: ${build.compiler}" />
     <echo message="compile flags: ${build.flags}" />
+    <echo message="out.build: ${out.build}" />
   </target>
 
   <target name="init" depends="type">
@@ -61,12 +63,13 @@ Cortado ANT build file
     <mkdir dir="${out}"/>
     <mkdir dir="${out.build}"/>
     <mkdir dir="${out.dist}/${build.type}"/>
+    <mkdir dir="${out.dist}/applet"/>
   </target>
 
 <!-- generate Configure-time options class as src/com/fluendo/player/Configure.java -->
   <target name="configure">
     <exec dir="${basedir}" executable="./gen-Configure">
-      <env key="VERSION" value="${version}" />
+      <env key="VERSION" value="${product.version}" />
       <arg line="Built using ant." />
     </exec>
   </target>
@@ -96,26 +99,33 @@ Cortado ANT build file
     </condition>
    </target>
 
-<!-- generate includes and plugins.ini -->
+<!-- generate includes and plugins.ini based on contents of exclude -->
   <target name="includes"
           depends="plugins,includes-delete,include-JPEG,include-Mulaw,include-MultiPart,include-Ogg,include-Smoke,include-Theora,include-Vorbis">
     <echo>Generating ${out.build}/includes</echo>
   </target>
-
-<!-- FIXME: we removed
-com/fluendo/utils/*
-from this piece of includes because we made a separate target for it now
--->
 
   <target name="includes-delete" depends="init">
     <touch file="${out.build}/includes" />
     <delete file="${out.build}/includes" />
     <echo file="${out.build}/includes" append="true"
 >com/fluendo/player/*
+com/fluendo/utils/*
+com/fluendo/jst/*
+com/fluendo/plugin/AudioSink*
+com/fluendo/plugin/VideoSink**
+com/fluendo/plugin/HTTPSrc*
+com/fluendo/plugin/Queue*
+plugins.ini
 </echo>
-    <delete file="${out.build}/plugins.ini" />
-    <touch file="${out.build}/plugins.ini" />
-
+    <echo file="${out.build}/plugins.ini"
+>com.fluendo.plugin.HTTPSrc
+>com.fluendo.plugin.VideoSink
+>com.fluendo.plugin.AudioSinkJ2
+>com.fluendo.plugin.AudioSinkSA
+>com.fluendo.plugin.Queue
+</echo>
+ 
   </target>
 
   <target name="include-JPEG" unless="plugin.JPEG.false">
@@ -256,7 +266,7 @@ com/fluendo/plugin/Vorbis*
  
   <target name="compile"
           description="compile the source"
-          depends="init,includes,configure,compile-stubs,compile-jcraft"
+          depends="init,configure,compile-stubs,compile-jcraft"
    >
     <!-- Compile the java code from ${src} into ${out.build} -->
     <!-- possibly using our stubs as classpath, and with a 1.1 target -->
@@ -270,7 +280,6 @@ com/fluendo/plugin/Vorbis*
     <javac 
            classpath="${stubs}"
            destdir="${out.build}" 
-           includesfile="${out.build}/includes"
            debug="true"
            debuglevel="none"
            target="1.1">
@@ -315,15 +324,64 @@ com/fluendo/plugin/Vorbis*
          includes="com/fluendo/utils/*" />
   </target>
 
-  <target name="jar" depends="clean,compile,plugins.ini"
-        description="generate the jar file">
-    <!-- Create the distribution directory -->
-    <mkdir dir="${out.dist}/applet"/>
-
-    <!-- Put everything in ${out.build} into the cortado.jar file -->
-    <jar jarfile="${out.dist}/applet/cortado.jar" basedir="${out.build}"
-         excludes="includes,sun/audio/*,sun/audio,sun,javax/sound/sampled/spi/*,javax/sound/sampled/*, javax/sound/sampled,javax/sound,javax"/>
+  <target name="applet-ovt" depends="compile"
+          description="generate the Ogg/Vorbis+Theora applet">
+    <antcall target="includes">
+      <param name="exclude" value="Smoke,Jpeg,MultiPart,Mulaw" />
+    </antcall>
+    <jar jarfile="${out.dist}/applet/cortado-ovt-${build.type}-${product.version}.jar"
+         includesfile="${out.build}/includes"
+         basedir="${out.build}">
+    </jar>
   </target>
+
+  <target name="applet-ov" depends="compile"
+          description="generate the Ogg/Vorbis applet">
+    <antcall target="includes">
+      <param name="exclude" value="Smoke,Jpeg,MultiPart,Mulaw,Theora" />
+    </antcall>
+    <jar jarfile="${out.dist}/applet/cortado-ov-${build.type}-${product.version}.jar"
+         includesfile="${out.build}/includes"
+         basedir="${out.build}">
+    </jar>
+  </target>
+
+  <target name="applet-mmjs" depends="compile"
+          description="generate the Multipart/Mulaw+Smoke+Jpeg applet">
+    <antcall target="includes">
+      <param name="exclude" value="Ogg,Vorbis,Theora" />
+    </antcall>
+    <jar jarfile="${out.dist}/applet/cortado-mmjs-${build.type}-${product.version}.jar"
+         includesfile="${out.build}/includes"
+         basedir="${out.build}">
+    </jar>
+  </target>
+
+
+  <target name="applet" depends="applet-ovt,applet-ov,applet-mmjs"
+           description="generate all applets" />
+
+  <target name="jar" depends="jar-jcraft,jar-utils"
+        description="generate all jar files" />
+
+  <target name="all" depends="applet,jar"
+          description="generate jars and applets" />
+
+  <target name="debug"
+          description="generate all jars and applets in debug mode">
+    <antcall target="all">
+      <param name="build.type" value="debug" />
+    </antcall>
+  </target>
+
+  <target name="release"
+          description="generate all jars and applets in release mode">
+    <antcall target="all">
+      <param name="build.type" value="release" />
+    </antcall>
+  </target>
+
+
 
   <target name="install" depends="jar"
           description="install cortado">
@@ -340,7 +398,7 @@ com/fluendo/plugin/Vorbis*
     </copy>
 
     <!-- Install documentation -->
-    <copy todir="${datadir}/cortado-${version}">
+    <copy todir="${datadir}/cortado-${product.version}">
       <fileset dir=".">
         <include name="LICENSE.*"/>
         <include name="TODO"/>

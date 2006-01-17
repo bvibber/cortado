@@ -1,5 +1,13 @@
 2006-01-17  Thomas Vander Stichele  <thomas at apestaart dot org>
 
+	* build.xml:
+	  clean up rules further
+	  set out.build to a build-type-specific location for all rules
+	  add applet and jar rules that build all of them
+	  add debug and release targets
+
+2006-01-17  Thomas Vander Stichele  <thomas at apestaart dot org>
+
 	* HACKING:
 	* Makefile:
 	* build.properties:
