@@ -20,20 +20,13 @@ compile:
 	ant compile
 
 clean:
-	rm -f $BUILDDIR/com/jcraft/jogg/*.class
-	rm -f $BUILDDIR/com/jcraft/jorbis/*.class
-	rm -f $BUILDDIR/com/fluendo/codecs/*.class
-	rm -f com/fluendo/player/*.class
-	rm -f com/fluendo/jst/*.class
-	rm -f com/fluendo/examples/*.class
-	rm -f com/fluendo/utils/*.class
-	rm -f com/fluendo/jheora/*.class
-	rm -f com/fluendo/plugin/*.class
-	rm -f cortado.jar 
-	rm -f cortado.tgz 
-	rm -rf build
-	rm -rf dist
-	rm *.jar
+	rm -rf output/build
+
+distclean:
+	rm -rf output/dist
+	-rm -f cortado.jar 
+	-rm -f cortado.tgz 
+	-rm *.jar
 
 jar:
 	ant jar

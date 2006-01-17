@@ -33,12 +33,34 @@ Cortado ANT build file
   <property file="plugins.properties" />
 -->
 
-  <target name="init">
+<!-- a helper macro -->
+  <macrodef name="propertycopy">
+    <attribute name="name"/>
+    <attribute name="from"/>
+    <sequential>
+      <property name="@{name}" value="${@{from}}"/>
+    </sequential>
+  </macrodef>
+
+  <!-- figure out what build type we are using and set build.${type} stuff -->
+  <target name="type">
+    <echo message="Building ${build.type} version" />
+    <propertycopy name="build.flags" from="build.${build.type}.flags" />
+  </target>
+
+  <!-- show us some info to make sure we are checking things correctly -->
+  <target name="info" depends="type">
+    <echo message="compiler: ${build.compiler}" />
+    <echo message="compile flags: ${build.flags}" />
+  </target>
+
+  <target name="init" depends="type">
     <!-- Create the time stamp -->
     <tstamp/>
     <!-- Create the build directory structure used by compile -->
     <mkdir dir="${out}"/>
     <mkdir dir="${out.build}"/>
+    <mkdir dir="${out.dist}/${build.type}"/>
   </target>
 
 <!-- generate Configure-time options class as src/com/fluendo/player/Configure.java -->
@@ -80,12 +102,16 @@ Cortado ANT build file
     <echo>Generating ${out.build}/includes</echo>
   </target>
 
+<!-- FIXME: we removed
+com/fluendo/utils/*
+from this piece of includes because we made a separate target for it now
+-->
+
   <target name="includes-delete" depends="init">
     <touch file="${out.build}/includes" />
     <delete file="${out.build}/includes" />
     <echo file="${out.build}/includes" append="true"
 >com/fluendo/player/*
-com/fluendo/utils/*
 </echo>
     <delete file="${out.build}/plugins.ini" />
     <touch file="${out.build}/plugins.ini" />
@@ -170,8 +196,7 @@ com/fluendo/plugin/Vorbis*
 
   <!-- FIXME: not used currently -->
   <!-- set compiler flags -->
-  <target name="compile-flags"
-        description="determine compile flags">
+  <target name="compile-flags">
 
       <!-- jikes seemed to use to ignore the target settings, so we had
            additional settings.  This seems to work fine now though -->
@@ -183,8 +208,7 @@ com/fluendo/plugin/Vorbis*
   </target>
 
   <!-- determine if we need to use stubs -->
-  <target name="compile-stubs"
-        description="determine if we need the stubs">
+  <target name="compile-stubs">
       <condition property="stubs" value="stubs">
         <equals arg1="${build.compiler}" arg2="jikes" />
       </condition>
@@ -198,11 +222,29 @@ com/fluendo/plugin/Vorbis*
     <!-- Compile the java code from ${src} into ${out.build}
          and ignore warnings on it since it's not our code -->
     <javac 
+           srcdir="${src}" 
            destdir="${out.build}" 
            target="1.1"
            nowarn="yes"
     >
-      <src path="${src}/com/jcraft" />
+      <include name="com/jcraft/jogg/*" />
+      <include name="com/jcraft/jorbis/*" />
+      <compilerarg line="${build.flags}" />
+    </javac>
+  </target>
+
+<!-- FIXME: figure out how to use this in the other compile section -->
+  <target name="compile-utils"
+          description="compile com.fluendo.utils source"
+          depends="init"
+   >
+    <javac 
+           destdir="${out.build}" 
+           target="1.1"
+           nowarn="yes"
+    >
+      <src path="${src}/com/fluendo/utils" />
+      <compilerarg line="${build.flags}" />
 
 
 <!-- FIXME: -g:none should be handleable by debuglevel above
@@ -214,7 +256,7 @@ com/fluendo/plugin/Vorbis*
  
   <target name="compile"
           description="compile the source"
-          depends="init,includes,configure,compile-stubs"
+          depends="init,includes,configure,compile-stubs,compile-jcraft"
    >
     <!-- Compile the java code from ${src} into ${out.build} -->
     <!-- possibly using our stubs as classpath, and with a 1.1 target -->
@@ -233,6 +275,7 @@ com/fluendo/plugin/Vorbis*
            debuglevel="none"
            target="1.1">
       <src path="${src}" />
+      <compilerarg line="${build.flags}" />
 
 <!-- FIXME: -g:none should be handleable by debuglevel above
       <compilerarg line="${compiler.flags.target} -g:none" />
@@ -242,7 +285,7 @@ com/fluendo/plugin/Vorbis*
   </target>
 
   <!-- generate plugins.ini -->
-  <target name="ini" description="generate plugins.ini">
+  <target name="plugins.ini">
     <copy todir="${out.build}">
       <fileset file="plugins.ini" />
     </copy>
@@ -262,17 +305,17 @@ com/fluendo/plugin/Vorbis*
 <!-- JAR CREATION -->
   <target name="jar-jcraft" depends="compile-jcraft"
         description="generate the jcraft jar file">
-    <!-- Create the distribution directory -->
-    <mkdir dir="${out.dist}/applet"/>
-
-    <!-- Put everything in ${out.build} into the cortado.jar file -->
-    <jar jarfile="${out.dist}/jcraft.jar" basedir="${out.build}"
+    <jar jarfile="${out.dist}/${build.type}/jcraft.jar" basedir="${out.build}"
          includes="com/jcraft/*/*" />
   </target>
 
+  <target name="jar-utils" depends="compile-utils"
+        description="generate the utils jar file">
+    <jar jarfile="${out.dist}/${build.type}/utils.jar" basedir="${out.build}"
+         includes="com/fluendo/utils/*" />
+  </target>
 
-
-  <target name="jar" depends="clean,compile,ini"
+  <target name="jar" depends="clean,compile,plugins.ini"
         description="generate the jar file">
     <!-- Create the distribution directory -->
     <mkdir dir="${out.dist}/applet"/>
@@ -310,5 +353,6 @@ com/fluendo/plugin/Vorbis*
     <!-- Delete the ${out.build} and ${out.dist} directory trees -->
     <delete dir="${out.build}"/>
     <delete dir="${out.dist}"/>
+    <delete dir="${out}"/>
   </target>
 </project>

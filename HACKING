@@ -26,6 +26,17 @@ directory layout:
 
 NOTES
 -----
+- from the ant build file, we should be able to:
+  - make a tarball with all the source and build stuff:
+    "ant dist"
+  - generate the separate jars
+    "ant jar-jcraft ..."
+  - build the examples
+  - generate stripped and debug versions of the applets, with specific plugins
+    included
+    "ant applets" or "ant applet-ovt applet-mmjs"
+    "ant applets-debug"
+
 - the plan is to:
   - build com.fluendo.utils in a jar
   - build com.jcraft in a jar

@@ -1,5 +1,24 @@
 2006-01-17  Thomas Vander Stichele  <thomas at apestaart dot org>
 
+	* HACKING:
+	* Makefile:
+	* build.properties:
+	* build.xml:
+	  allow for debug and release builds
+	  various cleanups, learnt about ant -projecthelp, looks nice now
+
+2006-01-17  Thomas Vander Stichele  <thomas at apestaart dot org>
+
+	* src/com/fluendo/jst/Element.java: (Element):
+	* src/com/fluendo/jst/Object.java: (Object):
+	* src/com/fluendo/jst/Pad.java: (Pad):
+	* src/com/fluendo/jst/Pipeline.java: (Pipeline),
+	(Pipeline.SortedEnumerator.updateDegree):
+	* src/com/fluendo/plugin/Sink.java: (Sink.changeState):
+	  further compile cleanups
+
+2006-01-17  Thomas Vander Stichele  <thomas at apestaart dot org>
+
 	* build.xml:
 	  make compile-jcraft and jar-jcraft targets and shut up warnings
 	  for them
