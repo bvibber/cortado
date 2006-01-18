@@ -202,7 +202,7 @@ com/fluendo/plugin/Vorbis*
 </echo>
   </target>
 
-<!-- compilation steps -->
+<!-- COMPILATION -->
 
   <!-- FIXME: not used currently -->
   <!-- set compiler flags -->
@@ -260,18 +260,64 @@ com/fluendo/plugin/Vorbis*
     >
       <src path="${src}/com/fluendo/utils" />
       <compilerarg line="${build.flags}" />
-
-
-<!-- FIXME: -g:none should be handleable by debuglevel above
-      <compilerarg line="${compiler.flags.target} -g:none" />
-      <compilerarg line="${compiler.flags.target}" />
--->
     </javac>
   </target>
- 
+
+  <target name="compile-jheora"
+          description="compile com.fluendo.jheora source"
+          depends="init,compile-utils"
+   >
+    <javac 
+           destdir="${out.build}" 
+           target="1.1"
+    >
+      <src path="${src}/com/fluendo/jheora" />
+      <compilerarg line="${build.flags}" />
+    </javac>
+  </target>
+
+  <target name="compile-codecs"
+          description="compile com.fluendo.codecs source"
+          depends="init,compile-utils"
+   >
+    <javac 
+           destdir="${out.build}" 
+           target="1.1"
+    >
+      <src path="${src}/com/fluendo/codecs" />
+      <compilerarg line="${build.flags}" />
+    </javac>
+  </target>
+
+   <target name="compile-jst"
+          description="compile com.fluendo.jst source"
+          depends="init,compile-utils"
+   >
+    <javac 
+           destdir="${out.build}" 
+           target="1.1"
+    >
+      <src path="${src}/com/fluendo/jst" />
+      <compilerarg line="${build.flags}" />
+    </javac>
+  </target>
+
+   <target name="compile-plugin"
+          description="compile com.fluendo.plugin source"
+          depends="init,compile-jst,compile-jheora,compile-codecs"
+   >
+    <javac 
+           destdir="${out.build}" 
+           target="1.1"
+    >
+      <src path="${src}/com/fluendo/plugin" />
+      <compilerarg line="${build.flags}" />
+    </javac>
+  </target>
+   
   <target name="compile"
           description="compile the source"
-          depends="init,configure,compile-stubs,compile-jcraft"
+          depends="init,configure,compile-stubs,compile-jcraft,compile-jst,compile-jheora,compile-codecs,compile-plugin"
    >
     <!-- Compile the java code from ${src} into ${out.build} -->
     <!-- possibly using our stubs as classpath, and with a 1.1 target -->
@@ -288,7 +334,7 @@ com/fluendo/plugin/Vorbis*
            debug="true"
            debuglevel="none"
            target="1.1">
-      <src path="${src}" />
+      <src path="${src}/com/fluendo/player" />
       <compilerarg line="${build.flags}" />
 
 <!-- FIXME: -g:none should be handleable by debuglevel above
@@ -329,6 +375,19 @@ com/fluendo/plugin/Vorbis*
          includes="com/fluendo/utils/*" />
   </target>
 
+  <target name="jar-jheora" depends="compile-jheora"
+        description="generate the jheora jar file">
+    <jar jarfile="${out.dist}/${build.type}/jheora.jar" basedir="${out.build}"
+         includes="com/fluendo/jheora/*" />
+  </target>
+
+  <target name="jar-jst" depends="compile-jst"
+        description="generate the jst jar file">
+    <jar jarfile="${out.dist}/${build.type}/jst.jar" basedir="${out.build}"
+         includes="com/fluendo/jst/*" />
+  </target>
+
+<!-- applet targets -->
   <target name="applet-ovt" depends="compile"
           description="generate the Ogg/Vorbis+Theora applet">
     <antcall target="includes">
@@ -366,7 +425,7 @@ com/fluendo/plugin/Vorbis*
   <target name="applet" depends="applet-ovt,applet-ov,applet-mmjs"
            description="generate all applets" />
 
-  <target name="jar" depends="jar-jcraft,jar-utils"
+  <target name="jar" depends="jar-jcraft,jar-utils,jar-jheora,jar-jst"
         description="generate all jar files" />
 
   <target name="all" depends="applet,jar"
@@ -385,8 +444,6 @@ com/fluendo/plugin/Vorbis*
       <param name="build.type" value="release" />
     </antcall>
   </target>
-
-
 
   <target name="install" depends="jar"
           description="install cortado">

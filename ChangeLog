@@ -1,6 +1,11 @@
 2006-01-18  Thomas Vander Stichele  <thomas at apestaart dot org>
 
 	* build.xml:
+	  split out more of the jars and compiles
+
+2006-01-18  Thomas Vander Stichele  <thomas at apestaart dot org>
+
+	* build.xml:
 	  always include stubs in classpath for now;
 	  see what this does with the Sun compiler
 	* src/com/fluendo/jst/Element.java:
