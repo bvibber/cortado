@@ -377,28 +377,32 @@ com/fluendo/plugin/Vorbis*
   </target>
 
 <!-- JAR CREATION -->
-  <target name="jar-jcraft" depends="compile-jcraft"
-        description="generate the jcraft jar file">
+  <target name="jar-jcraft" depends="compile-jcraft">
     <jar jarfile="${out.dist}/${build.type}/jcraft.jar" basedir="${out.build}"
          includes="com/jcraft/*/*" />
   </target>
 
-  <target name="jar-utils" depends="compile-utils"
-        description="generate the utils jar file">
+  <target name="jar-utils" depends="compile-utils">
     <jar jarfile="${out.dist}/${build.type}/utils.jar" basedir="${out.build}"
          includes="com/fluendo/utils/*" />
   </target>
 
-  <target name="jar-jheora" depends="compile-jheora"
-        description="generate the jheora jar file">
+  <target name="jar-jheora" depends="compile-jheora">
     <jar jarfile="${out.dist}/${build.type}/jheora.jar" basedir="${out.build}"
          includes="com/fluendo/jheora/*" />
   </target>
 
-  <target name="jar-jst" depends="compile-jst"
-        description="generate the jst jar file">
+  <target name="jar-jst" depends="compile-jst">
     <jar jarfile="${out.dist}/${build.type}/jst.jar" basedir="${out.build}"
          includes="com/fluendo/jst/*" />
+  </target>
+  <target name="jar-codecs" depends="compile-codecs">
+    <jar jarfile="${out.dist}/${build.type}/codecs.jar" basedir="${out.build}"
+         includes="com/fluendo/codecs/*" />
+  </target>
+  <target name="jar-plugin" depends="compile-plugin">
+    <jar jarfile="${out.dist}/${build.type}/plugin.jar" basedir="${out.build}"
+         includes="com/fluendo/plugin/*" />
   </target>
 
 <!-- applet targets -->
@@ -439,7 +443,7 @@ com/fluendo/plugin/Vorbis*
   <target name="applet" depends="applet-ovt,applet-ov,applet-mmjs"
            description="generate all applets" />
 
-  <target name="jar" depends="jar-jcraft,jar-utils,jar-jheora,jar-jst"
+  <target name="jar" depends="jar-jcraft,jar-utils,jar-jheora,jar-jst,jar-codecs,jar-plugin"
         description="generate all jar files" />
 
   <target name="all" depends="applet,jar"
@@ -482,11 +486,11 @@ com/fluendo/plugin/Vorbis*
     </copy>
   </target>
 
-  <target name="clean"
-        description="clean up" >
-    <!-- Delete the ${out.build} and ${out.dist} directory trees -->
+  <target name="clean" depends="type"
+        description="clean up build dir" >
+    <!-- Delete the ${out.build} directory tree an generated source -->
     <delete dir="${out.build}"/>
-    <delete dir="${out.dist}"/>
-    <delete dir="${out}"/>
+    <delete dir="${out.dist}/${build.type}"/>
+    <delete file="${src}/com/fluendo/player/Configure.java"/>
   </target>
 </project>

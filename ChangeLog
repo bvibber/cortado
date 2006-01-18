@@ -1,5 +1,13 @@
 2006-01-18  Thomas Vander Stichele  <thomas at apestaart dot org>
 
+	* build.config.sample:
+	  add a sample build.config file to customize
+	* build.xml:
+	  fix up clean rule
+	  add more jars
+
+2006-01-18  Thomas Vander Stichele  <thomas at apestaart dot org>
+
 	* Makefile:
 	* build.xml:
 	* gen-Configure:
