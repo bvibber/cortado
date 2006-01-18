@@ -88,7 +88,7 @@ class Configure
 >Built on ${DATE} (version ${product.version}) in ${build.type} mode.</echo>
   </target>
 
-<!-- prepare plugin.*.true variables  by parsing the exclude property-->
+<!-- prepare plugin.*.true variables by parsing the exclude property-->
   <target name="plugins">
     <condition property="plugin.JPEG.false">
       <contains string="${exclude}" substring="JPEG" casesensitive="false" />
@@ -333,7 +333,7 @@ com/fluendo/plugin/Vorbis*
 
   <target name="compile-player"
           description="compile com.fluendo.player source"
-          depends="init,configure,compile-plugin,plugins.ini"
+          depends="init,configure,compile-plugin,includes"
    >
     <javac 
            destdir="${out.build}" 
@@ -348,6 +348,8 @@ com/fluendo/plugin/Vorbis*
           description="compile com.fluendo.examples source"
           depends="init,compile-player"
    >
+    <!-- update plugins.ini -->
+    <antcall target="includes" />
     <javac 
            destdir="${out.build}" 
            target="1.1"
@@ -384,13 +386,6 @@ com/fluendo/plugin/Vorbis*
       <compilerarg line="${compiler.flags.target}" />
 -->
     </javac>
-  </target>
-
-  <!-- generate plugins.ini -->
-  <target name="plugins.ini">
-    <copy todir="${out.build}">
-      <fileset file="plugins.ini" />
-    </copy>
   </target>
 
 <!-- clean out unwanted plugins -->
