@@ -218,9 +218,14 @@ com/fluendo/plugin/Vorbis*
   </target>
 
   <!-- determine if we need to use stubs -->
+  <!--- FIXME: for now always enable, and see if it causes problems for
+        a Sun build -->
   <target name="compile-stubs">
       <condition property="stubs" value="stubs">
+<!--
         <equals arg1="${build.compiler}" arg2="jikes" />
+-->
+        <equals arg1="true" arg2="true" />
       </condition>
   </target>
 
