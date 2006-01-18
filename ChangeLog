@@ -1,6 +1,12 @@
 2006-01-18  Thomas Vander Stichele  <thomas at apestaart dot org>
 
 	* build.xml:
+	  fix up various build issues; can now run the Player2 example with
+	  java --cp output/build/debug com.fluendo.examples.Player2 http://stream.fluendo.com:8800
+
+2006-01-18  Thomas Vander Stichele  <thomas at apestaart dot org>
+
+	* build.xml:
 	  various build fixes so that plugins are correctly found
 	  add compile-examples
 

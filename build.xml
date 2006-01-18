@@ -279,7 +279,7 @@ com/fluendo/plugin/Vorbis*
 
   <target name="compile-jheora"
           description="compile com.fluendo.jheora source"
-          depends="init,compile-utils"
+          depends="init,compile-utils,compile-jcraft"
    >
     <javac 
            destdir="${out.build}" 
@@ -333,7 +333,7 @@ com/fluendo/plugin/Vorbis*
 
   <target name="compile-player"
           description="compile com.fluendo.player source"
-          depends="init,compile-plugin"
+          depends="init,configure,compile-plugin,plugins.ini"
    >
     <javac 
            destdir="${out.build}" 
@@ -360,7 +360,7 @@ com/fluendo/plugin/Vorbis*
  
   <target name="compile"
           description="compile the source"
-          depends="init,configure,compile-stubs,compile-jcraft,compile-jst,compile-jheora,compile-codecs,compile-plugin"
+          depends="init,compile-stubs,compile-jcraft,compile-jst,compile-jheora,compile-codecs,compile-plugin"
    >
     <!-- Compile the java code from ${src} into ${out.build} -->
     <!-- possibly using our stubs as classpath, and with a 1.1 target -->
