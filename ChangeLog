@@ -1,5 +1,11 @@
 2006-01-18  Thomas Vander Stichele  <thomas at apestaart dot org>
 
+	* build.xml:
+	  various build fixes so that plugins are correctly found
+	  add compile-examples
+
+2006-01-18  Thomas Vander Stichele  <thomas at apestaart dot org>
+
 	* build.properties:
 	* build.xml:
 	  various cleanups for the build

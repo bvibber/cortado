@@ -96,8 +96,8 @@ class Configure
     <condition property="plugin.Mulaw.false">
       <contains string="${exclude}" substring="Mulaw" casesensitive="false" />
     </condition>
-    <condition property="plugin.MultiPart.false">
-      <contains string="${exclude}" substring="MultiPart" casesensitive="false" />
+    <condition property="plugin.Multipart.false">
+      <contains string="${exclude}" substring="Multipart" casesensitive="false" />
     </condition>
     <condition property="plugin.Ogg.false">
       <contains string="${exclude}" substring="Ogg" casesensitive="false" />
@@ -115,7 +115,7 @@ class Configure
 
 <!-- generate includes and plugins.ini based on contents of exclude -->
   <target name="includes"
-          depends="plugins,includes-delete,include-JPEG,include-Mulaw,include-MultiPart,include-Ogg,include-Smoke,include-Theora,include-Vorbis">
+          depends="plugins,includes-delete,include-JPEG,include-Mulaw,include-Multipart,include-Ogg,include-Smoke,include-Theora,include-Vorbis">
     <echo>Generating ${out.build}/includes</echo>
   </target>
 
@@ -134,10 +134,10 @@ plugins.ini
 </echo>
     <echo file="${out.build}/plugins.ini"
 >com.fluendo.plugin.HTTPSrc
->com.fluendo.plugin.VideoSink
->com.fluendo.plugin.AudioSinkJ2
->com.fluendo.plugin.AudioSinkSA
->com.fluendo.plugin.Queue
+com.fluendo.plugin.VideoSink
+com.fluendo.plugin.AudioSinkJ2
+com.fluendo.plugin.AudioSinkSA
+com.fluendo.plugin.Queue
 </echo>
  
   </target>
@@ -148,7 +148,7 @@ plugins.ini
 >com/fluendo/plugin/JPEG*
 </echo>
     <echo file="${out.build}/plugins.ini" append="true"
->com.fluendo.plugin.JPEGPlugin
+>com.fluendo.plugin.JPEGDec
 </echo>
   </target>
 
@@ -158,17 +158,17 @@ plugins.ini
 >com/fluendo/plugin/Mulaw*
 </echo>
     <echo file="${out.build}/plugins.ini" append="true"
->com.fluendo.plugin.MulawPlugin
+>com.fluendo.plugin.MulawDec
 </echo>
   </target>
 
-  <target name="include-MultiPart" unless="plugin.MultiPart.false">
-    <echo>Including MultiPart</echo>
+  <target name="include-Multipart" unless="plugin.Multipart.false">
+    <echo>Including Multipart</echo>
     <echo file="${out.build}/includes" append="true"
->com/fluendo/plugin/MultiPart*
+>com/fluendo/plugin/Multipart*
 </echo>
     <echo file="${out.build}/plugins.ini" append="true"
->com.fluendo.plugin.MultiPartPlugin
+>com.fluendo.plugin.MultipartDemux
 </echo>
   </target>
 
@@ -179,7 +179,7 @@ plugins.ini
 fluendo/plugin/Ogg*
 </echo>
     <echo file="${out.build}/plugins.ini" append="true"
->com.fluendo.plugin.OggPlugin
+>com.fluendo.plugin.OggDemux
 </echo>
   </target>
 
@@ -190,7 +190,7 @@ fluendo/plugin/Ogg*
 com/fluendo/plugin/Smoke*
 </echo>
     <echo file="${out.build}/plugins.ini" append="true"
->com.fluendo.plugin.SmokePlugin
+>com.fluendo.plugin.SmokeDec
 </echo>
   </target>
 
@@ -201,7 +201,7 @@ com/fluendo/plugin/Smoke*
 com/fluendo/plugin/Theora*
 </echo>
     <echo file="${out.build}/plugins.ini" append="true"
->com.fluendo.plugin.TheoraPlugin
+>com.fluendo.plugin.TheoraDec
 </echo>
   </target>
 
@@ -212,7 +212,7 @@ com/fluendo/plugin/Theora*
 com/fluendo/plugin/Vorbis*
 </echo>
     <echo file="${out.build}/plugins.ini" append="true"
->com.fluendo.plugin.VorbisPlugin
+>com.fluendo.plugin.VorbisDec
 </echo>
   </target>
 
@@ -330,7 +330,34 @@ com/fluendo/plugin/Vorbis*
       <compilerarg line="${build.flags}" />
     </javac>
   </target>
-   
+
+  <target name="compile-player"
+          description="compile com.fluendo.player source"
+          depends="init,compile-plugin"
+   >
+    <javac 
+           destdir="${out.build}" 
+           target="1.1"
+    >
+      <src path="${src}/com/fluendo/player" />
+      <compilerarg line="${build.flags}" />
+    </javac>
+  </target>
+
+  <target name="compile-examples"
+          description="compile com.fluendo.examples source"
+          depends="init,compile-player"
+   >
+    <javac 
+           destdir="${out.build}" 
+           target="1.1"
+    >
+      <src path="${src}/com/fluendo/examples" />
+      <compilerarg line="${build.flags}" />
+    </javac>
+  </target>
+
+ 
   <target name="compile"
           description="compile the source"
           depends="init,configure,compile-stubs,compile-jcraft,compile-jst,compile-jheora,compile-codecs,compile-plugin"
@@ -405,12 +432,16 @@ com/fluendo/plugin/Vorbis*
     <jar jarfile="${out.dist}/${build.type}/plugin.jar" basedir="${out.build}"
          includes="com/fluendo/plugin/*" />
   </target>
+  <target name="jar-player" depends="compile-player">
+    <jar jarfile="${out.dist}/${build.type}/player.jar" basedir="${out.build}"
+         includes="com/fluendo/player/*" />
+  </target>
 
 <!-- applet targets -->
   <target name="applet-ovt" depends="compile"
           description="generate the Ogg/Vorbis+Theora applet">
     <antcall target="includes">
-      <param name="exclude" value="Smoke,Jpeg,MultiPart,Mulaw" />
+      <param name="exclude" value="Smoke,Jpeg,Multipart,Mulaw" />
     </antcall>
     <jar jarfile="${out.dist}/applet/cortado-ovt-${build.type}-${product.version}.jar"
          includesfile="${out.build}/includes"
@@ -421,7 +452,7 @@ com/fluendo/plugin/Vorbis*
   <target name="applet-ov" depends="compile"
           description="generate the Ogg/Vorbis applet">
     <antcall target="includes">
-      <param name="exclude" value="Smoke,Jpeg,MultiPart,Mulaw,Theora" />
+      <param name="exclude" value="Smoke,Jpeg,Multipart,Mulaw,Theora" />
     </antcall>
     <jar jarfile="${out.dist}/applet/cortado-ov-${build.type}-${product.version}.jar"
          includesfile="${out.build}/includes"
@@ -444,10 +475,10 @@ com/fluendo/plugin/Vorbis*
   <target name="applet" depends="applet-ovt,applet-ov,applet-mmjs"
            description="generate all applets" />
 
-  <target name="jar" depends="jar-jcraft,jar-utils,jar-jheora,jar-jst,jar-codecs,jar-plugin"
+  <target name="jar" depends="jar-jcraft,jar-utils,jar-jheora,jar-jst,jar-codecs,jar-plugin,jar-player"
         description="generate all jar files" />
 
-  <target name="all" depends="applet,jar"
+  <target name="all" depends="applet,jar,compile-examples"
           description="generate jars and applets" />
 
   <target name="debug"
