@@ -20,7 +20,6 @@ package com.fluendo.examples;
 
 import com.fluendo.player.*;
 import java.awt.*;
-import java.applet.*;
 
 public class Player3 extends Frame {
   Cortado applet;

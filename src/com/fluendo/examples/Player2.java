@@ -18,12 +18,9 @@
 
 package com.fluendo.examples;
 
-import com.fluendo.plugin.*;
 import com.fluendo.jst.*;
 import java.awt.*;
 import java.awt.event.*;
-import java.io.*;
-import java.util.*;
 
 class PlayPipeline extends Pipeline implements PadListener {
   private Element httpsrc;

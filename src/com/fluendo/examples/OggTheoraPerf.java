@@ -18,8 +18,6 @@
 
 package com.fluendo.examples;
 
-import com.fluendo.utils.*;
-
 import java.io.*;
 import java.util.*;
 import com.jcraft.jogg.*;

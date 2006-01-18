@@ -21,7 +21,12 @@ directory layout:
 
 - output:          files generated as part of the build
   - build:         built class files
+    - debug:       debug build
+    - release:     release build
   - dist:          resulting jar files
+    - debug:       debug versions of all cortado .jars
+    - release:     release versions of all cortado .jars
+    - applets:     all applet jars
 
 
 NOTES

@@ -20,9 +20,7 @@ package com.fluendo.plugin;
 
 import java.awt.*;
 import java.awt.image.*;
-import java.util.*;
 import com.fluendo.jst.*;
-import com.fluendo.utils.*;
 
 public class VideoSink extends Sink
 {

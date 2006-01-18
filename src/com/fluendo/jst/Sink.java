@@ -18,7 +18,6 @@
 
 package com.fluendo.jst;
 
-import com.fluendo.jst.*;
 import com.fluendo.utils.*;
 
 public abstract class Sink extends Element

@@ -1,5 +1,17 @@
 2006-01-18  Thomas Vander Stichele  <thomas at apestaart dot org>
 
+	* HACKING:
+	  expand on the file layout
+	* src/com/fluendo/examples/OggPerf.java:
+	* src/com/fluendo/examples/OggTheoraPerf.java:
+	* src/com/fluendo/examples/Player2.java:
+	* src/com/fluendo/examples/Player3.java:
+	* src/com/fluendo/jst/Sink.java:
+	* src/com/fluendo/plugin/VideoSink.java:
+	  more build cleanups
+
+2006-01-18  Thomas Vander Stichele  <thomas at apestaart dot org>
+
 	* build.xml:
 	  remove plugins.ini rule
 	  invoke includes rule for applet builds and compile-examples
