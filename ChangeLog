@@ -1,5 +1,10 @@
 2006-01-18  Thomas Vander Stichele  <thomas at apestaart dot org>
 
+	* build.xml:
+	  compile is now a virtual target
+
+2006-01-18  Thomas Vander Stichele  <thomas at apestaart dot org>
+
 	* HACKING:
 	  expand on the file layout
 	* src/com/fluendo/examples/OggPerf.java:

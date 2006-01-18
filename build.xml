@@ -362,8 +362,10 @@ com/fluendo/plugin/Vorbis*
  
   <target name="compile"
           description="compile the source"
-          depends="init,compile-stubs,compile-jcraft,compile-jst,compile-jheora,compile-codecs,compile-plugin"
-   >
+          depends="init,compile-stubs,compile-jcraft,compile-jst,compile-jheora,compile-codecs,compile-plugin" />
+
+<!-- only here for reference -->
+   <target name="oldcompile">
     <!-- Compile the java code from ${src} into ${out.build} -->
     <!-- possibly using our stubs as classpath, and with a 1.1 target -->
 <!--
