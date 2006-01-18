@@ -4,18 +4,6 @@ TARBALL = $(NV).tar.gz
 
 all: $(TARBALL) ovt mmjs
 
-configure:
-	@VERSION=$(VERSION) ./gen-Configure "Built using make."
-
-jst: configure
-	javac -O -deprecation -target 1.1 com/fluendo/jst/*.java
-
-player: configure
-	javac -O -deprecation -target 1.1 com/fluendo/player/*.java
-
-plugins: configure
-	javac -O -deprecation -target 1.1 com/fluendo/plugin/*.java
-
 compile:
 	ant compile
 
@@ -49,7 +37,7 @@ $(TARBALL):
 		src/com/fluendo/examples/*.java \
 		stubs/sun/audio/*.java \
 		stubs/javax/sound/sampled/*.java \
-		Makefile build.properties build.xml gen-Configure \
+		Makefile build.properties build.xml \
 		LICENSE.cortado LICENSE.jheora LICENSE.smoke \
 		ChangeLog HACKING README RELEASE TODO NEWS play \
 		$(NV)/

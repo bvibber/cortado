@@ -1,5 +1,12 @@
 2006-01-18  Thomas Vander Stichele  <thomas at apestaart dot org>
 
+	* Makefile:
+	* build.xml:
+	* gen-Configure:
+	  remove gen-Configure; implement it in ant; output during build
+
+2006-01-18  Thomas Vander Stichele  <thomas at apestaart dot org>
+
 	* build.xml:
 	  split out more of the jars and compiles
 
