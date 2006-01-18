@@ -16,7 +16,7 @@
  * Boston, MA 02111-1307, USA.
  */
 
-package com.fluendo.plugin;
+package com.fluendo.jst;
 
 import com.fluendo.jst.*;
 import com.fluendo.utils.*;

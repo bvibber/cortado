@@ -19,7 +19,6 @@
 package com.fluendo.jst;
 
 import java.util.*;
-import com.fluendo.plugin.*;
 
 public class Pipeline extends com.fluendo.jst.Element implements BusSyncHandler
 {

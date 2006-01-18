@@ -72,7 +72,7 @@ Cortado ANT build file
       <format property="DATE" pattern="yyyy-MM-dd" />
    </tstamp>
 
-    <echo file="${src}/com/fluendo/player/Configure.java" append="true"
+    <echo file="${src}/com/fluendo/player/Configure.java" append="false"
 >
 package com.fluendo.player;
 
@@ -316,11 +316,13 @@ com/fluendo/plugin/Vorbis*
     </javac>
   </target>
 
+<!-- the plugins need the stubs -->
    <target name="compile-plugin"
           description="compile com.fluendo.plugin source"
-          depends="init,compile-jst,compile-jheora,compile-codecs"
+          depends="init,compile-jst,compile-jheora,compile-codecs,compile-stubs"
    >
     <javac 
+           classpath="${stubs}"
            destdir="${out.build}" 
            target="1.1"
     >
@@ -343,7 +345,6 @@ com/fluendo/plugin/Vorbis*
 
 <!-- note: ant 1.6.5 does handle debuglevel for jikes, but 1.6.2 doesn't -->
     <javac 
-           classpath="${stubs}"
            destdir="${out.build}" 
            debug="true"
            debuglevel="none"

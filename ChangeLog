@@ -1,5 +1,15 @@
 2006-01-18  Thomas Vander Stichele  <thomas at apestaart dot org>
 
+	* build.properties:
+	* build.xml:
+	  various cleanups for the build
+	* src/com/fluendo/jst/Pipeline.java:
+	* src/com/fluendo/jst/Sink.java:
+	* src/com/fluendo/plugin/Sink.java:
+	  move Sink.java to jst, as it's used in Pipeline
+
+2006-01-18  Thomas Vander Stichele  <thomas at apestaart dot org>
+
 	* build.config.sample:
 	  add a sample build.config file to customize
 	* build.xml:
