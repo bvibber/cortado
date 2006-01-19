@@ -71,6 +71,13 @@ public class Buffer {
     }
   }
 
+  /**
+   * copies data into the buffer.
+   * 
+   * @param data: the bytearray with data to copy
+   * @param offset: offset in the bytearray of first byte
+   * @param length: length of data to copy
+   */
   public void copyData (byte[] data, int offset, int length)
   {
     ensureSize(length);

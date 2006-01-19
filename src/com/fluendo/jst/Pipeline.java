@@ -28,7 +28,6 @@ public class Pipeline extends com.fluendo.jst.Element implements BusSyncHandler
   protected Clock fixedClock = null;
 
   protected Bus internalBus;
-  private Vector messages;
   private Thread busThread;
 
   private StateThread stateThread;
@@ -141,7 +140,6 @@ public class Pipeline extends com.fluendo.jst.Element implements BusSyncHandler
 
   private class SortedEnumerator implements Enumeration
   {
-    private Enumeration enumerator;
     private Vector queue;
     private Hashtable hash;
     private java.lang.Object next;
@@ -185,7 +183,6 @@ public class Pipeline extends com.fluendo.jst.Element implements BusSyncHandler
     }
 
     public SortedEnumerator() {
-      enumerator = enumElements();
       queue = new Vector();
       hash = new Hashtable();
 
