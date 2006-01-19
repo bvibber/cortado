@@ -47,6 +47,10 @@ Cortado ANT build file
     <propertycopy name="build.flags" from="build.${build.type}.flags" />
     <!-- we make out.build depend on the release type -->
     <property name="out.build"   value="${out}/build/${build.type}" />
+    <!-- we set build.isdebug if it is a debug build -->
+    <condition property="build.isdebug">
+      <equals arg1="${build.type}" arg2="debug" />
+    </condition>
   </target>
 
   <!-- show us some info to make sure we are checking things correctly -->
@@ -338,6 +342,7 @@ com/fluendo/plugin/Vorbis*
     <javac 
            destdir="${out.build}" 
            target="1.1"
+           debug="${build.isdebug}" debuglevel="${build.debuglevel}"
     >
       <src path="${src}/com/fluendo/player" />
       <compilerarg line="${build.flags}" />
