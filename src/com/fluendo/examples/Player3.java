@@ -22,7 +22,8 @@ import com.fluendo.player.*;
 import java.awt.*;
 
 public class Player3 extends Frame {
-  Cortado applet;
+  private static final long serialVersionUID = 1L;
+Cortado applet;
 
   public Player3(String url) {
     applet = new Cortado();

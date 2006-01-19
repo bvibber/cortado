@@ -1,5 +1,15 @@
 2006-01-19  Wim Taymans  <wim@fluendo.com>
 
+	* src/com/fluendo/examples/Player2.java:
+	* src/com/fluendo/examples/Player3.java:
+	* src/com/fluendo/player/Cortado.java:
+	* src/com/fluendo/player/CortadoPipeline.java:
+	(CortadoPipeline.build):
+	* src/com/fluendo/player/Status.java:
+	Code reformatting and cleanups.
+
+2006-01-19  Wim Taymans  <wim@fluendo.com>
+
 	* src/com/fluendo/jst/Buffer.java: (Buffer.ensureSize):
 	* src/com/fluendo/jst/Pad.java: (Pad):
 	* src/com/fluendo/jst/Pipeline.java: (Pipeline):

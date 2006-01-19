@@ -103,7 +103,8 @@ class PlayPipeline extends Pipeline implements PadListener {
 
 
 class PlayFrame extends Frame implements AdjustmentListener {
-  private Scrollbar sb;
+private static final long serialVersionUID = 1L;
+private Scrollbar sb;
   private PlayPipeline pipeline;
   
   public PlayFrame(PlayPipeline p) {
