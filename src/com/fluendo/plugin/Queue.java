@@ -24,7 +24,7 @@ import com.fluendo.utils.*;
 
 public class Queue extends Element 
 {
-  private static final int DEFAULT_MAX_BUFFERS = 50;
+  private static final int DEFAULT_MAX_BUFFERS = 100;
   private static final int DEFAULT_MAX_SIZE = -1;
   private static final boolean DEFAULT_IS_BUFFER = false;
   private static final int DEFAULT_LOW_PERCENT = 10;

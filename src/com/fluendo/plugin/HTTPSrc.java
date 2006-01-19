@@ -25,8 +25,6 @@ import com.fluendo.utils.*;
 
 public class HTTPSrc extends Element
 {
-  private Thread thread;
-  private boolean stopping;
   private String userId;
   private String password;
   private String urlString;
@@ -177,8 +175,10 @@ public class HTTPSrc extends Element
       dis = uc.getInputStream();
       contentLength = uc.getHeaderFieldInt ("Content-Length", 0) + offset;
       mime = uc.getContentType();
-      outCaps = new Caps (mime);
-      srcpad.setCaps (outCaps);
+      if (srcpad.getCaps() == null) {
+        outCaps = new Caps (mime);
+        srcpad.setCaps (outCaps);
+      }
 
       Debug.log(Debug.INFO, "opened "+url);
       Debug.log(Debug.INFO, "contentLength: "+contentLength);

@@ -18,17 +18,11 @@
 
 package com.fluendo.plugin;
 
-import com.fluendo.jst.*;
-import com.fluendo.utils.*;
 import java.io.*;
 import sun.audio.*;
 
 public class AudioSinkSA extends AudioSink
 {
-  private int channels;
-  private int rate;
-  private int bps;
-
   private static final int BUFFER = 16 * 1024;
   private static final int SEGSIZE = 1024;
   private static final int DELAY = 8 * 1024;
@@ -67,8 +61,6 @@ public class AudioSinkSA extends AudioSink
                            0x00, 0x00, 0x00, 0x01               // channels
                          };
   private boolean needHeader;
-
-  private InputStream stream;
 
   private final byte toUlaw(int sample)
   {
@@ -212,17 +204,13 @@ public class AudioSinkSA extends AudioSink
   }
 
   protected boolean open (RingBuffer ring) {
-    channels = ring.channels;
-    rate = ring.rate;
-    bps = ring.bps;
-
     rateDiff = ring.rate / 8000.0;
     System.out.println ("rateDiff: "+rateDiff);
 
     ring.segSize = (int) (SEGSIZE * rateDiff);
-    ring.segSize = ring.segSize * bps;
+    ring.segSize = ring.segSize * ring.bps;
     ring.segTotal = (int) (BUFFER * rateDiff);
-    ring.segTotal = ring.segTotal * bps / ring.segSize;
+    ring.segTotal = ring.segTotal * ring.bps / ring.segSize;
     ring.emptySeg = new byte[ring.segSize];
 
     return true;
@@ -239,7 +227,7 @@ public class AudioSinkSA extends AudioSink
   }
 
   protected long delay () {
-    long ret = ((int)(DELAY * rateDiff)) / bps;
+    long ret = ((int)(DELAY * rateDiff)) / ringBuffer.bps;
     return ret;
   }
 

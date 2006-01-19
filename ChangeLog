@@ -1,5 +1,22 @@
 2006-01-19  Wim Taymans  <wim@fluendo.com>
 
+	* src/com/fluendo/plugin/AudioSink.java: (AudioSink),
+	(AudioSink.AudioClock.getInternalTime), (AudioSink.RingBuffer.run),
+	(AudioSink.RingBuffer.acquire),
+	(AudioSink.RingBuffer.samplesPlayed), (AudioSink.doEvent):
+	* src/com/fluendo/plugin/AudioSinkJ2.java: (AudioSinkJ2),
+	(AudioSinkJ2.open), (AudioSinkJ2.close):
+	* src/com/fluendo/plugin/AudioSinkSA.java:
+	* src/com/fluendo/plugin/HTTPSrc.java: (HTTPSrc.getInputStream):
+	* src/com/fluendo/plugin/MultipartDemux.java:
+	* src/com/fluendo/plugin/OggDemux.java: (OggDemux.Pad):
+	* src/com/fluendo/plugin/Queue.java:
+	Code cleanups. Remove unused vars.
+	Calculate delay more accurately in javax.sound backend.
+	Don't set caps on HTTPSrc when already set.
+
+2006-01-19  Wim Taymans  <wim@fluendo.com>
+
 	* src/com/fluendo/examples/Player2.java:
 	* src/com/fluendo/examples/Player3.java:
 	* src/com/fluendo/player/Cortado.java:

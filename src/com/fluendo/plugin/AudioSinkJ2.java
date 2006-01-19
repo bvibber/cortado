@@ -26,8 +26,7 @@ public class AudioSinkJ2 extends AudioSink
 {
   private SourceDataLine line = null;
   private int channels;
-
-  private static final int DELAY = 4096;
+  private long samplesWritten;
 
   protected RingBuffer createRingBuffer() {
     return new RingBuffer();
@@ -61,6 +60,7 @@ public class AudioSinkJ2 extends AudioSink
     }
 
     ring.emptySeg = new byte[ring.segSize];
+    samplesWritten = 0;
 
     line.start();
 
@@ -76,15 +76,35 @@ public class AudioSinkJ2 extends AudioSink
   }
 
   protected int write (byte[] data, int offset, int length) {
-    return line.write (data, offset, length);
+    int written;
+
+    written = line.write (data, offset, length);
+    samplesWritten += written / (2 * channels);
+
+    return written;
   }
 
   protected long delay () {
-    return (line.getBufferSize() - line.available()) / (2 * channels);
+    int size, avail;
+    int frame; 
+    long time, delay;
+
+    //size = line.getBufferSize();
+    //avail = line.available();
+    frame = line.getFramePosition();
+    //time = line.getMicrosecondPosition();
+
+    delay = samplesWritten - frame;
+
+    //System.out.println("size: "+size+" avail: "+avail+" frame: "+frame+" time: "+time+" delay: "+delay);
+
+    //return (size - avail) / (2 * channels);
+    return delay;
   }
 
   protected void reset () {
     line.flush();
+    samplesWritten = line.getFramePosition();
   }
 
   public String getFactoryName ()

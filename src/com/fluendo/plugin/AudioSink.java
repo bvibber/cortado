@@ -25,7 +25,7 @@ public abstract class AudioSink extends Sink implements ClockProvider
 {
   public static final int SEGSIZE = 8192;
 
-  private RingBuffer ringBuffer = null;
+  protected RingBuffer ringBuffer = null;
 
   private class AudioClock extends SystemClock {
     private long lastTime = -1;
@@ -44,6 +44,7 @@ public abstract class AudioSink extends Sink implements ClockProvider
       long samples;
       long result;
       long timePos;
+      long now;
       
       if (ringBuffer == null || ringBuffer.rate == 0)
         return 0;
@@ -53,7 +54,7 @@ public abstract class AudioSink extends Sink implements ClockProvider
 
       if (started) {
         /* interpolate as the position can jump a lot */
-        long now = System.currentTimeMillis() * Clock.MSECOND;
+        now = System.currentTimeMillis() * Clock.MSECOND;
         if (diff == -1) {
           diff = now;
         }
@@ -69,7 +70,7 @@ public abstract class AudioSink extends Sink implements ClockProvider
         result = timePos;
         //System.out.println("time: "+result);
       }
-
+      //System.out.println("time: "+result+" samples: "+samples+" sampletime: "+timePos);
 
       return result;
     }
@@ -134,6 +135,7 @@ public abstract class AudioSink extends Sink implements ClockProvider
         clear (segNum);
 
 	synchronized (this) {
+	  //System.out.println("writen seg "+playSeg);
 	  playSeg++;
 	  notifyAll();
 	}
@@ -177,6 +179,8 @@ public abstract class AudioSink extends Sink implements ClockProvider
 
       Debug.log(Debug.INFO, "audio: segSize: "+ segSize);
       Debug.log(Debug.INFO, "audio: segTotal: "+ segTotal);
+
+      segTotal++;
 
       buffer = new byte[segSize * segTotal];
       sps = segSize / bps;
@@ -310,6 +314,8 @@ public abstract class AudioSink extends Sink implements ClockProvider
 
       samples = (seg * sps);
 
+      //System.out.println("samples: "+samples+" delay: "+delay);
+
       if (samples >= delay)
         samples -= delay;
       else
@@ -405,7 +411,6 @@ public abstract class AudioSink extends Sink implements ClockProvider
   }
   protected int render (Buffer buf)
   {
-    int result;
     long sample;
 
     sample = buf.time_offset;

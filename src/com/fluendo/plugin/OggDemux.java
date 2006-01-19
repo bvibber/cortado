@@ -133,7 +133,6 @@ public class OggDemux extends Element
         else {
 	  int serial = og.serialno();
 	  OggStream stream = findStream (serial);
-	  boolean needTypefind = false;
 	  if (stream == null) {
 	    stream = new OggStream(serial);
 	    streams.addElement(stream);
