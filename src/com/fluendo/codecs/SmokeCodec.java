@@ -44,6 +44,7 @@ public class SmokeCodec {
   public int width, height;
   public int fps_num, fps_denom;
   public int flags;
+  public int size;
   public int blocks;
 
   public SmokeCodec(Component comp, MediaTracker tracker) {
@@ -76,6 +77,10 @@ public class SmokeCodec {
     fps_denom = (b1<<24) | (b2<<16) | (b3<<8) | b4;
 
     flags  = in[IDX_FLAGS+offset];
+    
+    b1 = in[IDX_SIZE+offset]; if (b1<0) b1 += 256;
+    b2 = in[IDX_SIZE+offset]; if (b2<0) b2 += 256;
+    size = (b1 << 8) | b2;
 
     b1 = in[IDX_NUM_BLOCKS+offset];   if (b1<0) b1 += 256;
     b2 = in[IDX_NUM_BLOCKS+1+offset]; if (b2<0) b2 += 256;
