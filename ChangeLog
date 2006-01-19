@@ -1,3 +1,11 @@
+2006-01-19  Thomas Vander Stichele  <thomas at apestaart dot org>
+
+	* README:
+	* TODO:
+	  update
+	* build.xml:
+	  build non-jikes with correct debug as well
+
 2006-01-19  Wim Taymans  <wim@fluendo.com>
 
 	* src/com/fluendo/jst/Pipeline.java: (Pipeline.useClock),

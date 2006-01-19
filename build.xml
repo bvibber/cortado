@@ -180,7 +180,7 @@ com.fluendo.plugin.Queue
     <echo>Including Ogg</echo>
     <echo file="${out.build}/includes" append="true"
 >com/jcraft/jogg/*
-fluendo/plugin/Ogg*
+com/fluendo/plugin/Ogg*
 </echo>
     <echo file="${out.build}/plugins.ini" append="true"
 >com.fluendo.plugin.OggDemux
@@ -259,6 +259,7 @@ com/fluendo/plugin/Vorbis*
            destdir="${out.build}" 
            target="1.1"
            nowarn="yes"
+           debug="${build.isdebug}" debuglevel="${build.debuglevel}"
     >
       <include name="com/jcraft/jogg/*" />
       <include name="com/jcraft/jorbis/*" />
@@ -274,7 +275,7 @@ com/fluendo/plugin/Vorbis*
     <javac 
            destdir="${out.build}" 
            target="1.1"
-           nowarn="yes"
+           debug="${build.isdebug}" debuglevel="${build.debuglevel}"
     >
       <src path="${src}/com/fluendo/utils" />
       <compilerarg line="${build.flags}" />
@@ -288,6 +289,7 @@ com/fluendo/plugin/Vorbis*
     <javac 
            destdir="${out.build}" 
            target="1.1"
+           debug="${build.isdebug}" debuglevel="${build.debuglevel}"
     >
       <src path="${src}/com/fluendo/jheora" />
       <compilerarg line="${build.flags}" />
@@ -301,6 +303,7 @@ com/fluendo/plugin/Vorbis*
     <javac 
            destdir="${out.build}" 
            target="1.1"
+           debug="${build.isdebug}" debuglevel="${build.debuglevel}"
     >
       <src path="${src}/com/fluendo/codecs" />
       <compilerarg line="${build.flags}" />
@@ -314,6 +317,7 @@ com/fluendo/plugin/Vorbis*
     <javac 
            destdir="${out.build}" 
            target="1.1"
+           debug="${build.isdebug}" debuglevel="${build.debuglevel}"
     >
       <src path="${src}/com/fluendo/jst" />
       <compilerarg line="${build.flags}" />
@@ -329,6 +333,7 @@ com/fluendo/plugin/Vorbis*
            classpath="${stubs}"
            destdir="${out.build}" 
            target="1.1"
+           debug="${build.isdebug}" debuglevel="${build.debuglevel}"
     >
       <src path="${src}/com/fluendo/plugin" />
       <compilerarg line="${build.flags}" />
@@ -367,7 +372,7 @@ com/fluendo/plugin/Vorbis*
  
   <target name="compile"
           description="compile the source"
-          depends="init,compile-stubs,compile-jcraft,compile-jst,compile-jheora,compile-codecs,compile-plugin" />
+          depends="init,compile-stubs,compile-jcraft,compile-jst,compile-jheora,compile-codecs,compile-plugin,compile-player,compile-examples" />
 
 <!-- only here for reference -->
    <target name="oldcompile">
