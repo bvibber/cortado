@@ -25,11 +25,9 @@
 package com.fluendo.jheora;
 
 public class Colorspace {
-  private int colorSpace;
-
-  public static final Colorspace UNSPECIFIED = new Colorspace (0);
-  public static final Colorspace ITU_REC_470M = new Colorspace (1);
-  public static final Colorspace ITU_REC_470BG = new Colorspace (2);
+  public static final Colorspace UNSPECIFIED = new Colorspace ();
+  public static final Colorspace ITU_REC_470M = new Colorspace ();
+  public static final Colorspace ITU_REC_470BG = new Colorspace ();
 
   public static final Colorspace[] spaces = {
     UNSPECIFIED,
@@ -37,7 +35,6 @@ public class Colorspace {
     ITU_REC_470BG
   };
 
-  private Colorspace(int cs) {
-    colorSpace = cs;
+  private Colorspace() {
   }
 }

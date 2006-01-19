@@ -28,8 +28,6 @@ import com.jcraft.jogg.*;
 
 public class Playback 
 {
-  private static final int Q_TABLE_SIZE = 64;
-
   /* Different key frame types/methods */
   private static final int DCT_KEY_FRAME = 0;
 

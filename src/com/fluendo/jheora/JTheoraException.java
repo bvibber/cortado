@@ -25,14 +25,18 @@
 package com.fluendo.jheora;
 
 public class JTheoraException extends Exception {
-  private int error;
+  private static final long serialVersionUID = 1L;
+private int error;
   
   public JTheoraException() {
     super();
   }
   public JTheoraException(String str, int error) {
-    super();
+    super(str);
 
     this.error = error;
+  }
+  public int getErrorCode() {
+	  return error;
   }
 }

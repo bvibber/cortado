@@ -40,17 +40,6 @@ public final class Filter
     0,  0,  0,  0,  0,  0,  0,  0
   };
 
-  private static final byte[] LoopFilterLimitValuesV2 = {
-    30, 25, 20, 20, 15, 15, 14, 14,
-    13, 13, 12, 12, 11, 11, 10, 10,
-    9,  9,  8,  8,  7,  7,  7,  7,
-    6,  6,  6,  6,  5,  5,  5,  5,
-    4,  4,  4,  4,  3,  3,  3,  3,
-    2,  2,  2,  2,  2,  2,  2,  2,
-    2,  2,  2,  2,  2,  2,  2,  2,
-    1,  1,  1,  1,  1,  1,  1,  1
-  };
-
   /* Loop filter bounding values */
   private byte[] LoopFilterLimits = new byte[Constants.Q_TABLE_SIZE];
   private int[] FiltBoundingValue = new int[512];
@@ -145,14 +134,14 @@ public final class Filter
 
   public void LoopFilter(Playback pbi){
     int FragsAcross=pbi.HFragments;
-    int FromFragment,ToFragment;
+    int FromFragment;
     int FragsDown = pbi.VFragments;
     int LineFragments;
     int LineLength;
     int FLimit;
     int QIndex;
     int i,j,m,n;
-    int index, index2;
+    int index;
 
     /* Set the limit value for the loop filter based upon the current
        quantizer. */
@@ -172,7 +161,6 @@ public final class Filter
       switch(j) {
       case 0: /* y */
         FromFragment = 0;
-        ToFragment = pbi.YPlaneFragments;
         FragsAcross = pbi.HFragments;
         FragsDown = pbi.VFragments;
         LineLength = pbi.YStride;
@@ -180,7 +168,6 @@ public final class Filter
         break;
       case 1: /* u */
         FromFragment = pbi.YPlaneFragments;
-        ToFragment = pbi.YPlaneFragments + pbi.UVPlaneFragments ;
         FragsAcross = pbi.HFragments >> 1;
         FragsDown = pbi.VFragments >> 1;
         LineLength = pbi.UVStride;
@@ -189,7 +176,6 @@ public final class Filter
       /*case 2:  v */
       default:
         FromFragment = pbi.YPlaneFragments + pbi.UVPlaneFragments;
-        ToFragment = pbi.YPlaneFragments + (2 * pbi.UVPlaneFragments) ;
         FragsAcross = pbi.HFragments >> 1;
         FragsDown = pbi.VFragments >> 1;
         LineLength = pbi.UVStride;

@@ -1,3 +1,15 @@
+2006-01-19  Wim Taymans  <wim@fluendo.com>
+
+	* src/com/fluendo/jheora/Colorspace.java:
+	* src/com/fluendo/jheora/DCTDecode.java:
+	(DCTDecode.....ReconRefFrames):
+	* src/com/fluendo/jheora/Decode.java:
+	* src/com/fluendo/jheora/Filter.java: (Filter..LoopFilter):
+	* src/com/fluendo/jheora/JTheoraException.java:
+	* src/com/fluendo/jheora/Playback.java:
+	* src/com/fluendo/jheora/Quant.java:
+	Remove lots of unused vars
+
 2006-01-18  Thomas Vander Stichele  <thomas at apestaart dot org>
 
 	* build.xml:

@@ -129,7 +129,6 @@ public final class Decode {
   private int loadFrame()
   {
     int  DctQMask;
-    int  SpareBits;       /* Spare cfg bits */
     Buffer opb = pbi.opb;
 
     /* Is the frame and inter frame or a key frame */
@@ -139,12 +138,12 @@ public final class Decode {
     DctQMask = (int) opb.readB(6);
 
     /* spare bit for possible additional Q indicies - should be 0 */
-    SpareBits = (byte)opb.readB(1);
+    opb.readB(1);
 
     if ( (pbi.FrameType == Constants.BASE_FRAME) ){
       /* Read the type / coding method for the key frame. */
       pbi.KeyFrameType = (byte)opb.readB(1);
-      SpareBits = (byte)opb.readB(2);
+      opb.readB(2);
     }
 
     /* Set this frame quality value from Q Index */

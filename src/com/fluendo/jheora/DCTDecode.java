@@ -28,7 +28,6 @@ import com.fluendo.utils.*;
 
 public class DCTDecode 
 {
-  private static final int GOLDEN_FRAME_THRESH_Q = 50;
   private static final int PUR = 8;
   private static final int PU = 4;
   private static final int PUL = 2;
@@ -644,7 +643,7 @@ public class DCTDecode
     short wpc;
     short PredictedDC;
     int FragsAcross=pbi.HFragments;
-    int FromFragment,ToFragment;
+    int FromFragment;
     int FragsDown = pbi.VFragments;
   
     int WhichFrame;
@@ -661,20 +660,17 @@ public class DCTDecode
       switch(j){
       case 0: /* y */
         FromFragment = 0;
-        ToFragment = pbi.YPlaneFragments;
         FragsAcross = pbi.HFragments;
         FragsDown = pbi.VFragments;
         break;
       case 1: /* u */
         FromFragment = pbi.YPlaneFragments;
-        ToFragment = pbi.YPlaneFragments + pbi.UVPlaneFragments ;
         FragsAcross = pbi.HFragments >> 1;
         FragsDown = pbi.VFragments >> 1;
         break;
       /*case 2:  v */
       default:    
         FromFragment = pbi.YPlaneFragments + pbi.UVPlaneFragments;
-        ToFragment = pbi.YPlaneFragments + (2 * pbi.UVPlaneFragments) ;
         FragsAcross = pbi.HFragments >> 1;
         FragsDown = pbi.VFragments >> 1;
         break;

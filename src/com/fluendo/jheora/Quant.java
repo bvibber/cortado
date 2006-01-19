@@ -28,11 +28,8 @@ import com.jcraft.jogg.*;
 
 public class Quant 
 { 
-  private static final int MIN_LEGAL_QUANT_ENTRY = 8;
   private static final int MIN_DEQUANT_VAL       = 2;
   private static final int IDCT_SCALE_FACTOR     = 2; /* Shift left bits to improve IDCT precision */
-  private static final int OLD_SCHEME           =  1;
-
   private static int ilog (long v)
   {
     int ret=0;
@@ -46,17 +43,17 @@ public class Quant
 
   private static int _read_qtable_range(Info ci, Buffer opb, int N) 
   {
-    int index, range;
+    int range;
     int qi = 0;
 
-    index = opb.readB(ilog(N-1)); /* qi=0 index */
+    opb.readB(ilog(N-1)); /* qi=0 index */
     while(qi<63) {
       range = opb.readB(ilog(62-qi)); /* range to next code q matrix */
       range++;
       if(range<=0)
         return Result.BADHEADER;
       qi+=range;
-      index = opb.readB(ilog(N-1)); /* next index */
+      opb.readB(ilog(N-1)); /* next index */
     }
   
     return 0;
