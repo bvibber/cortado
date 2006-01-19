@@ -1,3 +1,13 @@
+2006-01-19  Thomas Vander Stichele  <thomas at apestaart dot org>
+
+	* src/com/fluendo/jst/Bus.java: (Bus.peek):
+	* src/com/fluendo/jst/Pipeline.java: (Pipeline.SortedEnumerator),
+	(Pipeline.SortedEnumerator.queueNextElement):
+	* src/com/fluendo/player/Status.java:
+	* src/com/fluendo/plugin/Queue.java: (Queue.Pad):
+	  Fix Vector calls to work with 1.1 API - partially fixes applet
+	  in Explorer
+
 2006-01-19  Wim Taymans  <wim@fluendo.com>
 
 	* src/com/fluendo/plugin/AudioSinkSA.java:

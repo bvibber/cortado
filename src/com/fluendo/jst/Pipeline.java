@@ -153,7 +153,7 @@ public class Pipeline extends com.fluendo.jst.Element implements BusSyncHandler
 
     private void addToQueue (Element elem)
     {
-      queue.add (elem);
+      queue.addElement (elem);
       hash.put (elem, new Integer(-1));
     }
 
@@ -243,7 +243,8 @@ public class Pipeline extends com.fluendo.jst.Element implements BusSyncHandler
 	}
       }
       else {
-        next = queue.remove (0);
+        next = queue.elementAt (0);
+        queue.removeElementAt (0);
       }
       if (next != null)
         updateDegree ((Element) next);

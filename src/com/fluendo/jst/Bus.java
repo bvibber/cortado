@@ -71,9 +71,13 @@ public class Bus {
     return (Message) queue.firstElement();
   }
   public synchronized Message pop() {
+    Message ret;
+
     if (queue.isEmpty())
       return null;
-    return (Message) queue.remove(0);
+    ret = (Message) queue.elementAt(0);
+    queue.removeElementAt(0);
+    return ret;
   }
   public synchronized Message poll(long timeout) {
     if (queue.isEmpty()) {

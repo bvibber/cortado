@@ -104,7 +104,8 @@ public class Queue extends Element
 	  }
 	  catch (InterruptedException ie) {}
 	}
-	obj = queue.remove(queue.size()-1);
+	obj = queue.elementAt(queue.size()-1);
+	queue.removeElement(obj);
         queue.notifyAll();
       }
 
@@ -214,7 +215,7 @@ public class Queue extends Element
 	default:
 	   synchronized (streamLock) {
              synchronized (queue) {
-               queue.add(0, event);
+               queue.insertElementAt(event, 0);
                queue.notifyAll();
 	     }
 	   }
@@ -247,7 +248,7 @@ public class Queue extends Element
 	size += buf.length;
 	updateBuffering();
 
-        queue.add(0, buf);
+        queue.insertElementAt(buf, 0);
         queue.notifyAll();
       }
       return OK;
