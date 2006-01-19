@@ -18,8 +18,10 @@
 
 package com.fluendo.player;
 
-import com.fluendo.jst.*;
 import java.awt.*;
+
+import com.fluendo.jst.*;
+import com.fluendo.utils.*;
 
 public class CortadoPipeline extends Pipeline implements PadListener, CapsListener {
 
@@ -231,21 +233,22 @@ public class CortadoPipeline extends Pipeline implements PadListener, CapsListen
     httpsrc.getPad("src").addCapsListener (this);
 
     if (enableAudio) {
-      audiosink = ElementFactory.makeByName("audiosinkj2", "audiosink");
-      //audiosink = ElementFactory.makeByName("audiosinksa", "audiosink");
-
+      try {
+        Class.forName("javax.sound.sampled.AudioSystem");
+        audiosink = ElementFactory.makeByName("audiosinkj2", "audiosink");
+	Debug.log(Debug.INFO, "using high quality javax.sound backend");
+      }
+      catch (ClassNotFoundException e) {
+        audiosink = ElementFactory.makeByName("audiosinksa", "audiosink");
+	Debug.log(Debug.INFO, "using low quality sun.audio backend");
+      }
       add(audiosink);
     }
     if (enableVideo) {
       videosink = ElementFactory.makeByName("videosink", "videosink");
       videosink.setProperty ("component", component);
-
       add(videosink);
     }
-
-    //res = buildOgg();
-    //res = buildMultipartJPEG();
-    //res = buildMultipartSmoke();
 
     return true;
   }

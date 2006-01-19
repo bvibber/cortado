@@ -1,5 +1,16 @@
 2006-01-19  Wim Taymans  <wim@fluendo.com>
 
+	* src/com/fluendo/player/CortadoPipeline.java:
+	(CortadoPipeline.build):
+	Autodetect audio backend.
+
+	* src/com/fluendo/plugin/AudioSinkSA.java:
+	(AudioSinkSA...RingReader.createRingBuffer),
+	(AudioSinkSA...RingReader.write):
+	Fix sync in sun.audio backend.
+
+2006-01-19  Wim Taymans  <wim@fluendo.com>
+
 	* src/com/fluendo/plugin/AudioSink.java: (AudioSink),
 	(AudioSink.AudioClock.getInternalTime), (AudioSink.RingBuffer.run),
 	(AudioSink.RingBuffer.acquire),
