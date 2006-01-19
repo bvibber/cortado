@@ -1,5 +1,11 @@
 2006-01-19  Wim Taymans  <wim@fluendo.com>
 
+	* src/com/fluendo/jst/Pipeline.java: (Pipeline.useClock),
+	(Pipeline.add), (Pipeline), (Pipeline.remove):
+	Don't accept null elements in add and remove.
+
+2006-01-19  Wim Taymans  <wim@fluendo.com>
+
 	* src/com/fluendo/player/Cortado.java: (Cortado), (Cortado.init),
 	(Cortado.handleMessage):
 	Cleanups.

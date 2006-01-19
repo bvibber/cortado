@@ -115,6 +115,9 @@ public class Pipeline extends com.fluendo.jst.Element implements BusSyncHandler
   }
 
   public boolean add(Element elem) {
+    if (elem == null)
+      return false;
+
     if (elem instanceof ClockProvider)
       defClock = ((ClockProvider)elem).provideClock();
 
@@ -125,6 +128,9 @@ public class Pipeline extends com.fluendo.jst.Element implements BusSyncHandler
   }
   public boolean remove(Element elem) {
     boolean res;
+
+    if (elem == null)
+      return false;
 
     if ((res = elements.removeElement (elem))) {
       elem.setBus (null);
