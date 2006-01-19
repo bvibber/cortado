@@ -72,8 +72,8 @@ public class HTTPSrc extends Element
         pushEvent (Event.newNewsegment(Format.BYTES, position));
 
         if (result) {
-	  result = startTask();
 	  postMessage (Message.newStreamStatus (this, true, Pad.OK, "restart after seek"));
+	  result = startTask();
 	}
       }
       return result;
@@ -131,6 +131,7 @@ public class HTTPSrc extends Element
 
       switch (mode) {
         case MODE_NONE:
+	  postMessage (Message.newStreamStatus (this, false, Pad.WRONG_STATE, "stopping"));
 	  res = stopTask();
 	  break;
         case MODE_PUSH:

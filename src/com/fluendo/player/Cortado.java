@@ -30,47 +30,30 @@ public class Cortado extends Applet implements Runnable, MouseMotionListener,
     private static final long serialVersionUID = 1L;
 
     private static Cortado cortado;
-
     private static CortadoPipeline pipeline;
 
     private String urlString;
-
     private boolean local;
-
     private boolean seekable;
-
     private double framerate;
-
     private boolean audio;
-
     private boolean video;
-
     private boolean keepAspect;
-
     private int bufferSize;
-
     private String userId;
-
     private String password;
-
     private boolean usePrebuffer;
-
     private int bufferLow;
-
     private int bufferHigh;
-
     private int debug;
-
     private long duration;
 
     private Thread statusThread;
-
     private Status status;
-
     private boolean inStatus;
+    private boolean isBuffering;
 
     private PopupMenu menu;
-
     private boolean stopping;
 
     private Hashtable params = new Hashtable();
@@ -163,18 +146,6 @@ public class Cortado extends Applet implements Runnable, MouseMotionListener,
 
     public void init() {
         cortado = this;
-
-        try {
-          Enumeration e = this.getClass().getClassLoader().getResources("plugins.ini");
-	  for (;e.hasMoreElements();) {
-	    java.lang.Object o = e.nextElement();
-
-	    System.out.println(o);
-	  }
-	}
-	catch (Exception e) {
-	  e.printStackTrace();
-	}
 
         pipeline = new CortadoPipeline();
         configure = new Configure();
@@ -384,14 +355,20 @@ public class Cortado extends Applet implements Runnable, MouseMotionListener,
 	    percent = msg.parseBufferingPercent();
 
 	    if (busy) {
-	      pipeline.setState(Element.PAUSE);
+	      if (!isBuffering) {
+	        pipeline.setState(Element.PAUSE);
+		isBuffering = true;
+                setStatusVisible(true);
+	      }
               status.setBufferPercent(busy, percent);
-              setStatusVisible(true);
 	    }
 	    else {
+	      if (isBuffering) {
+	        pipeline.setState(Element.PLAY);
+		isBuffering = false;
+                setStatusVisible(false);
+	      }
               status.setBufferPercent(busy, percent);
-	      pipeline.setState(Element.PLAY);
-              setStatusVisible(false);
 	    }
             break;
         case Message.STATE_CHANGED:

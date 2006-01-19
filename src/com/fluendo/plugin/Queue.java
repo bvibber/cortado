@@ -79,50 +79,14 @@ public class Queue extends Element
         buffering = false;
       }
       postMessage (Message.newBuffering (this, buffering, percent));
-      if (!buffering) {
-	postMessage (Message.newStreamStatus (srcpad, true, Pad.OK, "buffer filled"));
-        srcpad.startTask();
-      }
     }
     else {
       if (percent < lowPercent) {
         buffering = true;
-	postMessage (Message.newStreamStatus (srcpad, false, Pad.OK, "buffer empty"));
-        srcpad.pauseTask();
       }
     }
   }
 
-  private boolean start() {
-    boolean res;
-
-    if (!isBuffer) {
-      buffering = false;
-      postMessage (Message.newStreamStatus (srcpad, true, Pad.OK, "starting"));
-      res = srcpad.startTask();
-    }
-    else {
-      buffering = true;
-      postMessage (Message.newBuffering (this, true, 0)); 
-      res = true;
-    }
-    return res;
-  }
-  
-  private boolean stop() {
-    boolean res;
-
-    if (!isBuffer) {
-      buffering = false;
-      res = srcpad.stopTask();
-    }
-    else {
-      buffering = true;
-      res = true;
-    }
-    return res;
-  }
-  
   private Pad srcpad = new Pad(Pad.SRC, "src") {
     protected void taskFunc() {
       java.lang.Object obj;
@@ -165,7 +129,6 @@ public class Queue extends Element
 	  pauseTask();
         }
 	updateBuffering ();
-        queue.notifyAll();
       }
     }
 
@@ -180,6 +143,7 @@ public class Queue extends Element
 	    srcResult = WRONG_STATE;
 	    queue.notifyAll();
 	  }
+	  postMessage (Message.newStreamStatus (this, false, Pad.WRONG_STATE, "stopping"));
           res = stopTask();
           break;
         case MODE_PUSH:
@@ -194,6 +158,8 @@ public class Queue extends Element
 	    else {
 	      buffering = true;
 	      postMessage (Message.newBuffering (this, true, 0)); 
+	      postMessage (Message.newStreamStatus (this, true, Pad.OK, "activating"));
+              res = startTask();
 	    }
 	  }
           break;
@@ -239,7 +205,9 @@ public class Queue extends Element
 	     }
 	     else {
 	       buffering = true;
+	       postMessage (Message.newStreamStatus (srcpad, true, Pad.OK, "restart after flush"));
 	       postMessage (Message.newBuffering (this, true, 0)); 
+	       srcpad.startTask();
 	     }
 	   }
 	   break;
@@ -280,7 +248,7 @@ public class Queue extends Element
 	updateBuffering();
 
         queue.add(0, buf);
-        queue.notify();
+        queue.notifyAll();
       }
       return OK;
     }

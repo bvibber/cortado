@@ -1,5 +1,26 @@
 2006-01-19  Wim Taymans  <wim@fluendo.com>
 
+	* src/com/fluendo/player/Cortado.java: (Cortado), (Cortado.init),
+	(Cortado.handleMessage):
+	Cleanups.
+	Pause pipeline while buffering.
+	
+	* src/com/fluendo/plugin/AudioSink.java:
+	(AudioSink.RingBuffer.setSample), (AudioSink.RingBuffer.play),
+	(AudioSink.RingBuffer.pause):
+	* src/com/fluendo/plugin/AudioSinkJ2.java:
+	Compile fixes.
+
+	* src/com/fluendo/plugin/HTTPSrc.java: (HTTPSrc.Pad):
+	Post stream status messages.
+
+	* src/com/fluendo/plugin/Queue.java: (Queue.updateBuffering),
+	(Queue.Pad):
+	Never pause the stream when we are buffering so that we can
+	preroll while buffering.
+
+2006-01-19  Wim Taymans  <wim@fluendo.com>
+
 	* src/com/fluendo/player/Cortado.java: (Cortado.stringToTime),
 	(Cortado.handleMessage):
 	Update buffering info.

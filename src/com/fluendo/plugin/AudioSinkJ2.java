@@ -24,6 +24,8 @@ import javax.sound.sampled.*;
 
 public class AudioSinkJ2 extends AudioSink
 {
+  public static final int SEGSIZE = 8192;
+
   private SourceDataLine line = null;
   private int channels;
   private long samplesWritten;

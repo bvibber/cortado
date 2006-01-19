@@ -23,8 +23,6 @@ import com.fluendo.utils.*;
 
 public abstract class AudioSink extends Sink implements ClockProvider
 {
-  public static final int SEGSIZE = 8192;
-
   protected RingBuffer ringBuffer = null;
 
   private class AudioClock extends SystemClock {
@@ -75,10 +73,10 @@ public abstract class AudioSink extends Sink implements ClockProvider
       return result;
     }
   };
-  private AudioClock clock = new AudioClock();
+  private AudioClock audioClock = new AudioClock();
 
   public Clock provideClock() {
-    return clock;
+    return audioClock;
   }
 
   protected class RingBuffer implements Runnable {
@@ -345,8 +343,8 @@ public abstract class AudioSink extends Sink implements ClockProvider
       nextSample = sample;
 
       clearAll();
-      synchronized (clock) {
-        clock.notifyAll();
+      synchronized (audioClock) {
+        audioClock.notifyAll();
       }
     }
 
@@ -355,7 +353,7 @@ public abstract class AudioSink extends Sink implements ClockProvider
         return false;
 
       state = PLAY;
-      clock.setStarted(true);
+      audioClock.setStarted(true);
       notifyAll();
       return true;
     }
@@ -368,14 +366,14 @@ public abstract class AudioSink extends Sink implements ClockProvider
         }
         catch (InterruptedException ie) {}
       }
-      clock.setStarted(false);
+      audioClock.setStarted(false);
       return true;
     }
     public boolean stop () {
       synchronized (this) {
         state = STOP;
         notifyAll();
-        clock.setStarted(false);
+        audioClock.setStarted(false);
       }
 
       if (thread != null) {
