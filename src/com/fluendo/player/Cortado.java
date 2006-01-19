@@ -249,6 +249,12 @@ public class Cortado extends Applet implements Runnable, MouseMotionListener,
         int dwidth = getSize().width;
         int dheight = getSize().height;
 
+        /* sometimes dimension is wrong */
+        if (dwidth <= 0 || dheight <= 12) {
+	  appletDimension =  null;
+	  return;
+	}
+	
         if (status != null && status.isVisible()) {
             status.setBounds(0, dheight - 12, dwidth, 12);
             status.paint(g);
