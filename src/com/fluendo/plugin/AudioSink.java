@@ -387,6 +387,9 @@ public abstract class AudioSink extends Sink implements ClockProvider
       }
       return true;
     }
+    public synchronized int getState() {
+      return state;
+    }
   }
 
   protected int doSync (long time)

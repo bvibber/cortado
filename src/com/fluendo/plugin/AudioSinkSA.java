@@ -29,6 +29,7 @@ public class AudioSinkSA extends AudioSink
   private static final int DELAY = 16 * 1024;
 
   private double rateDiff;
+  private int delay;
 
   private static final boolean ZEROTRAP=true;
   private static final short BIAS=0x84;
@@ -145,20 +146,20 @@ public class AudioSinkSA extends AudioSink
     protected void startWriteThread () {}
     public synchronized boolean play () {
       boolean res;
-      if ((res = super.play()))
-        res = reader.play();
+      res = super.play();
+      reader.play();
       return res;
     }
     public synchronized boolean pause () {
       boolean res;
-      if ((res = super.pause()))
-        res = reader.pause();
+      res = super.pause();
+      reader.pause();
       return res;
     }
     public synchronized boolean stop () {
       boolean res;
-      if ((res = super.stop()))
-        res = reader.stop();
+      res = super.stop();
+      reader.stop();
       return res;
     }
     public int read (byte[] b, int off, int len) {
@@ -213,6 +214,7 @@ public class AudioSinkSA extends AudioSink
     ring.segTotal = (int) (BUFFER * rateDiff);
     ring.segTotal = ring.segTotal * ring.bps / ring.segSize;
     ring.emptySeg = new byte[ring.segSize];
+    delay = DELAY;
 
     return true;
   }
@@ -228,7 +230,7 @@ public class AudioSinkSA extends AudioSink
   }
 
   protected long delay () {
-    long ret = ((int)(DELAY * rateDiff));
+    long ret = ((int)(delay * rateDiff));
     return ret;
   }
 

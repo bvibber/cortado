@@ -158,13 +158,23 @@ public class Cortado extends Applet implements Runnable, MouseMotionListener,
         min = Integer.valueOf(d.substring(len - 4, len - 2)).intValue();
         hours = Integer.valueOf(d.substring(0, len - 4)).intValue();
 
-        System.out.println("" + hours + ":" + min + ":" + sec);
-
         return ((hours * 60) + min) * 60 + sec;
     }
 
     public void init() {
         cortado = this;
+
+        try {
+          Enumeration e = this.getClass().getClassLoader().getResources("plugins.ini");
+	  for (;e.hasMoreElements();) {
+	    java.lang.Object o = e.nextElement();
+
+	    System.out.println(o);
+	  }
+	}
+	catch (Exception e) {
+	  e.printStackTrace();
+	}
 
         pipeline = new CortadoPipeline();
         configure = new Configure();
@@ -367,9 +377,22 @@ public class Cortado extends Applet implements Runnable, MouseMotionListener,
             setStatusVisible(true);
             break;
         case Message.BUFFERING:
-            System.out.println(msg);
-            status.setBufferPercent(msg.parseBufferingPercent());
-            setStatusVisible(true);
+	    boolean busy;
+	    int percent;
+
+	    busy = msg.parseBufferingBusy();
+	    percent = msg.parseBufferingPercent();
+
+	    if (busy) {
+	      pipeline.setState(Element.PAUSE);
+              status.setBufferPercent(busy, percent);
+              setStatusVisible(true);
+	    }
+	    else {
+              status.setBufferPercent(busy, percent);
+	      pipeline.setState(Element.PLAY);
+              setStatusVisible(false);
+	    }
             break;
         case Message.STATE_CHANGED:
             if (msg.getSrc() == pipeline) {

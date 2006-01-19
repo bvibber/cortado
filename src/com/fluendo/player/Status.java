@@ -28,57 +28,43 @@ public class Status extends Component implements MouseListener,
     private static final long serialVersionUID = 1L;
 
     private int bufferPercent;
+    private boolean buffering;
 
     private String message;
-
     private String error;
 
     private Rectangle r;
-
     private Component component;
 
     private Font font = new Font("SansSerif", Font.PLAIN, 10);
 
     private boolean haveAudio;
-
     private boolean havePercent;
-
     private boolean seekable;
 
     private static final int NONE = 0;
-
     private static final int BUTTON1 = 1;
-
     private static final int BUTTON2 = 2;
-
     private static final int SEEKBAR = 3;
-
     private int clicked = NONE;
 
     private Color button1Color;
-
     private Color button2Color;
-
     private Color seekColor;
 
     private static final int triangleX[] = { 4, 4, 9 };
-
     private static final int triangleY[] = { 3, 9, 6 };
 
     private static final int SEEK_END = 82;
 
     public static final int STATE_STOPPED = 0;
-
     public static final int STATE_PAUSED = 1;
-
     public static final int STATE_PLAYING = 2;
 
     private int state = STATE_STOPPED;
 
     private double position = 0;
-
     private long time;
-
     private long duration;
 
     private String speaker = "\0\0\0\0\0\357\0\0\357U\27"
@@ -177,6 +163,11 @@ public class Status extends Component implements MouseListener,
         }
     }
 
+    private void paintBuffering(Graphics g, int pos) {
+        g.setColor(Color.white);
+        g.drawString("Buffering", pos, r.height - 2);
+    }
+
     private void paintSeekBar(Graphics g) {
         int pos, end;
 
@@ -241,16 +232,25 @@ public class Status extends Component implements MouseListener,
         if (seekable) {
             paintPlayPause(g2);
             paintStop(g2);
-            if (state == STATE_STOPPED) {
+            if (buffering) {
                 paintPercent(g2);
+                paintBuffering(g2, 27);
+	    }
+            else if (state == STATE_STOPPED) {
                 paintMessage(g2, 27);
             } else {
                 paintSeekBar(g2);
                 paintTime(g2);
             }
         } else {
-            paintMessage(g2, 2);
-            paintTime(g2);
+            if (buffering) {
+                paintBuffering(g2, 2);
+                paintPercent(g2);
+	    }
+	    else {
+                paintMessage(g2, 2);
+                paintTime(g2);
+	    }
         }
         paintSpeaker(g2);
 
@@ -258,8 +258,9 @@ public class Status extends Component implements MouseListener,
         img.flush();
     }
 
-    public void setBufferPercent(int bp) {
-        bufferPercent = bp;
+    public void setBufferPercent(boolean buffering, int bp) {
+        this.buffering = buffering;
+        this.bufferPercent = bp;
         component.repaint();
     }
 
