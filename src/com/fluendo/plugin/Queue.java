@@ -33,7 +33,8 @@ public class Queue extends Element
   private Vector queue = new Vector();
   private int srcResult = Pad.WRONG_STATE;
   private int size;
-  private boolean buffering;
+  private boolean isBuffering;
+  private boolean isEOS;
 
   private int maxBuffers = DEFAULT_MAX_BUFFERS;
   private int maxSize = DEFAULT_MAX_SIZE;
@@ -62,11 +63,13 @@ public class Queue extends Element
     }
     queue.setSize(0);
     size = 0;
-    buffering = true;
+    isBuffering = true;
   }
 
   private void updateBuffering () {
     if (!isBuffer || srcResult != Pad.OK)
+      return;
+    if (isEOS)
       return;
 
     /* figure out the percentage we are filled */
@@ -74,15 +77,15 @@ public class Queue extends Element
     if (percent > 100)
       percent = 100;
 
-    if (buffering) {
+    if (isBuffering) {
       if (percent >= highPercent) {
-        buffering = false;
+        isBuffering = false;
       }
-      postMessage (Message.newBuffering (this, buffering, percent));
+      postMessage (Message.newBuffering (this, isBuffering, percent));
     }
     else {
       if (percent < lowPercent) {
-        buffering = true;
+        isBuffering = true;
       }
     }
   }
@@ -148,6 +151,7 @@ public class Queue extends Element
           res = stopTask();
           break;
         case MODE_PUSH:
+	  isEOS = false;
 	  synchronized (queue) {
 	    srcResult = OK;
 	    /* if we buffer, we start when we are hitting the
@@ -157,7 +161,7 @@ public class Queue extends Element
               res = startTask();
 	    }
 	    else {
-	      buffering = true;
+	      isBuffering = true;
 	      postMessage (Message.newBuffering (this, true, 0)); 
 	      postMessage (Message.newStreamStatus (this, true, Pad.OK, "activating"));
               res = startTask();
@@ -178,7 +182,9 @@ public class Queue extends Element
 
   private Pad sinkpad = new Pad(Pad.SINK, "sink") {
     protected boolean eventFunc (Event event) {
-      switch (event.getType()) {
+      int type = event.getType();
+
+      switch (type) {
         case Event.FLUSH_START:
 	   srcpad.pushEvent (event);
 	   synchronized (queue) {
@@ -195,6 +201,7 @@ public class Queue extends Element
 	   srcpad.pushEvent (event);
 
 	   synchronized (streamLock) {
+	     isEOS = false;
 	     synchronized (queue) {
 	       clearQueue ();
 	       srcResult = OK;
@@ -205,7 +212,7 @@ public class Queue extends Element
 	       srcpad.startTask();
 	     }
 	     else {
-	       buffering = true;
+	       isBuffering = true;
 	       postMessage (Message.newStreamStatus (srcpad, true, Pad.OK, "restart after flush"));
 	       postMessage (Message.newBuffering (this, true, 0)); 
 	       srcpad.startTask();
@@ -214,6 +221,9 @@ public class Queue extends Element
 	   break;
 	default:
 	   synchronized (streamLock) {
+	     if (type == Event.EOS) {
+	       isEOS = true;
+	     }
              synchronized (queue) {
                queue.insertElementAt(event, 0);
                queue.notifyAll();

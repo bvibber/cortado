@@ -4,7 +4,6 @@ TODO for cortado
 - make synchronization work for seekable streams
 - dynamically choose the audio sink to use (currently hardcoded)
 
-
 - implement Query duration/position, not sure how to do that since
   we only have the byte position. possibly put duration as a param or
   maybe do a single seek for the last page to get the last granule position.

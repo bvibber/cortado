@@ -1,3 +1,10 @@
+2006-01-19  Wim Taymans  <wim@fluendo.com>
+
+	* TODO:
+	* src/com/fluendo/plugin/Queue.java: (Queue), (Queue.clearQueue),
+	(Queue.Pad):
+	Handle EOS gracefully.
+
 2006-01-19  Thomas Vander Stichele  <thomas at apestaart dot org>
 
 	* src/com/fluendo/jst/Bus.java: (Bus.peek):
