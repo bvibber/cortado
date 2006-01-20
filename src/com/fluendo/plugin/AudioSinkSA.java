@@ -25,7 +25,7 @@ import com.fluendo.utils.*;
 public class AudioSinkSA extends AudioSink
 {
   private static final int BUFFER = 16 * 1024;
-  private static final int SEGSIZE = 1024;
+  private static final int SEGSIZE = 256;
   private static final int DELAY = 16 * 1024;
 
   private double rateDiff;
@@ -54,20 +54,21 @@ public class AudioSinkSA extends AudioSink
     };
 
   /* muLaw header */
-  private static final byte[] header =
+  private static final short[] header =
                          { 0x2e, 0x73, 0x6e, 0x64,              // header in be
                            0x00, 0x00, 0x00, 0x18,              // offset
-                           0x7f,   -1,   -1,   -1,              // length
+                           0x7f, 0xff, 0xff, 0xff,              // length
                            0x00, 0x00, 0x00, 0x01,              // ulaw
                            0x00, 0x00, 0x1f, 0x40,              // frequency
-                           0x00, 0x00, 0x00, 0x01               // channels
+                           0x00, 0x00, 0x00, 0x01,              // channels
+			   -1
                          };
   private int headerPos;
   private boolean needHeader;
 
   private byte[] readByte = new byte[1];
 
-  private final byte toUlaw(int sample)
+  private final int toUlaw(int sample)
   {
     int sign, exponent, mantissa, ulawbyte;
 
@@ -86,7 +87,10 @@ public class AudioSinkSA extends AudioSink
     if (ZEROTRAP)
       if (ulawbyte == 0) ulawbyte = 0x02;  /* optional CCITT trap */
 
-    return (byte) ulawbyte;
+    if (ulawbyte < 0)
+      ulawbyte += 256;
+
+    return ulawbyte;
   }
 
   private class RingReader extends InputStream {
@@ -117,47 +121,22 @@ public class AudioSinkSA extends AudioSink
       return true;
     }
     public int read() throws IOException {
-      int result;
-      int len = read(readByte, 0, 1);
-      if (len == 0)
-        return -1;
-      result = readByte[0];
-      if (result < 0)
-        result += 256;
-      return result;
-    }
-
-    public int read(byte[] b) throws IOException {
-      System.out.println("will not implement read(byte[])");
-      return -1;
-    }
-    public int read(byte[] b, int off, int len) throws IOException 
-    {
-      int ret;
-
-      if (needHeader) {
-        int headerLen = Math.min (len, header.length - headerPos);
-
-        System.arraycopy (header, headerPos, b, off, headerLen);
-	headerPos += headerLen;
-	if (headerPos >= header.length) {
-	  needHeader = false;
-	}
-	return headerLen;
-      }
-      ret = ringBuffer.read (b, off, len);
-      return ret;
+      if (headerPos < header.length)
+	return header[headerPos++];
+      else
+        return ringBuffer.read();
     }
   }
 
   private class RingBufferSA extends RingBuffer
   {
     private RingReader reader;
-    private int pos;
+    private int devicePos;
+    public int nextSeg;
 
     public RingBufferSA () {
       reader = new RingReader (this);
-      pos = 0;
+      devicePos = 0;
     }
 
     protected void startWriteThread () {}
@@ -179,41 +158,38 @@ public class AudioSinkSA extends AudioSink
       reader.stop();
       return res;
     }
-    public int read (byte[] b, int off, int len) {
-      int nextSeg = ((pos / segSize) + 1) * segSize;
+    public int read () {
+      int ringPos;
 
-      //System.out.println ("read: ptr: "+ptr+" pos: "+pos+" len: "+len);
-      for (int i=0; i < len; i++) {
-	int ptr = pos + (int)(i * rateDiff) * bps; 
+      ringPos = (int)(devicePos * rateDiff) * bps;
 
-	while (ptr >= nextSeg) {
-          synchronized (this) {
-            //System.out.println ("inc/clear: ptr: "+ptr+" playSeg: "+playSeg);
-	    clear ((int) (playSeg % segTotal));
-            playSeg++;
-            notifyAll();
-          }
-          nextSeg = ((ptr / segSize) + 1) * segSize;
-	}
-
-        int sample = 0;
-	int ptr2 = ptr % buffer.length;
-        for (int j=0; j<channels; j++) {
-          int b1, b2;
-
-          b1 = buffer[ptr2  ];
-          b2 = buffer[ptr2+1];
-          if (b2<0) b2+=256;
-          sample += (b1 * 256) | b2;
-	  ptr2 += 2;
+      while (ringPos >= nextSeg) {
+        //System.out.println ("read: devicePos: "+devicePos+" ringPos: "+ringPos+" nextSeg: "+nextSeg);
+        synchronized (this) {
+	  clear ((int) (playSeg % segTotal));
+          playSeg++;
+          notifyAll();
         }
-        sample /= channels;
-
-        b[off + i] = toUlaw (sample);
+        nextSeg += segSize;
       }
-      pos += (int)(len * rateDiff) * bps; 
-      //MemUtils.dump (b, off, len);
-      return len;
+
+      int sample = 0;
+      int ptr = ringPos % buffer.length;
+      for (int j=0; j<channels; j++) {
+        int b1, b2;
+
+        b1 = buffer[ptr  ];
+        b2 = buffer[ptr+1];
+        if (b2<0) b2+=256;
+	/* multiply because we need to keep the sign */
+        sample += (b1 * 256) | b2;
+	ptr += 2;
+      }
+      sample /= channels;
+
+      devicePos++;
+
+      return toUlaw (sample);
     }
   }
 
@@ -230,6 +206,8 @@ public class AudioSinkSA extends AudioSink
     ring.segTotal = (int) (BUFFER * rateDiff);
     ring.segTotal = ring.segTotal * ring.bps / ring.segSize;
     ring.emptySeg = new byte[ring.segSize];
+    
+    ((RingBufferSA)ring).nextSeg = ring.segSize;
     delay = DELAY;
 
     return true;

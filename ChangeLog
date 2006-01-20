@@ -1,5 +1,13 @@
 2006-01-20  Wim Taymans  <wim@fluendo.com>
 
+	* src/com/fluendo/plugin/AudioSinkSA.java: (AudioSinkSA),
+	(AudioSinkSA...toUlaw), (AudioSinkSA...RingReader.pause),
+	(AudioSinkSA...RingReader.stop):
+	Redid sun.audio backend to work on bytes and do more
+	accurate resampling.
+
+2006-01-20  Wim Taymans  <wim@fluendo.com>
+
 	* src/com/fluendo/plugin/AudioSinkSA.java:
 	(AudioSinkSA...RingReader.stop):
 	Convert byte to int.
