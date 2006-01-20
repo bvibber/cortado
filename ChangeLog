@@ -1,6 +1,16 @@
 2006-01-20  Thomas Vander Stichele  <thomas at apestaart dot org>
 
 	* build.xml:
+	* src/com/fluendo/player/Cortado.java: (Cortado.init),
+	(Cortado.stop):
+	* src/com/fluendo/player/CortadoPipeline.java: (CortadoPipeline),
+	(CortadoPipeline.build):
+	* src/com/fluendo/plugin/AudioSinkSA.java: (AudioSinkSA):
+	  added an about dialog
+
+2006-01-20  Thomas Vander Stichele  <thomas at apestaart dot org>
+
+	* build.xml:
 	  add time of build as well, useful when debugging builds
 
 2006-01-20  Wim Taymans  <wim@fluendo.com>

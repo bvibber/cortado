@@ -44,6 +44,8 @@ public class CortadoPipeline extends Pipeline implements PadListener, CapsListen
   private Element audiosink;
   private Element v_queue, a_queue;
 
+  public boolean usingJavaX = false;
+
   public void padAdded(Pad pad) {
     Caps caps = pad.getCaps ();
 
@@ -235,6 +237,7 @@ public class CortadoPipeline extends Pipeline implements PadListener, CapsListen
     if (enableAudio) {
       try {
         Class.forName("javax.sound.sampled.AudioSystem");
+        usingJavaX = true;
         audiosink = ElementFactory.makeByName("audiosinkj2", "audiosink");
 	Debug.log(Debug.INFO, "using high quality javax.sound backend");
       }

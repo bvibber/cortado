@@ -26,7 +26,7 @@ public class AudioSinkSA extends AudioSink
 {
   private static final int BUFFER = 16 * 1024;
   private static final int SEGSIZE = 256;
-  private static final int DELAY = 16 * 1024;
+  private static final int DELAY = 8 * 1000; /* in samples at 8000 Hz */
 
   private double rateDiff;
   private int delay;

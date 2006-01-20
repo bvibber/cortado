@@ -26,7 +26,7 @@ import com.fluendo.utils.*;
 import com.fluendo.jst.*;
 
 public class Cortado extends Applet implements Runnable, MouseMotionListener,
-        MouseListener, BusHandler, StatusListener {
+        MouseListener, BusHandler, StatusListener, ActionListener {
     private static final long serialVersionUID = 1L;
 
     private static Cortado cortado;
@@ -169,7 +169,7 @@ public class Cortado extends Applet implements Runnable, MouseMotionListener,
         password = getParam("password", null);
 
         Debug.level = debug;
-        Debug.log(Debug.WARNING, "build info: " + configure.buildInfo);
+        Debug.log(Debug.INFO, "build info: " + configure.buildInfo);
 
         pipeline.setUrl(urlString);
         pipeline.setUserId(userId);
@@ -197,7 +197,17 @@ public class Cortado extends Applet implements Runnable, MouseMotionListener,
 
         menu = new PopupMenu();
         menu.add("About...");
+        menu.addActionListener(this);
         this.add(menu);
+    }
+
+    public void actionPerformed(ActionEvent e) {
+	String command = e.getActionCommand();
+
+        if (command.equals("About...")) {
+            AboutFrame about = new AboutFrame(pipeline);
+            about.d.setVisible(true);
+        }
     }
 
     public synchronized Graphics getGraphics() {
@@ -471,4 +481,71 @@ public class Cortado extends Applet implements Runnable, MouseMotionListener,
         }
         statusThread = null;
     }
+}
+
+/* dialog box */
+
+class AppFrame extends Frame 
+    implements WindowListener { 
+  public AppFrame(String title) { 
+    super(title); 
+    addWindowListener(this); 
+  } 
+  public void windowClosing(WindowEvent e) { 
+    setVisible(false); 
+    dispose(); 
+    System.exit(0); 
+  } 
+  public void windowClosed(WindowEvent e) {} 
+  public void windowDeactivated(WindowEvent e) {} 
+  public void windowActivated(WindowEvent e) {} 
+  public void windowDeiconified(WindowEvent e) {} 
+  public void windowIconified(WindowEvent e) {} 
+  public void windowOpened(WindowEvent e) {} 
+} 
+
+class AboutFrame extends AppFrame { 
+  Dialog d; 
+ 
+  public AboutFrame(CortadoPipeline pipeline) { 
+    super("AboutFrame"); 
+
+    Configure configure = new Configure();
+
+    setSize(200, 100); 
+    Button dbtn; 
+    d = new Dialog(this, "About Cortado", false); 
+    d.setVisible(true);
+
+    TextArea ta = new TextArea("", 8, 40, TextArea.SCROLLBARS_NONE);
+    d.add(ta);
+    ta.appendText("This is Cortado " + configure.buildVersion + ".\n");
+    ta.appendText("Brought to you by Wim Taymans.\n");
+    ta.appendText("(C) Copyright 2004,2005,2006 Fluendo\n\n");
+    ta.appendText("Built on " + configure.buildDate + "\n");
+    ta.appendText("Built in " + configure.buildType + " mode.\n");
+
+    if (pipeline.usingJavaX) {
+      ta.appendText("Using the javax.sound backend.");
+    } else {
+      ta.appendText("Using the sun.audio backend.\n\n");
+      ta.appendText("NOTE: you should install the Java(TM) from Sun.");
+    }
+
+    d.add(dbtn = new Button("OK"), 
+      BorderLayout.SOUTH); 
+
+    Dimension dim = d.getPreferredSize();
+    d.setSize(dim);
+    dbtn.addActionListener(new ActionListener() { 
+      public void actionPerformed(ActionEvent e) { 
+        d.setVisible(false); 
+      } 
+    }); 
+    d.addWindowListener(new WindowAdapter() { 
+      public void windowClosing(WindowEvent e) { 
+        d.setVisible(false); 
+      } 
+    }); 
+  } 
 }
