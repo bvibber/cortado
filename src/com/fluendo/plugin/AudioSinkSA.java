@@ -62,7 +62,10 @@ public class AudioSinkSA extends AudioSink
                            0x00, 0x00, 0x1f, 0x40,              // frequency
                            0x00, 0x00, 0x00, 0x01               // channels
                          };
+  private int headerPos;
   private boolean needHeader;
+
+  private byte[] readByte = new byte[1];
 
   private final byte toUlaw(int sample)
   {
@@ -94,6 +97,7 @@ public class AudioSinkSA extends AudioSink
       ringBuffer = rb;
       try {
         needHeader = true;
+        headerPos = 0;
         stream = new AudioStream(this);
       }
       catch (Exception e) {
@@ -113,8 +117,10 @@ public class AudioSinkSA extends AudioSink
       return true;
     }
     public int read() throws IOException {
-      System.out.println("will not implement read()");
-      return -1;
+      int len = read(readByte, 0, 1);
+      if (len == 0)
+        return -1;
+      return readByte[0];
     }
 
     public int read(byte[] b) throws IOException {
@@ -126,9 +132,14 @@ public class AudioSinkSA extends AudioSink
       int ret;
 
       if (needHeader) {
-        System.arraycopy (header, 0, b, off, header.length);
-	needHeader = false;
-	return header.length;
+        int headerLen = Math.min (len, header.length - headerPos);
+
+        System.arraycopy (header, headerPos, b, off, headerLen);
+	headerPos += headerLen;
+	if (headerPos >= header.length) {
+	  needHeader = false;
+	}
+	return headerLen;
       }
       ret = ringBuffer.read (b, off, len);
       return ret;
@@ -165,12 +176,11 @@ public class AudioSinkSA extends AudioSink
       return res;
     }
     public int read (byte[] b, int off, int len) {
-      int ptr = pos;
-      int nextSeg = ((ptr / segSize) + 1) * segSize;
+      int nextSeg = ((pos / segSize) + 1) * segSize;
 
       //System.out.println ("read: ptr: "+ptr+" pos: "+pos+" len: "+len);
       for (int i=0; i < len; i++) {
-	ptr = pos + (int)(i * rateDiff) * bps; 
+	int ptr = pos + (int)(i * rateDiff) * bps; 
 
 	while (ptr >= nextSeg) {
           synchronized (this) {
@@ -197,7 +207,7 @@ public class AudioSinkSA extends AudioSink
 
         b[off + i] = toUlaw (sample);
       }
-      pos = ptr;
+      pos += (int)(len * rateDiff) * bps; 
       //MemUtils.dump (b, off, len);
       return len;
     }
