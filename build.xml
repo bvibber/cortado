@@ -73,7 +73,7 @@ Cortado ANT build file
 <!-- generate Configure-time options class as src/com/fluendo/player/Configure.java -->
   <target name="configure">
     <tstamp>
-      <format property="DATE" pattern="yyyy-MM-dd" />
+      <format property="DATE" pattern="yyyy-MM-dd HH:mm:ss" />
    </tstamp>
 
     <echo file="${src}/com/fluendo/player/Configure.java" append="false"
