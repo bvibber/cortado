@@ -117,10 +117,14 @@ public class AudioSinkSA extends AudioSink
       return true;
     }
     public int read() throws IOException {
+      int result;
       int len = read(readByte, 0, 1);
       if (len == 0)
         return -1;
-      return readByte[0];
+      result = readByte[0];
+      if (result < 0)
+        result += 256;
+      return result;
     }
 
     public int read(byte[] b) throws IOException {

@@ -1,6 +1,12 @@
 2006-01-20  Wim Taymans  <wim@fluendo.com>
 
 	* src/com/fluendo/plugin/AudioSinkSA.java:
+	(AudioSinkSA...RingReader.stop):
+	Convert byte to int.
+
+2006-01-20  Wim Taymans  <wim@fluendo.com>
+
+	* src/com/fluendo/plugin/AudioSinkSA.java:
 	(AudioSinkSA...RingReader), (AudioSinkSA...RingReader.RingReader),
 	(AudioSinkSA...RingReader.pause), (AudioSinkSA...RingReader.stop),
 	(AudioSinkSA...RingReader.read),
