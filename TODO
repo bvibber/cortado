@@ -1,9 +1,5 @@
 TODO for cortado
 
-- make synchronization work for online streams
-- make synchronization work for seekable streams
-- dynamically choose the audio sink to use (currently hardcoded)
-
 - implement Query duration/position, not sure how to do that since
   we only have the byte position. possibly put duration as a param or
   maybe do a single seek for the last page to get the last granule position.
@@ -11,12 +7,7 @@ TODO for cortado
   GUI since using the byte position would result in values way past the
   actual playback position because of buffering.
 
-- implement a network buffer, use BUFFERING messages to pause/play the
-  pipeline.
-
 - clean up some issues with pause/play stuttering.
-
-- do some testing on live streams with JST backend.
 
 - JST backend does not use newsegment events. 
 
