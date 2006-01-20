@@ -1,5 +1,12 @@
 2006-01-20  Wim Taymans  <wim@fluendo.com>
 
+	* src/com/fluendo/plugin/AudioSinkSA.java:
+	(AudioSinkSA...RingReader.read),
+	(AudioSinkSA...RingReader.RingBufferSA.read):
+	Change read behaviour to please both IE and jdk
+
+2006-01-20  Wim Taymans  <wim@fluendo.com>
+
 	* src/com/fluendo/jst/Pad.java: (Pad.setCaps):
 	Don't call the listeners with null caps.
 
