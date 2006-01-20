@@ -211,7 +211,8 @@ public class Pad extends com.fluendo.jst.Object implements Runnable
 
     if (res) {
       this.caps = caps;
-      doCapsListeners (caps);
+      if (caps != null)
+        doCapsListeners (caps);
     }
     return res;
   }

@@ -121,10 +121,14 @@ public class AudioSinkSA extends AudioSink
       return true;
     }
     public int read() throws IOException {
+      int result;
       if (headerPos < header.length)
-	return header[headerPos++];
+	result = header[headerPos++];
       else
-        return ringBuffer.read();
+        result = ringBuffer.read();
+ 
+      System.out.println("read "+result);
+      return result;
     }
   }
 
