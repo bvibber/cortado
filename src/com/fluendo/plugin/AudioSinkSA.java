@@ -60,8 +60,7 @@ public class AudioSinkSA extends AudioSink
                            0x7f, 0xff, 0xff, 0xff,              // length
                            0x00, 0x00, 0x00, 0x01,              // ulaw
                            0x00, 0x00, 0x1f, 0x40,              // frequency
-                           0x00, 0x00, 0x00, 0x01,              // channels
-			   -1
+                           0x00, 0x00, 0x00, 0x01               // channels
                          };
   private int headerPos;
   private boolean needHeader;
@@ -127,7 +126,7 @@ public class AudioSinkSA extends AudioSink
       else
         result = ringBuffer.read();
  
-      System.out.println("read "+result);
+      //System.out.println("read "+result);
       return result;
     }
   }
@@ -166,6 +165,11 @@ public class AudioSinkSA extends AudioSink
       int ringPos;
 
       ringPos = (int)(devicePos * rateDiff) * bps;
+
+      /* if we don't know the segment total yet, we need
+       * to return -1 now */
+      if (segTotal == 0)
+        return -1;
 
       while (ringPos >= nextSeg) {
         //System.out.println ("read: devicePos: "+devicePos+" ringPos: "+ringPos+" nextSeg: "+nextSeg);
