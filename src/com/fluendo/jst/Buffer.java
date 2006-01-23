@@ -24,6 +24,11 @@ public class Buffer {
   private static Stack pool = new Stack();
   private static int live;
 
+  public static final int FLAG_DISCONT = (1<<0);
+  public static final int FLAG_DELTA_UNIT = (1<<1);
+
+  public int flags;
+
   public java.lang.Object object;
   public byte[] data;
   public int offset;
@@ -32,6 +37,7 @@ public class Buffer {
 
   public long time_offset;
   public long timestamp;
+  public long timestampEnd;
 
   public static Buffer create() {
     Buffer result;
@@ -45,12 +51,24 @@ public class Buffer {
     }
     result.time_offset = -1;
     result.timestamp = -1;
+    result.timestampEnd = -1;
+    result.flags = 0;
 
     return result;
   }
 
   public Buffer() {
     //System.out.println("new buffer");
+  }
+
+  public boolean isFlagSet (int flag) {
+    return (flags & flag) == flag;
+  }
+  public void setFlag (int flag, boolean val) {
+    if (val)
+      flags |= flag;
+    else
+      flags &= ~flag;
   }
 
   public void free() {

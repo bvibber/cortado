@@ -32,6 +32,7 @@ public class HTTPSrc extends Element
   private long contentLength;
   private String mime;
   private Caps outCaps;
+  private boolean discont;
 
   private static final int DEFAULT_READSIZE = 4096;
 
@@ -69,7 +70,7 @@ public class HTTPSrc extends Element
         }
         pushEvent (Event.newFlushStop());
 
-        pushEvent (Event.newNewsegment(Format.BYTES, position));
+        pushEvent (Event.newNewsegment(false, Format.BYTES, position, contentLength, position));
 
         if (result) {
 	  postMessage (Message.newStreamStatus (this, true, Pad.OK, "restart after seek"));
@@ -118,6 +119,8 @@ public class HTTPSrc extends Element
       }
       else {
         data.caps = outCaps;
+	data.setFlag (com.fluendo.jst.Buffer.FLAG_DISCONT, discont);
+	discont = false;
         if ((ret = push(data)) != OK) {
 	  postMessage (Message.newStreamStatus (this, false, ret, "reason: "+getFlowName (ret)));
 	  pauseTask();
@@ -180,6 +183,7 @@ public class HTTPSrc extends Element
         outCaps = new Caps (mime);
         srcpad.setCaps (outCaps);
       }
+      discont = true;
 
       Debug.log(Debug.INFO, "opened "+url);
       Debug.log(Debug.INFO, "contentLength: "+contentLength);

@@ -24,8 +24,10 @@ import com.fluendo.jheora.*;
 import com.fluendo.jst.*;
 import com.fluendo.utils.*;
 
-public class TheoraDec extends Element 
+public class TheoraDec extends Element implements OggPayload
 {
+  private static final byte[] signature = { -128, 0x74, 0x68, 0x65, 0x6f, 0x72, 0x61 };
+
   private Info ti;
   private Comment tc;
   private State ts;
@@ -36,82 +38,91 @@ public class TheoraDec extends Element
   private long lastTs;
   private boolean needKeyframe;
 
-  private Pad srcpad = new Pad(Pad.SRC, "src") {
+  /* 
+   * OggPayload interface
+   */
+  public boolean isType (Packet op)
+  {
+    return typeFind (op.packet_base, op.packet, op.bytes) > 0;
+  }
+  public int takeHeader (Packet op)
+  {
+    int ret;
+    byte header;
+    ret = ti.decodeHeader(tc, op);
+    header = op.packet_base[op.packet];
+    if (header == -126) {
+      ts.decodeInit(ti);
+    }
+    return ret;
+  }
+  public boolean isHeader (Packet op)
+  {
+    return (op.packet_base[op.packet] & 0x80) == 0x80;
+  }
+  public boolean isKeyFrame (Packet op)
+  {
+    return ts.isKeyframe(op);
+  }
+  public long getFirstTs (Vector packets)
+  {
+    int len = packets.size();
+    int i, j;
+    long time;
+    com.fluendo.jst.Buffer data = null;
+
+    /* first find buffer with valid offset */
+    for (i=0; i<len; i++) {
+      data = (com.fluendo.jst.Buffer) packets.elementAt(i);
+
+      if (data.time_offset != -1)
+        break;
+    }
+    if (i == packets.size())
+      return -1;
+
+    time = granuleToTime (data.time_offset);
+
+    data = (com.fluendo.jst.Buffer) packets.elementAt(0);
+    data.timestamp = time - (long) ((i+1) * ((double) Clock.SECOND * ti.fps_denominator / ti.fps_numerator));
+
+    return time;
+  }
+  public long granuleToTime (long gp)
+  {
+    if (gp < 0)
+      return -1;
+
+    return (long) (ts.granuleTime(gp) * Clock.SECOND);
+  }
+
+  private Pad srcPad = new Pad(Pad.SRC, "src") {
     protected boolean eventFunc (com.fluendo.jst.Event event) {
-      return sinkpad.pushEvent(event);
+      return sinkPad.pushEvent(event);
     }
   };
 
-  private Pad sinkpad = new Pad(Pad.SINK, "sink") {
-    private Vector queue = new Vector();
-
-    private void clearQueue ()
-    {
-      for (Enumeration e = queue.elements(); e.hasMoreElements();)
-      {
-        java.lang.Object obj = e.nextElement();
-
-	if (obj instanceof com.fluendo.jst.Buffer) {
-	  ((com.fluendo.jst.Buffer)obj).free();
-	}
-      }
-    }
-
-    private int pushOutput (com.fluendo.jst.Buffer buf) {
-      long newTime = buf.timestamp;
-      int ret = OK;
-
-      if (newTime == -1) {
-        queue.addElement (buf);
-      }
-      else {
-        int size = queue.size();
-        /* patch buffers */
-        if (size > 0) {
-          for (int i = 0; i < size; i++) {
-            long time;
-
-            com.fluendo.jst.Buffer qbuf =
-                (com.fluendo.jst.Buffer) queue.elementAt(i);
-      
-            time = newTime - ((((long)(size-i)) * 1000000 * ti.fps_denominator) / ti.fps_numerator);
-
-            qbuf.timestamp = time;
-	    if (ret == OK)
-              ret = srcpad.push(qbuf);
-	    else
-	      qbuf.free();
-          }
-          queue.setSize(0);
-        }
-	if (ret == OK)
-          ret = srcpad.push(buf);
-      }
-      return ret;
-    }
+  private Pad sinkPad = new Pad(Pad.SINK, "sink") {
     protected boolean eventFunc (com.fluendo.jst.Event event) {
       boolean result;
 
       switch (event.getType()) {
         case com.fluendo.jst.Event.FLUSH_START:
-	  result = srcpad.pushEvent (event);
+	  result = srcPad.pushEvent (event);
 	  synchronized (streamLock) {
             Debug.log(Debug.INFO, "synced "+this);
 	  }
           break;
         case com.fluendo.jst.Event.FLUSH_STOP:
 	  synchronized (streamLock) {
-            result = srcpad.pushEvent(event);
-            clearQueue();
-            lastTs = -1;
-	    needKeyframe = true;
+            result = srcPad.pushEvent(event);
 	  }
           break;
         case com.fluendo.jst.Event.EOS:
         case com.fluendo.jst.Event.NEWSEGMENT:
 	default:
 	  synchronized (streamLock) {
-            result = srcpad.pushEvent(event);
+            result = srcPad.pushEvent(event);
 	  }
           break;
       }
@@ -120,6 +131,7 @@ public class TheoraDec extends Element
 
     protected int chainFunc (com.fluendo.jst.Buffer buf) {
       int result;
+      long timestamp;
 
       op.packet_base = buf.data;
       op.packet = buf.offset;
@@ -127,11 +139,17 @@ public class TheoraDec extends Element
       op.b_o_s = (packet == 0 ? 1 : 0);
       op.e_o_s = 0;
       op.packetno = packet;
-      op.granulepos = buf.time_offset;
-    
+      timestamp = buf.timestamp;
+
+      if (buf.isFlagSet (com.fluendo.jst.Buffer.FLAG_DISCONT)) {
+        Debug.log(Debug.INFO, "theora: got discont");
+        needKeyframe = true;
+	lastTs = -1;
+      }
+
       if (packet < 3) {
         //System.out.println ("decoding header");
-        if (ti.decodeHeader(tc, op) < 0){
+        if (takeHeader(op) < 0){
           buf.free();
           // error case; not a theora header
           Debug.log(Debug.ERROR, "does not contain Theora video data.");
@@ -166,21 +184,16 @@ public class TheoraDec extends Element
           Debug.log(Debug.INFO, "ignoring header");
           return OK;
         }
-
-        if (needKeyframe) {
-          if (ts.isKeyframe(op)) {
-	    needKeyframe = false;
-	  }
+        if (needKeyframe && ts.isKeyframe(op)) {
+	  needKeyframe = false;
         }
 
-	if (op.granulepos != -1) {
-	  lastTs = offsetToTime(op.granulepos);
+	if (timestamp != -1) {
+	  lastTs = timestamp;
 	}
 	else if (lastTs != -1) {
-	  lastTs += (1000000 * ti.fps_denominator) / ti.fps_numerator;
-	}
-	else {
-	  lastTs = -1;
+	  lastTs += (Clock.SECOND * ti.fps_denominator) / ti.fps_numerator;
+	  timestamp = lastTs;
 	}
 
 	if (!needKeyframe) {
@@ -199,8 +212,8 @@ public class TheoraDec extends Element
 	    }
             buf.object = yuv.getObject(ti.offset_x, ti.offset_y, ti.frame_width, ti.frame_height);
 	    buf.caps = caps;
-	    buf.timestamp = lastTs;
-            result = pushOutput(buf);
+	    buf.timestamp = timestamp;
+            result = srcPad.push(buf);
           }
 	  catch (Exception e) {
 	    e.printStackTrace();
@@ -220,9 +233,6 @@ public class TheoraDec extends Element
 
     protected boolean activateFunc (int mode)
     {
-      if (mode == MODE_NONE) {
-        clearQueue();
-      }
       return true;
     }
   };
@@ -230,13 +240,14 @@ public class TheoraDec extends Element
   public TheoraDec() {
     super();
 
+    ti = new Info();
     tc = new Comment();
     ts = new State();
     yuv = new YUVBuffer();
     op = new Packet();
 
-    addPad (srcpad);
-    addPad (sinkpad);
+    addPad (srcPad);
+    addPad (sinkPad);
   }
 
   protected int changeState (int transition) {
@@ -244,7 +255,6 @@ public class TheoraDec extends Element
 
     switch (transition) {
       case STOP_PAUSE:
-        ti = new Info();
         lastTs = -1;
         packet = 0;
         needKeyframe = true;
@@ -268,13 +278,13 @@ public class TheoraDec extends Element
   }
   public int typeFind (byte[] data, int offset, int length)
   {
-    if (data[offset+1] == 0x74) {
-      return 10;
-    }
-    return -1;
-  }
+    if (length < signature.length)
+      return -1;
 
-  public long offsetToTime (long offset) {
-    return (long) (ts.granuleTime(offset) * 1000000);
+    for (int i=0; i < signature.length; i++) {
+      if (data[offset+i] != signature[i])
+        return -1;
+    }
+    return 10;
   }
 }

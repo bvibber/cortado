@@ -24,7 +24,7 @@ import com.jcraft.jorbis.*;
 import com.fluendo.jst.*;
 import com.fluendo.utils.*;
 
-public class VorbisDec extends Element 
+public class VorbisDec extends Element implements OggPayload
 {
   private long packet;
   private long offset;
@@ -32,86 +32,114 @@ public class VorbisDec extends Element
   private Comment vc;
   private DspState vd;
   private Block vb;
+  private boolean discont;
 
   private Packet op;
   private float[][][] _pcmf = new float[1][][];
   private int[] _index;
 
-  private Pad srcpad = new Pad(Pad.SRC, "src") {
+  private static final byte[] signature = { 0x01, 0x76, 0x6f, 0x72, 0x62, 0x69, 0x73 };
+
+  public boolean isType (Packet op)
+  {
+    return typeFind (op.packet_base, op.packet, op.bytes) > 0;
+  }
+  public int takeHeader (Packet op)
+  {
+    return vi.synthesis_headerin(vc, op);
+  }
+  public boolean isHeader (Packet op)
+  {
+    return (op.packet_base[op.packet] & 0x01) == 0x01;
+  }
+  public boolean isKeyFrame (Packet op)
+  {
+    return true;
+  }
+  public long getFirstTs (Vector packets)
+  {
+    int len = packets.size();
+    int i, j;
+    long time;
+    long total = 0;
+    long prevSamples = 0;
+    Packet p = new Packet();
+
+    com.fluendo.jst.Buffer buf;
+
+    /* add samples */
+    for (i=0; i<len; i++) {
+      boolean ignore;
+      long temp;
+
+      buf = (com.fluendo.jst.Buffer) packets.elementAt(i);
+
+      p.packet_base = buf.data;
+      p.packet = buf.offset;
+      p.bytes = buf.length;
+
+      long samples = vi.blocksize(p);
+      if (samples <= 0)
+        return -1;
+
+      if (prevSamples == 0 ) {
+        prevSamples = samples;
+        /* ignore first packet */
+        ignore = true;
+      }
+      else
+        ignore = false;
+
+      temp = (samples + prevSamples) / 4;
+      prevSamples = samples;
+
+      if (!ignore)
+        total += temp;
+ 
+      if (buf.time_offset != -1) {
+        total = buf.time_offset - total;
+	long result = granuleToTime (total);
+
+        buf = (com.fluendo.jst.Buffer) packets.elementAt(0);
+	buf.timestamp = result;
+        return result;
+      }
+    }
+    return -1;
+  }
+  public long granuleToTime (long gp)
+  {
+    if (gp < 0)
+      return -1;
+
+    return gp * Clock.SECOND / vi.rate;
+  }
+
+  private Pad srcPad = new Pad(Pad.SRC, "src") {
     protected boolean eventFunc (com.fluendo.jst.Event event) {
-      return sinkpad.pushEvent(event);
+      return sinkPad.pushEvent(event);
     }
   };
 
-  private Pad sinkpad = new Pad(Pad.SINK, "sink") {
-    private Vector queue = new Vector();
-
-    private void clearQueue ()
-    {
-      for (Enumeration e = queue.elements(); e.hasMoreElements();) {
-        java.lang.Object obj = e.nextElement();
-
-        if (obj instanceof com.fluendo.jst.Buffer) {
-          ((com.fluendo.jst.Buffer)obj).free();
-        }
-      }
-    }
-
-    private int pushOutput (com.fluendo.jst.Buffer buf) {
-      long toffset = buf.time_offset;
-      int ret = OK;
-
-      if (toffset == -1) {
-	queue.addElement (buf);
-      }
-      else {
-        /* patch buffers */
-	if (queue.size() > 0) {
-          for (int i = queue.size()-1; i >= 0; i--) {
-	    com.fluendo.jst.Buffer qbuf = 
-	      (com.fluendo.jst.Buffer) queue.elementAt(i);
-
-            toffset -= qbuf.length / (2 * vi.channels);
-	    qbuf.time_offset = toffset;
-	    qbuf.timestamp = toffset * Clock.SECOND / vi.rate;
-	  }
-          for (int i = 0; i < queue.size(); i++) {
-	    com.fluendo.jst.Buffer qbuf = 
-	       (com.fluendo.jst.Buffer) queue.elementAt(i);
-	    if (ret == OK)
-              ret = srcpad.push(qbuf);
-	    else
-              qbuf.free();
-	  }
-	  queue.setSize(0);
-	}
-	if (ret == OK)
-          ret = srcpad.push(buf);
-      }
-      return ret;
-    }
-
+  private Pad sinkPad = new Pad(Pad.SINK, "sink") {
     protected boolean eventFunc (com.fluendo.jst.Event event) {
       boolean result;
 
       switch (event.getType()) {
         case Event.FLUSH_START:
-          result = srcpad.pushEvent(event);
+          result = srcPad.pushEvent(event);
 	  synchronized (streamLock) {
 	    Debug.log(Debug.INFO, "synced "+this);
 	  }
 	  break;
         case Event.FLUSH_STOP:
 	  synchronized (streamLock) {
-            result = srcpad.pushEvent(event);
-	    clearQueue();
-	    offset = -1;
-	    vd.synthesis_init(vi);
+            result = srcPad.pushEvent(event);
 	  }
 	  break;
         default:
 	  synchronized (streamLock) {
-            result = srcpad.pushEvent(event);
+            result = srcPad.pushEvent(event);
 	  }
 	  break;
       }
@@ -119,6 +147,7 @@ public class VorbisDec extends Element
     }
     protected int chainFunc (com.fluendo.jst.Buffer buf) {
       int result = OK;
+      long timestamp;
 
       //System.out.println ("creating packet");
       op.packet_base = buf.data;
@@ -127,7 +156,13 @@ public class VorbisDec extends Element
       op.b_o_s = (packet == 0 ? 1 : 0);
       op.e_o_s = 0;
       op.packetno = packet;
-      op.granulepos = buf.time_offset;
+
+      if (buf.isFlagSet (com.fluendo.jst.Buffer.FLAG_DISCONT)) {
+	offset = -1;
+	discont = true;
+        Debug.log(Debug.INFO, "vorbis: got discont");
+	vd.synthesis_init(vi);
+      }
 
       if (packet < 3) {
         //System.out.println ("decoding header");
@@ -157,11 +192,19 @@ public class VorbisDec extends Element
 	return OK;
       }
       else {
-        if ((op.packet_base[op.packet] & 1) == 1) {
+        if (isHeader(op)) {
           Debug.log(Debug.INFO, "ignoring header");
 	  return OK;
 	}
 
+        timestamp = buf.timestamp;
+        if (timestamp != -1) {
+	  offset = timestamp * vi.rate / Clock.SECOND;
+        }
+	else {
+          timestamp = offset * Clock.SECOND / vi.rate;
+	}
+	
         int samples;
         if (vb.synthesis(op) == 0) { // test for success!
           vd.synthesis_blockin(vb);
@@ -178,9 +221,12 @@ public class VorbisDec extends Element
 
 	  buf.ensureSize(numbytes);
 	  buf.offset = 0;
+	  buf.timestamp = timestamp;
 	  buf.time_offset = offset;
 	  buf.length = numbytes;
 	  buf.caps = caps;
+	  buf.setFlag (com.fluendo.jst.Buffer.FLAG_DISCONT, discont);
+	  discont = false;
 
 	  //System.out.println(vi.rate + " " +target+ " " +samples);
 
@@ -200,20 +246,13 @@ public class VorbisDec extends Element
           //System.out.println ("decoded "+samples+" samples");
           vd.synthesis_read(samples);
 
-          if (offset != -1) {
-	    buf.timestamp = offset * Clock.SECOND / vi.rate;
-	    offset += samples;
-	  }
+	  offset += samples;
 
-          if ((result = pushOutput(buf)) != OK)
+          if ((result = srcPad.push(buf)) != OK)
             break;
         }
       }
       packet++;
-
-      if (op.granulepos != -1) {
-        offset = op.granulepos;
-      }
 
       return result;
     }
@@ -228,8 +267,8 @@ public class VorbisDec extends Element
     vb = new Block(vd);
     op = new Packet();
 
-    addPad (srcpad);
-    addPad (sinkpad);
+    addPad (srcPad);
+    addPad (sinkPad);
   }
 
   protected int changeState (int transition) {
@@ -251,7 +290,6 @@ public class VorbisDec extends Element
     return res;
   }
 
-
   public String getFactoryName ()
   {
     return "vorbisdec";
@@ -262,17 +300,13 @@ public class VorbisDec extends Element
   }
   public int typeFind (byte[] data, int offset, int length)
   {
-    if (data[offset+1] == 0x76) {
-      return 10;
-    }
-    return -1;
-  }
-
-  public long offsetToTime (long ts_offset) {
-    if (ts_offset == -1) {
+    if (length < signature.length)
       return -1;
-    }
-    return ts_offset * 1000 / vi.rate;
-  }
 
+    for (int i=0; i < signature.length; i++) {
+      if (data[offset+i] != signature[i])
+        return -1;
+    }
+    return 10;
+  }
 }

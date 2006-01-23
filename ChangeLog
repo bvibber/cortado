@@ -1,3 +1,75 @@
+2006-01-23  Wim Taymans  <wim@fluendo.com>
+
+	* TODO:
+	Updated TODO
+
+	* src/com/fluendo/examples/Player2.java:
+	(PlayPipeline.doSendEvent):
+	Fix for API removal.
+
+	* src/com/fluendo/jst/Buffer.java: (Buffer), (Buffer.create),
+	(Buffer.Buffer):
+	Added buffer flags.
+	Prepare for using timestampEnd.
+
+	* src/com/fluendo/jst/Event.java: (Event),
+	Update newsegment event info to match GStreamer.
+
+	(Event.parseSeekPosition), (Event.parseSeekFormat):
+	* src/com/fluendo/jst/Pipeline.java: (Pipeline.doChildStateChange):
+	Remove preroll hack.
+
+	* src/com/fluendo/jst/Sink.java: (Sink), (Sink.Pad), (Sink.doSync),
+	(Sink.query), (Sink.changeState):
+	Remove preroll hack, parse segment info. Clip buffers outside of
+	the segment. Handle DISCONT and clocking.
+	
+	* src/com/fluendo/plugin/AudioSink.java:
+	(AudioSink.RingBuffer.commit), (AudioSink.doEvent):
+	Clip around segments.
+
+	* src/com/fluendo/plugin/HTTPSrc.java: (HTTPSrc), (HTTPSrc.Pad),
+	(HTTPSrc.getInputStream):
+	* src/com/fluendo/plugin/OggDemux.java: (OggDemux),
+	(OggDemux..OggStream), (OggDemux..OggStream.OggStream),
+	(OggDemux..OggStream.deActivate), (OggDemux..OggStream.reStart),
+	(OggDemux..OggStream.getFirstTs),
+	(OggDemux..OggStream.bufferFromPacket),
+	(OggDemux..OggStream.pushPacket), (OggDemux..OggStream.pushPage),
+	(OggDemux..OggStream.eventFunc), (OggDemux..OggStream.OggChain),
+	(OggDemux..OggStream.OggChain.OggChain),
+	(OggDemux..OggStream.OggChain.isActive),
+	(OggDemux..OggStream.OggChain.activate),
+	(OggDemux..OggStream.OggChain.deActivate),
+	(OggDemux..OggStream.OggChain.reStart),
+	(OggDemux..OggStream.OggChain.addStream),
+	(OggDemux..OggStream.OggChain.markDiscont),
+	(OggDemux..OggStream.OggChain.findStream),
+	(OggDemux..OggStream.OggChain.resetStreams),
+	(OggDemux..OggStream.OggChain.forwardEvent),
+	(OggDemux..OggStream.OggChain.pushPage), (OggDemux..OggStream.Pad),
+	(OggDemux..OggStream.getFactoryName),
+	(OggDemux..OggStream.getMime), (OggDemux..OggStream.typeFind),
+	(OggDemux..OggStream.OggDemux):
+	Preroll sync and calc timestamps of payloads.
+	Added preliminary support for chained oggs.
+	Handle discont.
+	
+	* src/com/fluendo/plugin/OggPayload.java:
+	Interface for payloads in ogg containers.
+
+	* src/com/fluendo/plugin/TheoraDec.java: (TheoraDec..Pad),
+	(TheoraDec.), (TheoraDec..TheoraDec), (TheoraDec..changeState),
+	(TheoraDec..getFactoryName), (TheoraDec..getMime):
+	* src/com/fluendo/plugin/VorbisDec.java: (VorbisDec),
+	(VorbisDec..Pad), (VorbisDec.), (VorbisDec..VorbisDec),
+	(VorbisDec..changeState), (VorbisDec..getFactoryName),
+	(VorbisDec..getMime):
+	Implement OggPayload.
+	Handle discont.
+	Remove timestamp hacks.
+
+
 2006-01-20  Thomas Vander Stichele  <thomas at apestaart dot org>
 
 	* build.xml:

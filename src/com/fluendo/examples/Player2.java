@@ -90,12 +90,7 @@ class PlayPipeline extends Pipeline implements PadListener {
 
     httpsrc.getPad("src").sendEvent (event);
     getState(null, null, 0);
-
-    long t1 = ((Sink)videosink).getPrerollTime();
-    long t2 = ((Sink)audiosink).getPrerollTime();
-
-    streamTime = Math.min (t1, t2);
-    System.out.println ("stream time "+streamTime);
+    streamTime = 0;
 
     return true;
   }

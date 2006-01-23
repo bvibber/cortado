@@ -28,20 +28,11 @@ public abstract class Sink extends Element
   private boolean havePreroll;
   private boolean needPreroll;
   private Clock.ClockID clockID;
-  protected long prerollTime = -1;
-  protected long syncOffset = 0;
-  protected long segTime;
+  protected boolean discont; 
+  protected long segStart;
+  protected long segStop;
+  protected long segPosition;
   
-  public long getPrerollTime () {
-    synchronized (prerollLock) {
-      return prerollTime;
-    }
-  }
-  public void setSyncOffset (long time) {
-    synchronized (prerollLock) {
-      syncOffset = time;
-    }
-  }
   protected Pad sinkpad = new Pad(Pad.SINK, "sink") {
     private int finishPreroll(Buffer buf)
     {
@@ -54,9 +45,6 @@ public abstract class Sink extends Element
 	}
 
         if (needPreroll) {
-
-	  prerollTime = buf.timestamp;
-	  //System.out.println(this+" preroll: "+ prerollTime);
 
 	  havePreroll = true;
           preroll (buf);
@@ -158,7 +146,9 @@ public abstract class Sink extends Element
 	  synchronized (streamLock) {
 	    int segFmt = event.parseNewsegmentFormat();
 	    if (segFmt == Format.TIME) {
-	      segTime = event.parseNewsegmentPosition();
+	      segStart = event.parseNewsegmentStart();
+	      segStop = event.parseNewsegmentStop();
+	      segPosition = event.parseNewsegmentPosition();
 	    }
 	  }
 	  break;
@@ -177,15 +167,20 @@ public abstract class Sink extends Element
       int status;
       long time;
 
+      if (buf.isFlagSet (com.fluendo.jst.Buffer.FLAG_DISCONT))
+        discont = true;
+
       time = buf.timestamp;
+      /* clip to segment */
+      if (time != -1 && time < segStart) {
+	buf.free();
+        return OK;
+      }
+      buf.setFlag (com.fluendo.jst.Buffer.FLAG_DISCONT, discont);
+      discont = false;
 
       if ((res = finishPreroll(buf)) != Pad.OK) {
         return res;
-      }
-
-      if (time != -1 && time < syncOffset) {
-	buf.free();
-        return Pad.OK;
       }
 
       status = doSync(time);
@@ -248,7 +243,7 @@ public abstract class Sink extends Element
       if (time == -1)
         return Clock.OK;
 
-      time = time - syncOffset + baseTime;
+      time = time - segStart + baseTime;
 
       if (clock != null)
         id = clockID = clock.newSingleShotID (time);
@@ -294,11 +289,11 @@ public abstract class Sink extends Element
           synchronized (this) {
 	    if (currentState == PLAY) {
 	      if (clock != null) {
-	        position = clock.getTime() - baseTime + syncOffset;
+	        position = clock.getTime() - baseTime + segPosition;
 	      }
 	    }
 	    else {
-	      position = syncOffset;
+	      position = segPosition;
 	    }
 	  }
 	  query.setPosition(Format.TIME, position);
@@ -320,8 +315,6 @@ public abstract class Sink extends Element
 
     switch (transition) {
       case STOP_PAUSE:
-        prerollTime = -1;
-        syncOffset = 0;
 	this.isEOS = false;
         synchronized (prerollLock) {
           needPreroll = true;

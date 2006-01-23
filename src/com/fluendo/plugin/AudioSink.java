@@ -238,8 +238,11 @@ public abstract class AudioSink extends Sink implements ClockProvider
       if (sample < 0) {
         return len;
       }
-      if (sample != nextSample) {
-        System.out.println("discont: found "+sample+" expected "+nextSample);
+      if (nextSample != -1) {
+        if (Math.abs(sample - nextSample) < (rate / 10))
+          sample = nextSample;
+	else
+          System.out.println("discont: found "+sample+" expected "+nextSample);
       }
 
       idx = 0;
@@ -412,14 +415,18 @@ public abstract class AudioSink extends Sink implements ClockProvider
   }
   protected int render (Buffer buf)
   {
-    long sample;
+    long sample, renderSample;
+    long time;
 
-    sample = buf.time_offset;
-    sample -= (syncOffset * ringBuffer.rate / Clock.SECOND);
-    if (sample < 0)
+    if (buf.isFlagSet (com.fluendo.jst.Buffer.FLAG_DISCONT))
+      ringBuffer.nextSample = -1;
+
+    time = buf.timestamp - segStart;
+    if (time < 0)
       return Pad.OK;
+    time += baseTime;
 
-    sample += (baseTime * ringBuffer.rate / Clock.SECOND);
+    sample = time * ringBuffer.rate / Clock.SECOND;
 
     //System.out.println("render sample: "+sample+" time: "+buf.timestamp);
 

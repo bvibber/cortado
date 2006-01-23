@@ -29,6 +29,9 @@ public class Event {
 	
   private int type;
   private int format;
+  private boolean update;
+  private long start;
+  private long stop;
   private long position;
 
   private Event(int type) {
@@ -65,16 +68,28 @@ public class Event {
     return format;
   }
 
-  public static Event newNewsegment(int format, long position) {
+  public static Event newNewsegment(boolean update, int format, long start, long stop, long position) {
     Event e = new Event(NEWSEGMENT);
+    e.update = update;
     e.format = format;
+    e.start = start;
+    e.stop = stop;
     e.position = position;
     return e;
   }
-  public long parseNewsegmentPosition () {
-    return position;
+  public boolean parseNewsegmentUpdate () {
+    return update;
   }
   public int parseNewsegmentFormat () {
     return format;
+  }
+  public long parseNewsegmentStart () {
+    return start;
+  }
+  public long parseNewsegmentStop () {
+    return stop;
+  }
+  public long parseNewsegmentPosition () {
+    return position;
   }
 }

@@ -1,5 +1,11 @@
 TODO for cortado
 
+- detect and recover from discont in oggdemux
+
+- JST backend does not use newsegment events. 
+
+- make oggdemux time aware so it can send newsegments.
+
 - implement Query duration/position, not sure how to do that since
   we only have the byte position. possibly put duration as a param or
   maybe do a single seek for the last page to get the last granule position.
@@ -8,8 +14,6 @@ TODO for cortado
   actual playback position because of buffering.
 
 - clean up some issues with pause/play stuttering.
-
-- JST backend does not use newsegment events. 
 
 - disable sound option
 
