@@ -262,7 +262,7 @@ com/fluendo/plugin/Vorbis*
     <javac 
            srcdir="${src}" 
            destdir="${out.build}" 
-           target="1.1"
+           target="1.1" source="1.2"
            nowarn="yes"
            debug="${build.isdebug}" debuglevel="${build.debuglevel}"
     >
@@ -279,7 +279,7 @@ com/fluendo/plugin/Vorbis*
    >
     <javac 
            destdir="${out.build}" 
-           target="1.1"
+           target="1.1" source="1.2"
            debug="${build.isdebug}" debuglevel="${build.debuglevel}"
     >
       <src path="${src}/com/fluendo/utils" />
@@ -293,7 +293,7 @@ com/fluendo/plugin/Vorbis*
    >
     <javac 
            destdir="${out.build}" 
-           target="1.1"
+           target="1.1" source="1.2"
            debug="${build.isdebug}" debuglevel="${build.debuglevel}"
     >
       <src path="${src}/com/fluendo/jheora" />
@@ -307,7 +307,7 @@ com/fluendo/plugin/Vorbis*
    >
     <javac 
            destdir="${out.build}" 
-           target="1.1"
+           target="1.1" source="1.2"
            debug="${build.isdebug}" debuglevel="${build.debuglevel}"
     >
       <src path="${src}/com/fluendo/codecs" />
@@ -321,7 +321,7 @@ com/fluendo/plugin/Vorbis*
    >
     <javac 
            destdir="${out.build}" 
-           target="1.1"
+           target="1.1" source="1.2"
            debug="${build.isdebug}" debuglevel="${build.debuglevel}"
     >
       <src path="${src}/com/fluendo/jst" />
@@ -337,7 +337,7 @@ com/fluendo/plugin/Vorbis*
     <javac 
            classpath="${stubs}"
            destdir="${out.build}" 
-           target="1.1"
+           target="1.1" source="1.2"
            debug="${build.isdebug}" debuglevel="${build.debuglevel}"
     >
       <src path="${src}/com/fluendo/plugin" />
@@ -351,7 +351,7 @@ com/fluendo/plugin/Vorbis*
    >
     <javac 
            destdir="${out.build}" 
-           target="1.1"
+           target="1.1" source="1.2"
            debug="${build.isdebug}" debuglevel="${build.debuglevel}"
     >
       <src path="${src}/com/fluendo/player" />
@@ -367,7 +367,7 @@ com/fluendo/plugin/Vorbis*
     <antcall target="includes" />
     <javac 
            destdir="${out.build}" 
-           target="1.1"
+           target="1.1" source="1.2"
     >
       <src path="${src}/com/fluendo/examples" />
       <compilerarg line="${build.flags}" />
@@ -394,7 +394,7 @@ com/fluendo/plugin/Vorbis*
            destdir="${out.build}" 
            debug="true"
            debuglevel="none"
-           target="1.1">
+           target="1.1" source="1.2">
       <src path="${src}/com/fluendo/player" />
       <compilerarg line="${build.flags}" />
 

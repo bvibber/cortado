@@ -1,3 +1,9 @@
+2006-03-20  Thomas Vander Stichele  <thomas at apestaart dot org>
+
+	* build.xml:
+	  add source="1.2" to javac targets, because some javac's and ant
+	  complain about this
+
 2006-03-20  Wim Taymans  <wim@fluendo.com>
 
 	* src/com/fluendo/plugin/HTTPSrc.java: (HTTPSrc.Pad), (HTTPSrc),
