@@ -46,6 +46,12 @@ Should build everything, if your system is setup correctly.
 You can copy build.config.sample to build.config and tweak it to choose
 certain settings.
 
+Run
+
+  ant -p
+
+to see all the possible targets.
+
 FAQ
 ---
 You can find our FAQ on-line at

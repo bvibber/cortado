@@ -583,7 +583,8 @@ com/fluendo/plugin/Vorbis*
     <delete file="${tar}" />
   </target>
 
-  <target name="distcheck" depends="dist">
+  <target name="distcheck" depends="dist"
+          description="build the source distribution before releasing">
     <property name="tar"
               value="${out.dist}/src/cortado-${product.version}.tar" />
     <property name="srcdist-tgz-check" value="${tmp}/srcdist-tgz-check"/>
