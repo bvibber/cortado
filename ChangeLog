@@ -1,5 +1,12 @@
 2006-03-20  Thomas Vander Stichele  <thomas at apestaart dot org>
 
+	* src/com/fluendo/examples/Player2.java:
+	  removed
+	* src/com/fluendo/examples/Player3.java:
+	  renamed to Player.java
+
+2006-03-20  Thomas Vander Stichele  <thomas at apestaart dot org>
+
 	* README:
 	  update
 	* build.xml:
