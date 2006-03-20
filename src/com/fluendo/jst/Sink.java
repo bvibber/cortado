@@ -153,6 +153,11 @@ public abstract class Sink extends Element
 	  }
 	  break;
         case Event.EOS:
+	  synchronized (streamLock) {
+	    isEOS = true;
+	    Debug.log(Debug.INFO, this+" got EOS");
+	    postMessage (Message.newEOS (this));
+	  }
 	  break;
 	default:
 	  break;

@@ -1,5 +1,29 @@
 2006-03-20  Wim Taymans  <wim@fluendo.com>
 
+	* src/com/fluendo/jst/Clock.java: (Clock):
+	Time are longs, avoids overflows.
+
+	* src/com/fluendo/jst/Sink.java: (Sink.Pad):
+	First pass at posting EOS.
+
+	* src/com/fluendo/player/Cortado.java: (Cortado.handleMessage):
+	Some more debugging about buffering and EOS.
+
+	* src/com/fluendo/plugin/OggDemux.java:
+	(OggDemux..OggStream.bufferFromPacket):
+	Timestamp outgoing buffers.
+
+	* src/com/fluendo/plugin/Queue.java: (Queue.updateBuffering),
+	(Queue.Pad):
+	Handle EOS when we are buffering. Fixes #247.
+
+	* src/com/fluendo/plugin/TheoraDec.java: (TheoraDec..takeHeader),
+	(TheoraDec..getFirstTs), (TheoraDec..Pad):
+	Don't try to convert granulepos if we did not receive headers
+	yet.
+
+2006-03-20  Wim Taymans  <wim@fluendo.com>
+
 	* TODO:
 	Updated TODO.
 

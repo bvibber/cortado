@@ -69,8 +69,10 @@ public class Queue extends Element
   private void updateBuffering () {
     if (!isBuffer || srcResult != Pad.OK)
       return;
-    if (isEOS)
+    if (isEOS) {
+      isBuffering = false;
       return;
+    }
 
     /* figure out the percentage we are filled */
     int percent = size * 100 / maxSize;
@@ -223,6 +225,13 @@ public class Queue extends Element
 	   synchronized (streamLock) {
 	     if (type == Event.EOS) {
 	       isEOS = true;
+	       if (isBuffer) {
+	         if (isBuffering) {
+	           isBuffering = false;
+                   postMessage (Message.newBuffering (this, isBuffering, 100));
+	           srcpad.startTask();
+		 }
+	       }
 	     }
              synchronized (queue) {
                queue.insertElementAt(event, 0);

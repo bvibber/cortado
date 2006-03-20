@@ -22,9 +22,9 @@ public abstract class Clock {
   private long adjust;
   private long lastTime;
 
-  public static final int USECOND = 1;
-  public static final int MSECOND = 1000 * USECOND;
-  public static final int SECOND = 1000 * MSECOND;
+  public static final long USECOND = 1;
+  public static final long MSECOND = 1000 * USECOND;
+  public static final long SECOND = 1000 * MSECOND;
 
   /* id types */
   public static final int SINGLE = 0;

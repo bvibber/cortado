@@ -131,7 +131,10 @@ public class OggDemux extends Element
 
       data.copyData(op.packet_base, op.packet, op.bytes);
       data.time_offset = op.granulepos;
-      data.timestamp = -1;
+      if (payload != null)
+        data.timestamp = payload.granuleToTime (op.granulepos);
+      else
+        data.timestamp = -1;
       data.setFlag (com.fluendo.jst.Buffer.FLAG_DISCONT, discont);
       data.setFlag (com.fluendo.jst.Buffer.FLAG_DELTA_UNIT, !payload.isKeyFrame(op));
 

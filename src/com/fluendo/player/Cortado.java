@@ -353,6 +353,7 @@ public class Cortado extends Applet implements Runnable, MouseMotionListener,
             setStatusVisible(true);
             break;
         case Message.EOS:
+            Debug.log(Debug.INFO, "EOS: playback ended");
             System.out.println(msg.toString());
             status.setMessage("Playback ended");
             break;
@@ -372,6 +373,7 @@ public class Cortado extends Applet implements Runnable, MouseMotionListener,
 
 	    if (busy) {
 	      if (!isBuffering) {
+                Debug.log(Debug.INFO, "PAUSE: we are buffering");
 	        pipeline.setState(Element.PAUSE);
 		isBuffering = true;
                 setStatusVisible(true);
@@ -380,6 +382,7 @@ public class Cortado extends Applet implements Runnable, MouseMotionListener,
 	    }
 	    else {
 	      if (isBuffering) {
+                Debug.log(Debug.INFO, "PLAY: we finished buffering");
 	        pipeline.setState(Element.PLAY);
 		isBuffering = false;
                 setStatusVisible(false);

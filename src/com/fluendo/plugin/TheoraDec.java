@@ -37,6 +37,7 @@ public class TheoraDec extends Element implements OggPayload
 
   private long lastTs;
   private boolean needKeyframe;
+  private boolean haveDecoder = false;
 
   /* 
    * OggPayload interface
@@ -53,6 +54,7 @@ public class TheoraDec extends Element implements OggPayload
     header = op.packet_base[op.packet];
     if (header == -126) {
       ts.decodeInit(ti);
+      haveDecoder = true;
     }
     return ret;
   }
@@ -84,16 +86,20 @@ public class TheoraDec extends Element implements OggPayload
     time = granuleToTime (data.time_offset);
 
     data = (com.fluendo.jst.Buffer) packets.elementAt(0);
-    data.timestamp = time - (long) ((i+1) * ((double) Clock.SECOND * ti.fps_denominator / ti.fps_numerator));
+    data.timestamp = time - (long) ((i+1) * (Clock.SECOND * ti.fps_denominator / ti.fps_numerator));
 
     return time;
   }
   public long granuleToTime (long gp)
   {
-    if (gp < 0)
+    long res;
+
+    if (gp < 0 || !haveDecoder)
       return -1;
 
-    return (long) (ts.granuleTime(gp) * Clock.SECOND);
+    res = (long) (ts.granuleTime(gp) * Clock.SECOND);
+
+    return res;
   }
 
   private Pad srcPad = new Pad(Pad.SRC, "src") {
@@ -192,7 +198,10 @@ public class TheoraDec extends Element implements OggPayload
 	  lastTs = timestamp;
 	}
 	else if (lastTs != -1) {
-	  lastTs += (Clock.SECOND * ti.fps_denominator) / ti.fps_numerator;
+	  long add;
+
+	  add = (Clock.SECOND * ti.fps_denominator) / ti.fps_numerator;
+	  lastTs += add;
 	  timestamp = lastTs;
 	}
 
