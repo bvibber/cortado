@@ -21,11 +21,11 @@ package com.fluendo.examples;
 import com.fluendo.player.*;
 import java.awt.*;
 
-public class Player3 extends Frame {
+public class Player extends Frame {
   private static final long serialVersionUID = 1L;
 Cortado applet;
 
-  public Player3(String url) {
+  public Player(String url) {
     applet = new Cortado();
     applet.setSize(352, 270);
     setSize(352, 270);
@@ -51,14 +51,14 @@ Cortado applet;
   }
 
   public static void main(String args[]) {
-    Player3 p;
+    Player p;
 
     if (args.length < 1) {
-      System.out.println ("usage: Player2 <uri>");
+      System.out.println ("usage: Player <uri>");
       return;
     }
 
-    p = new Player3(args[0]);
+    p = new Player(args[0]);
     
     synchronized (p) {
       try {
