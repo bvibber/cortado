@@ -199,13 +199,11 @@ public abstract class AudioSink extends Sink implements ClockProvider
       return res;
     }
     public boolean release() {
-      boolean res;
-
       stop();
 
       synchronized (this) {
         if (opened) {
-          if ((res = close(this)) == false)
+          if (close(this) == false)
 	    return false;
         }
         opened = false;

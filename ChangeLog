@@ -1,5 +1,17 @@
 2006-03-20  Thomas Vander Stichele  <thomas at apestaart dot org>
 
+	* src/com/fluendo/plugin/AudioSink.java:
+	(AudioSink.RingBuffer.acquire):
+	* src/com/fluendo/plugin/OggDemux.java:
+	(OggDemux...OggStream.pushPacket):
+	* src/com/fluendo/plugin/TheoraDec.java: (TheoraDec.),
+	(TheoraDec..getFirstTs):
+	* src/com/fluendo/plugin/VorbisDec.java: (VorbisDec.),
+	(VorbisDec..getFirstTs):
+	  Fix some warnings
+
+2006-03-20  Thomas Vander Stichele  <thomas at apestaart dot org>
+
 	* build.xml:
 	  apparently 1.2 is not accepted, and it needs to be 1.3 ? Hope this
 	  is ok, need to double check on 1.1 VM's.

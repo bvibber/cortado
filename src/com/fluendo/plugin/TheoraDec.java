@@ -69,7 +69,7 @@ public class TheoraDec extends Element implements OggPayload
   public long getFirstTs (Vector packets)
   {
     int len = packets.size();
-    int i, j;
+    int i;
     long time;
     com.fluendo.jst.Buffer data = null;
 

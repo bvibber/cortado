@@ -59,8 +59,7 @@ public class VorbisDec extends Element implements OggPayload
   public long getFirstTs (Vector packets)
   {
     int len = packets.size();
-    int i, j;
-    long time;
+    int i;
     long total = 0;
     long prevSamples = 0;
     Packet p = new Packet();

@@ -148,8 +148,6 @@ public class OggDemux extends Element
 	  OggPayload pl = payloads[i];
 
 	  if (pl.isType (op)) {
-	    OggPayload copy;
-
             try {
 	      payload = (OggPayload) pl.getClass().newInstance();
 	      break;
