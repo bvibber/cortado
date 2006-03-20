@@ -115,8 +115,13 @@ public class Queue extends Element
       }
 
       if (obj instanceof Event) {
-        pushEvent((Event)obj);
+        Event event = (Event) obj;
+        pushEvent(event);
 	res = OK;
+	if (event.getType() == Event.EOS) {
+	  postMessage (Message.newStreamStatus (this, false, OK, "flow stopped, EOS"));
+	  pauseTask();
+	}
       }
       else {
         Buffer buf = (Buffer) obj;
@@ -185,6 +190,7 @@ public class Queue extends Element
   private Pad sinkpad = new Pad(Pad.SINK, "sink") {
     protected boolean eventFunc (Event event) {
       int type = event.getType();
+      boolean doQueue = true;
 
       switch (type) {
         case Event.FLUSH_START:
@@ -198,47 +204,48 @@ public class Queue extends Element
 	   }
 	   postMessage (Message.newStreamStatus (srcpad, false, Pad.WRONG_STATE, "flush start"));
 	   srcpad.pauseTask();
+	   doQueue = false;
 	   break;
         case Event.FLUSH_STOP:
 	   srcpad.pushEvent (event);
 
-	   synchronized (streamLock) {
-	     isEOS = false;
-	     synchronized (queue) {
-	       clearQueue ();
-	       srcResult = OK;
-	       queue.notifyAll();
-	     }
-	     if (!isBuffer) {
-	       postMessage (Message.newStreamStatus (srcpad, true, Pad.OK, "restart after flush"));
-	       srcpad.startTask();
-	     }
-	     else {
-	       isBuffering = true;
-	       postMessage (Message.newStreamStatus (srcpad, true, Pad.OK, "restart after flush"));
-	       postMessage (Message.newBuffering (this, true, 0)); 
-	       srcpad.startTask();
+	   isEOS = false;
+	   synchronized (queue) {
+	     clearQueue ();
+	     srcResult = OK;
+	     queue.notifyAll();
+	   }
+	   if (!isBuffer) {
+	     postMessage (Message.newStreamStatus (srcpad, true, Pad.OK, "restart after flush"));
+	     srcpad.startTask();
+	   }
+	   else {
+	     isBuffering = true;
+	     postMessage (Message.newStreamStatus (srcpad, true, Pad.OK, "restart after flush"));
+	     postMessage (Message.newBuffering (this, true, 0)); 
+	     srcpad.startTask();
+	   }
+	   doQueue = false;
+	   break;
+        case Event.EOS:
+	   isEOS = true;
+	   Debug.log(Debug.INFO, "got EOS: "+this);
+	   if (isBuffer) {
+	     if (isBuffering) {
+	       isBuffering = false;
+               postMessage (Message.newBuffering (this, isBuffering, 100));
 	     }
 	   }
 	   break;
-	default:
-	   synchronized (streamLock) {
-	     if (type == Event.EOS) {
-	       isEOS = true;
-	       if (isBuffer) {
-	         if (isBuffering) {
-	           isBuffering = false;
-                   postMessage (Message.newBuffering (this, isBuffering, 100));
-	           srcpad.startTask();
-		 }
-	       }
-	     }
-             synchronized (queue) {
-               queue.insertElementAt(event, 0);
-               queue.notifyAll();
-	     }
-	   }
+        case Event.NEWSEGMENT:
+        default:
 	   break;
+      }
+      if (doQueue) {
+        synchronized (queue) {
+          queue.insertElementAt(event, 0);
+          queue.notifyAll();
+        }
       }
       return true;
     }

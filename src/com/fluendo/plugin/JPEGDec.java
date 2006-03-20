@@ -47,16 +47,12 @@ public class JPEGDec extends Element
           }
           break;
         case com.fluendo.jst.Event.FLUSH_STOP:
-          synchronized (streamLock) {
-            result = srcpad.pushEvent(event);
-          }
+          result = srcpad.pushEvent(event);
           break;
         case com.fluendo.jst.Event.EOS:
         case com.fluendo.jst.Event.NEWSEGMENT:
         default:
-          synchronized (streamLock) {
-            result = srcpad.pushEvent(event);
-          }
+          result = srcpad.pushEvent(event);
           break;
       }
       return result;

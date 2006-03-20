@@ -1,3 +1,50 @@
+2006-03-20  Wim Taymans  <wim@fluendo.com>
+
+	* src/com/fluendo/jst/Pad.java: (Pad.Pad), (Pad.eventFunc), (Pad),
+	(Pad.sendEvent):
+	Don't crash when printing a pad name without parent.
+	Grab streamLock when needed.
+
+	* src/com/fluendo/player/Cortado.java: (Cortado.init):
+	Build pipeline after we have the needed infrastructure to
+	handle errors and such.
+
+	* src/com/fluendo/player/CortadoPipeline.java:
+	(CortadoPipeline.padAdded), (CortadoPipeline.setBufferLow),
+	(CortadoPipeline), (CortadoPipeline.getBufferLow),
+	(CortadoPipeline.setBufferHigh), (CortadoPipeline.getBufferHigh),
+	(CortadoPipeline.buildOgg), (CortadoPipeline.buildMultipart),
+	(CortadoPipeline.capsChanged), (CortadoPipeline.noSuchElement),
+	(CortadoPipeline.build):
+	Post an error when we cannot create an element.
+
+	* src/com/fluendo/plugin/OggDemux.java:
+	(OggDemux..OggStream.deActivate), (OggDemux..OggStream.pushPacket),
+	(OggDemux..OggStream.OggChain.isActive),
+	(OggDemux..OggStream.OggChain),
+	(OggDemux..OggStream.OggChain.activate), (OggDemux..OggStream.Pad):
+	First remove pad so we can throw away the eos event.
+	Create new instance of the payload
+	Fire noMorePads.
+	post error messages when something is wrong.
+	No need to take streamLock, core does that now.
+
+	* src/com/fluendo/plugin/JPEGDec.java: (JPEGDec.Pad):
+	* src/com/fluendo/plugin/MulawDec.java: (MulawDec.Pad):
+	* src/com/fluendo/plugin/SmokeDec.java: (SmokeDec.Pad):
+	* src/com/fluendo/plugin/TheoraDec.java: (TheoraDec..Pad):
+	* src/com/fluendo/plugin/VorbisDec.java: (VorbisDec..Pad):
+	No need to take streamLock, core does that for us.
+
+	* src/com/fluendo/plugin/AudioSinkJ2.java: (AudioSinkJ2.open):
+	Post better error message.
+
+	* src/com/fluendo/plugin/Queue.java: (Queue.Pad), (Queue):
+	Stop flow on EOS.
+	No need for streamLock.
+
+
+
 2006-03-20  Thomas Vander Stichele  <thomas at apestaart dot org>
 
 	* src/com/fluendo/examples/Player2.java:

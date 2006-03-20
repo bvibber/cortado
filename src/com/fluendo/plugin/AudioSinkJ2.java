@@ -46,7 +46,12 @@ public class AudioSinkJ2 extends AudioSink
     }
     catch (javax.sound.sampled.LineUnavailableException e) {
       e.printStackTrace();
-      postMessage (Message.newError (this, e.getMessage()));
+      postMessage (Message.newError (this, "Could not open audio device."));
+      return false;
+    }
+    catch (Exception e) {
+      e.printStackTrace();
+      postMessage (Message.newError (this, "Unknown problem opening audio device"));
       return false;
     }
 

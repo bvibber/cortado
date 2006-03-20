@@ -182,7 +182,6 @@ public class Cortado extends Applet implements Runnable, MouseMotionListener,
 
         pipeline.setComponent(this);
         pipeline.getBus().addHandler(this);
-        pipeline.build();
 
         setBackground(Color.black);
         setForeground(Color.white);
@@ -199,6 +198,8 @@ public class Cortado extends Applet implements Runnable, MouseMotionListener,
         menu.add("About...");
         menu.addActionListener(this);
         this.add(menu);
+
+        pipeline.build();
     }
 
     public void actionPerformed(ActionEvent e) {

@@ -53,6 +53,7 @@ public class CortadoPipeline extends Pipeline implements PadListener, CapsListen
       System.out.println("pad added without caps");
       return;
     }
+    System.out.println ("pad added "+pad);
 
     String mime = caps.getMime();
     
@@ -65,7 +66,10 @@ public class CortadoPipeline extends Pipeline implements PadListener, CapsListen
 
       pad.link(a_queue.getPad("sink"));
       a_queue.getPad("src").link(audiodec.getPad("sink"));
-      audiodec.getPad("src").link(audiosink.getPad("sink"));
+      if (!audiodec.getPad("src").link(audiosink.getPad("sink"))) {
+        postMessage (Message.newError (this, "audiosink already linked"));
+        return;
+      }
 
       audiodec.setState (PAUSE);
       a_queue.setState (PAUSE);
@@ -79,7 +83,10 @@ public class CortadoPipeline extends Pipeline implements PadListener, CapsListen
 
       pad.link(v_queue.getPad("sink"));
       v_queue.getPad("src").link(videodec.getPad("sink"));
-      videodec.getPad("src").link(videosink.getPad("sink"));
+      if (!videodec.getPad("src").link(videosink.getPad("sink"))) {
+        postMessage (Message.newError (this, "videosink already linked"));
+        return;
+      }
 
       videodec.setState (PAUSE);
       v_queue.setState (PAUSE);
@@ -90,8 +97,11 @@ public class CortadoPipeline extends Pipeline implements PadListener, CapsListen
 
       add(videodec);
       
-      videodec.getPad("src").link(videosink.getPad("sink"));
       pad.link(videodec.getPad("sink"));
+      if (!videodec.getPad("src").link(videosink.getPad("sink"))) {
+        postMessage (Message.newError (this, "videosink already linked"));
+        return;
+      }
 
       videodec.setState (PAUSE);
     }
@@ -101,8 +111,11 @@ public class CortadoPipeline extends Pipeline implements PadListener, CapsListen
 
       add(videodec);
       
-      videodec.getPad("src").link(videosink.getPad("sink"));
       pad.link(videodec.getPad("sink"));
+      if (!videodec.getPad("src").link(videosink.getPad("sink"))) {
+        postMessage (Message.newError (this, "videosink already linked"));
+        return;
+      }
 
       videodec.setState (PAUSE);
     }
@@ -181,9 +194,17 @@ public class CortadoPipeline extends Pipeline implements PadListener, CapsListen
   public boolean buildOgg()
   {
     demux = ElementFactory.makeByName("oggdemux", "demux");
+    if (demux == null) {
+      noSuchElement ("oggdemux");
+      return false;
+    }
     add(demux);
 
     buffer = ElementFactory.makeByName("queue", "buffer");
+    if (buffer == null) {
+      noSuchElement ("queue");
+      return false;
+    }
     buffer.setProperty("isBuffer", Boolean.TRUE);
     if (bufferSize != -1)
       buffer.setProperty("maxSize", new Integer (bufferSize * 1024));
@@ -206,6 +227,10 @@ public class CortadoPipeline extends Pipeline implements PadListener, CapsListen
   public boolean buildMultipart()
   {
     demux = ElementFactory.makeByName("multipartdemux", "demux");
+    if (demux == null) {
+      noSuchElement ("multipartdemux");
+      return false;
+    }
     add(demux);
 
     httpsrc.getPad("src").link(demux.getPad("sink"));
@@ -223,10 +248,19 @@ public class CortadoPipeline extends Pipeline implements PadListener, CapsListen
       buildMultipart();
     }
   }
+  private void noSuchElement(String elemName)
+  {
+    postMessage (Message.newError (this, "no such element: "+elemName+" (check plugins.ini)"));
+  }
 
   public boolean build()
   {
     httpsrc = ElementFactory.makeByName("httpsrc", "httpsrc");
+    if (httpsrc == null) {
+      noSuchElement ("httpsrc");
+      return false;
+    }
+    
     httpsrc.setProperty("url", url);
     httpsrc.setProperty("userId", userId);
     httpsrc.setProperty("password", password);
@@ -245,10 +279,18 @@ public class CortadoPipeline extends Pipeline implements PadListener, CapsListen
         audiosink = ElementFactory.makeByName("audiosinksa", "audiosink");
 	Debug.log(Debug.INFO, "using low quality sun.audio backend");
       }
+      if (audiosink == null) {
+        noSuchElement ("audiosink");
+        return false;
+      }
       add(audiosink);
     }
     if (enableVideo) {
       videosink = ElementFactory.makeByName("videosink", "videosink");
+      if (videosink == null) {
+        noSuchElement ("videosink");
+        return false;
+      }
       videosink.setProperty ("component", component);
       add(videosink);
     }

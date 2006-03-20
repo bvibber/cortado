@@ -90,7 +90,19 @@ public class Pad extends com.fluendo.jst.Object implements Runnable
   }
 
   public String toString () {
-    return "Pad: "+parent.getName()+":"+getName()+" ["+super.toString()+"]";
+    String parentName;
+    String thisName;
+
+    if (parent != null)
+      parentName = parent.getName();
+    else
+      parentName = "";
+
+    thisName = getName();
+    if (thisName == null)
+      thisName="";
+
+    return "Pad: "+parentName+":"+thisName+" ["+super.toString()+"]";
   }
   public synchronized void addCapsListener(CapsListener listener)
   {
@@ -172,8 +184,10 @@ public class Pad extends com.fluendo.jst.Object implements Runnable
         result = eventFunc (event);
         break;
       case Event.FLUSH_STOP:
-        setFlushing (false);
-        result = eventFunc (event);
+        synchronized (streamLock) {
+          setFlushing (false);
+          result = eventFunc (event);
+	}
         break;
       case Event.NEWSEGMENT:
       case Event.EOS:

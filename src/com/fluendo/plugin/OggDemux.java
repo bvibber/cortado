@@ -92,8 +92,8 @@ public class OggDemux extends Element
     public void deActivate() {
       if (!active)
         return;
-      pushEvent (Event.newEOS());	
       removePad(this);
+      pushEvent (Event.newEOS());	
       active = false;
     }
     public void reStart(long firstTs) {
@@ -147,11 +147,18 @@ public class OggDemux extends Element
 	  OggPayload pl = payloads[i];
 
 	  if (pl.isType (op)) {
-	    payload = pl;
+	    OggPayload copy;
+
+            try {
+	      payload = (OggPayload) pl.getClass().newInstance();
+	      break;
+	    }
+	    catch (Exception e) {}
 	  }
 	}
 	if (payload == null) {
           Debug.log(Debug.INFO, "unknown stream "+serialno);
+          postMessage (Message.newError (this, "unknown stream"));
 	  return Pad.ERROR;
 	}
 
@@ -161,8 +168,10 @@ public class OggDemux extends Element
         setCaps (new Caps (mime));
       }
       if (!haveHeaders && payload.isHeader(op)) {
-        if (payload.takeHeader (op) < 0)
+        if (payload.takeHeader (op) < 0) {
+          postMessage (Message.newError (this, "cannot read header"));
 	  return Pad.ERROR;
+	}
 
         com.fluendo.jst.Buffer data = bufferFromPacket (op);
         headers.addElement(data);
@@ -247,6 +256,7 @@ public class OggDemux extends Element
 	stream.activate();
       }
       active = true;
+      noMorePads();
     }
     public void deActivate() {
       if (!active)
@@ -356,18 +366,15 @@ public class OggDemux extends Element
 	  }
 	  break;
         case Event.FLUSH_STOP:
-	  synchronized (streamLock) {
-	    oy.reset();
-	    chain.resetStreams();
-	    chain.forwardEvent (event);
-	  }
+	  oy.reset();
+	  chain.resetStreams();
+	  chain.forwardEvent (event);
 	  break;
         case Event.NEWSEGMENT:
 	  break;
         case Event.EOS:
-	  synchronized (streamLock) {
-	    chain.forwardEvent (event);
-	  }
+	  Debug.log(Debug.INFO, "ogg: got EOS");
+	  chain.forwardEvent (event);
 	  break;
         default:
 	  chain.forwardEvent (event);
