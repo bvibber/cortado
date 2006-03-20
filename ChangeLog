@@ -1,6 +1,12 @@
 2006-03-20  Thomas Vander Stichele  <thomas at apestaart dot org>
 
 	* build.xml:
+	  apparently 1.2 is not accepted, and it needs to be 1.3 ? Hope this
+	  is ok, need to double check on 1.1 VM's.
+
+2006-03-20  Thomas Vander Stichele  <thomas at apestaart dot org>
+
+	* build.xml:
 	  add source="1.2" to javac targets, because some javac's and ant
 	  complain about this
 
