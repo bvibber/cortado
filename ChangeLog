@@ -1,3 +1,14 @@
+2006-03-20  Wim Taymans  <wim@fluendo.com>
+
+	* src/com/fluendo/plugin/HTTPSrc.java: (HTTPSrc.Pad), (HTTPSrc),
+	(HTTPSrc.getInputStream):
+	Do typefind on the data instead of trusting the servers
+	contentType. Fixes #317
+
+	* src/com/fluendo/plugin/OggDemux.java: (OggDemux),
+	(OggDemux...OggStream.getMime):
+	Implement typeFind function.
+
 2006-03-20  Thomas Vander Stichele  <thomas at apestaart dot org>
 
 	* Makefile:

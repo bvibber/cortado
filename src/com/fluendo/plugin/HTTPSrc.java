@@ -118,6 +118,25 @@ public class HTTPSrc extends Element
 	pauseTask();
       }
       else {
+        if (srcpad.getCaps() == null) {
+	  String typeMime;
+
+	  typeMime = ElementFactory.typeFindMime (data.data, data.offset, data.length);
+	  if (typeMime != null) {
+	    if (!typeMime.equals (mime)) {
+              Debug.log(Debug.WARNING, "server contentType: "+mime+" disagrees with our typeFind: "
+	                 +typeMime);
+	    }
+            Debug.log(Debug.INFO, "using typefind contentType: "+typeMime);
+	    mime = typeMime;
+	  }
+	  else {
+            Debug.log(Debug.INFO, "typefind failed, using server contentType: "+mime);
+	  }
+
+          outCaps = new Caps (mime);
+          srcpad.setCaps (outCaps);
+        }
         data.caps = outCaps;
 	data.setFlag (com.fluendo.jst.Buffer.FLAG_DISCONT, discont);
 	discont = false;
@@ -178,16 +197,14 @@ public class HTTPSrc extends Element
       /* FIXME, do typefind ? */
       dis = uc.getInputStream();
       contentLength = uc.getHeaderFieldInt ("Content-Length", 0) + offset;
+
       mime = uc.getContentType();
-      if (srcpad.getCaps() == null) {
-        outCaps = new Caps (mime);
-        srcpad.setCaps (outCaps);
-      }
+
       discont = true;
 
       Debug.log(Debug.INFO, "opened "+url);
       Debug.log(Debug.INFO, "contentLength: "+contentLength);
-      Debug.log(Debug.INFO, "contentType: "+mime);
+      Debug.log(Debug.INFO, "server contentType: "+mime);
     }
     catch (SecurityException e) {
       e.printStackTrace();

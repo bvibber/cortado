@@ -29,6 +29,7 @@ public class OggDemux extends Element
   private OggChain chain;
   private Page og;
   private Packet op;
+  private static final byte[] signature = { 0x4f, 0x67, 0x67, 0x53 };
 
   private OggPayload payloads[] = {
     new TheoraDec(),
@@ -455,7 +456,14 @@ public class OggDemux extends Element
   }
   public int typeFind (byte[] data, int offset, int length)
   {
-    return -1;
+    if (length < signature.length)
+      return -1;
+
+    for (int i=0; i < signature.length; i++) {
+      if (data[offset+i] != signature[i])
+        return -1;
+    }
+    return 10;
   }
 
   public OggDemux () {
