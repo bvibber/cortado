@@ -34,7 +34,7 @@ NOTES
 -----
 - from the ant build file, we should be able to:
   - make a tarball with all the source and build stuff:
-    "ant dist"
+    "ant dist" (done)
   - generate the separate jars
     "ant jar-jcraft ..."
   - build the examples
