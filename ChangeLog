@@ -1,3 +1,17 @@
+2006-03-20  Wim Taymans  <wim@fluendo.com>
+
+	* TODO:
+	Updated TODO.
+
+	* src/com/fluendo/jst/Sink.java: (Sink.Pad):
+	Set flushing flag correctly when we shutdown.
+
+	* src/com/fluendo/plugin/AudioSink.java: (AudioSink.RingBuffer),
+	(AudioSink.RingBuffer.acquire), (AudioSink.RingBuffer.setSample),
+	(AudioSink.setCapsFunc), (AudioSink), (AudioSink.changeState):
+	Fix race in going to paused.
+	Don't deadlock when we try to release the audio device.
+
 2006-02-28  Andy Wingo  <wingo@pobox.com>
 
 	* TESTIMONIALS: New file, random testimonials culled from the

@@ -216,8 +216,12 @@ public abstract class Sink extends Element
 	  }
 	  needPreroll = false;
 	  havePreroll = false;
+	  flushing = true;
 	}
 	isEOS = false;
+      }
+      else {
+	flushing = false;
       }
       return true;
     }

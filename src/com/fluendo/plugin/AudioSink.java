@@ -85,6 +85,8 @@ public abstract class AudioSink extends Sink implements ClockProvider
     private Thread thread;
     private long nextSample;
     private boolean flushing;
+    private boolean autoStart;
+    private boolean opened;
 
     private static final int STOP = 0;
     private static final int PAUSE = 1;
@@ -163,6 +165,9 @@ public abstract class AudioSink extends Sink implements ClockProvider
 
       if (thread != null)
         return false;
+ 
+      if (opened)
+        return false;
 
       String mime = caps.getMime();
       if (!mime.equals ("audio/raw"))
@@ -174,6 +179,8 @@ public abstract class AudioSink extends Sink implements ClockProvider
 
       if ((res = open (this)) == false)
         return res;
+      
+      opened = true;
 
       Debug.log(Debug.INFO, "audio: segSize: "+ segSize);
       Debug.log(Debug.INFO, "audio: segTotal: "+ segTotal);
@@ -191,25 +198,29 @@ public abstract class AudioSink extends Sink implements ClockProvider
 
       return res;
     }
-    public synchronized boolean release() {
+    public boolean release() {
       boolean res;
 
       stop();
 
-      if (thread == null)
-        return true;
+      synchronized (this) {
+        if (opened) {
+          if ((res = close(this)) == false)
+	    return false;
+        }
+        opened = false;
+      }
 
-      res = close(this);
-
-      return res;
+      return true;
     }
 
     private synchronized boolean waitSegment() {
       if (flushing)
         return false;
 
-      if (state != PLAY)
+      if (state != PLAY && autoStart) {
         play();
+      }
 
       try {
 	if (state != PLAY) {
@@ -351,6 +362,9 @@ public abstract class AudioSink extends Sink implements ClockProvider
       }
     }
 
+    public synchronized void setAutoStart (boolean start) {
+      autoStart = start;
+    }
     public synchronized boolean play () {
       if (flushing)
         return false;
@@ -455,6 +469,12 @@ public abstract class AudioSink extends Sink implements ClockProvider
       case PAUSE_PLAY:
         //long sample = baseTime * ringBuffer.rate / Clock.SECOND;
 	//ringBuffer.setSample (sample);
+	ringBuffer.setAutoStart (true);
+        break;
+      case PLAY_PAUSE:
+        reset();
+	ringBuffer.setAutoStart (false);
+        ringBuffer.pause();
         break;
       case PAUSE_STOP:
 	ringBuffer.setFlushing(true);
@@ -463,12 +483,7 @@ public abstract class AudioSink extends Sink implements ClockProvider
     result = super.changeState(transition);
 
     switch (transition) {
-      case PLAY_PAUSE:
-        reset();
-        ringBuffer.pause();
-        break;
       case PAUSE_STOP:
-        ringBuffer.stop();
         ringBuffer.release();
         break;
     }

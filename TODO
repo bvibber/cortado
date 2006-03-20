@@ -1,10 +1,6 @@
 TODO for cortado
 
-- detect and recover from discont in oggdemux
-
-- JST backend does not use newsegment events. 
-
-- make oggdemux time aware so it can send newsegments.
+- recover from discont in oggdemux
 
 - implement Query duration/position, not sure how to do that since
   we only have the byte position. possibly put duration as a param or
