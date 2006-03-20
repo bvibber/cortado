@@ -1,3 +1,10 @@
+2006-03-20  Thomas Vander Stichele  <thomas at apestaart dot org>
+
+	* README:
+	  update
+	* build.xml:
+	  make sure that "all" target builds in order, so the examples work
+
 2006-03-20  Wim Taymans  <wim@fluendo.com>
 
 	* src/com/fluendo/jst/Clock.java: (Clock):
@@ -111,7 +118,6 @@
 	Implement OggPayload.
 	Handle discont.
 	Remove timestamp hacks.
-
 
 2006-01-20  Thomas Vander Stichele  <thomas at apestaart dot org>
 

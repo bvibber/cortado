@@ -489,8 +489,15 @@ com/fluendo/plugin/Vorbis*
   <target name="jar" depends="jar-jcraft,jar-utils,jar-jheora,jar-jst,jar-codecs,jar-plugin,jar-player"
         description="generate all jar files" />
 
-  <target name="all" depends="applet,jar,compile-examples"
-          description="generate jars and applets" />
+  <!-- instead of using depends, which doesn't necessarily preserve order,
+       we use antcall, to make sure compile-examples is done last, and
+       thus has a plugins.ini with *all *plugins -->
+  <target name="all"
+          description="generate jars and applets">
+    <antcall target="applet" />
+    <antcall target="jar" />
+    <antcall target="compile-examples" />
+  </target>
 
   <target name="debug"
           description="generate all jars and applets in debug mode">
