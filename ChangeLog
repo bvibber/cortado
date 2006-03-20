@@ -1,5 +1,12 @@
 2006-03-20  Thomas Vander Stichele  <thomas at apestaart dot org>
 
+	* src/com/fluendo/plugin/AudioSinkJ2.java: (AudioSinkJ2.write):
+	* src/com/fluendo/plugin/AudioSinkSA.java:
+	(AudioSinkSA...RingReader.RingReader):
+	  fix more warnings, one error left
+
+2006-03-20  Thomas Vander Stichele  <thomas at apestaart dot org>
+
 	* src/com/fluendo/plugin/AudioSink.java:
 	(AudioSink.RingBuffer.acquire):
 	* src/com/fluendo/plugin/OggDemux.java:

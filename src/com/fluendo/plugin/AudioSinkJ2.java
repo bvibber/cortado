@@ -92,9 +92,8 @@ public class AudioSinkJ2 extends AudioSink
   }
 
   protected long delay () {
-    int size, avail;
     int frame; 
-    long time, delay;
+    long delay;
 
     //size = line.getBufferSize();
     //avail = line.available();

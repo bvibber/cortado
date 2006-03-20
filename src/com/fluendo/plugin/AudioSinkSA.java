@@ -63,9 +63,6 @@ public class AudioSinkSA extends AudioSink
                            0x00, 0x00, 0x00, 0x01               // channels
                          };
   private int headerPos;
-  private boolean needHeader;
-
-  private byte[] readByte = new byte[1];
 
   private final int toUlaw(int sample)
   {
@@ -99,7 +96,6 @@ public class AudioSinkSA extends AudioSink
     public RingReader(RingBufferSA rb) {
       ringBuffer = rb;
       try {
-        needHeader = true;
         headerPos = 0;
         stream = new AudioStream(this);
       }
