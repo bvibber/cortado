@@ -64,10 +64,11 @@ Cortado ANT build file
     <!-- Create the time stamp -->
     <tstamp/>
     <!-- Create the build directory structure used by compile -->
-    <mkdir dir="${out}"/>
-    <mkdir dir="${out.build}"/>
-    <mkdir dir="${out.dist}/${build.type}"/>
-    <mkdir dir="${out.dist}/applet"/>
+    <mkdir dir="${out}" />
+    <mkdir dir="${out.build}" />
+    <mkdir dir="${out.dist}/${build.type}" />
+    <mkdir dir="${out.dist}/applet" />
+    <mkdir dir="${out.dist}/src" />
   </target>
 
 <!-- generate Configure-time options class as src/com/fluendo/player/Configure.java -->
@@ -538,9 +539,58 @@ com/fluendo/plugin/Vorbis*
 
   <target name="clean" depends="type"
         description="clean up build dir" >
-    <!-- Delete the ${out.build} directory tree an generated source -->
+    <!-- Delete the ${out.build} directory tree and generated source -->
     <delete dir="${out.build}"/>
     <delete dir="${out.dist}/${build.type}"/>
     <delete file="${src}/com/fluendo/player/Configure.java"/>
   </target>
+
+  <target name="distclean" depends="clean"
+        description="clean up dist dir" >
+    <delete dir="${out.dist}" />
+  </target>
+
+  <target name="dist" depends="init"
+          description="create a source distribution package">
+    <property name="tar"
+              value="${out.dist}/src/cortado-${product.version}.tar" />
+    <tar destfile="${tar}">
+      <tarfileset dir="${basedir}"
+         prefix="cortado-${product.version}">
+        <include name="src/com/jcraft/jogg/*.java" />
+        <include name="src/com/jcraft/jorbis/*.java" />
+        <include name="src/com/fluendo/jheora/*.java" />
+        <include name="src/com/fluendo/player/*.java" />
+        <include name="src/com/fluendo/utils/*.java" />
+        <include name="src/com/fluendo/codecs/*.java" />
+        <include name="src/com/fluendo/plugin/*.java" />
+        <include name="src/com/fluendo/examples/*.java" />
+        <include name="stubs/sun/audio/*.java" />
+        <include name="stubs/javax/sound/sampled/*.java" />
+        <include name="build.properties" />
+        <include name="build.xml" />
+        <include name="LICENSE.*" />
+        <include name="ChangeLog" />
+        <include name="HACKING" />
+        <include name="README" />
+        <include name="RELEASE" />
+        <include name="TODO" />
+        <include name="NEWS" />
+      </tarfileset>
+    </tar>
+    <gzip zipfile="${tar}.gz"
+          src="${tar}" />
+    <delete file="${tar}" />
+  </target>
+
+  <target name="distcheck" depends="dist">
+    <property name="tar"
+              value="${out.dist}/src/cortado-${product.version}.tar" />
+    <property name="srcdist-tgz-check" value="${tmp}/srcdist-tgz-check"/>
+    <untar src="${tar}.gz" dest="${basedir}" compression="gzip" />
+    <ant dir="cortado-${product.version}" />
+    <delete dir="cortado-${product.version}" />
+    <echo message="cortado-${product.version} is ready for distribution." />
+  </target>
+
 </project>

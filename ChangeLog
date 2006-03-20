@@ -1,3 +1,10 @@
+2006-03-20  Thomas Vander Stichele  <thomas at apestaart dot org>
+
+	* Makefile:
+	  removed
+	* build.xml:
+	  added dist, distcheck and distclean targets
+
 2006-03-20  Wim Taymans  <wim@fluendo.com>
 
 	* src/com/fluendo/jst/Pad.java: (Pad.Pad), (Pad.eventFunc), (Pad),
@@ -42,8 +49,6 @@
 	* src/com/fluendo/plugin/Queue.java: (Queue.Pad), (Queue):
 	Stop flow on EOS.
 	No need for streamLock.
-
-
 
 2006-03-20  Thomas Vander Stichele  <thomas at apestaart dot org>
 
