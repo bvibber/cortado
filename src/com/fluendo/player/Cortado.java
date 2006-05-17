@@ -137,6 +137,9 @@ public class Cortado extends Applet implements Runnable, MouseMotionListener,
 
         len = d.length();
 
+        if (len < 5)
+	    return -1;
+
         sec = Integer.valueOf(d.substring(len - 2)).intValue();
         min = Integer.valueOf(d.substring(len - 4, len - 2)).intValue();
         hours = Integer.valueOf(d.substring(0, len - 4)).intValue();

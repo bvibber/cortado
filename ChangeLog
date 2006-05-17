@@ -1,3 +1,8 @@
+2006-05-17  Zaheer Abbas Merali  <zaheerabbas at merali dot org>
+
+	* src/com/fluendo/player/Cortado.java: (Cortado.stringToTime):
+	Bounds checking!
+
 2006-03-20  Thomas Vander Stichele  <thomas at apestaart dot org>
 
 	* src/com/fluendo/plugin/AudioSinkJ2.java: (AudioSinkJ2.write):
