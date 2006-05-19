@@ -1,5 +1,23 @@
 2006-05-19  Thomas Vander Stichele  <thomas at apestaart dot org>
 
+	* build.config.sample:
+	* build.properties:
+	* build.xml:
+	  change "release" type to "stripped" type
+
+2006-05-19  Thomas Vander Stichele  <thomas at apestaart dot org>
+
+	* build.xml:
+	  now actually fix make distcheck by disting jst code
+
+2006-05-19  Thomas Vander Stichele  <thomas at apestaart dot org>
+
+	* build.xml:
+	  fix distcheck; it was actually building inplace and thus
+	  not catching missing jst code
+
+2006-05-19  Thomas Vander Stichele  <thomas at apestaart dot org>
+
 	* README:
 	  update properties in use
 	* src/com/fluendo/player/Cortado.java: (Cortado),

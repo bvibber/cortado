@@ -4,7 +4,7 @@
 # used by all javac tasks by default
 # build.compiler       jikes
 
-# choose between debug and release builds
+# choose between debug and stripped builds
 # build.type           debug
 
 # choose additional compiler flags
@@ -12,4 +12,4 @@
 # which does not respect debuglevel flags for jikes
 
 # build.debug.flags    lines,source
-# build.release.flags
+# build.stripped.flags

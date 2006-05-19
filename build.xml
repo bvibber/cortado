@@ -509,10 +509,10 @@ com/fluendo/plugin/Vorbis*
     </antcall>
   </target>
 
-  <target name="release"
-          description="generate all jars and applets in release mode">
+  <target name="stripped"
+          description="generate all jars and applets in stripped mode">
     <antcall target="all">
-      <param name="build.type" value="release" />
+      <param name="build.type" value="stripped" />
     </antcall>
   </target>
 
