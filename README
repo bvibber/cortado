@@ -19,10 +19,18 @@ It contains:
 - applets
 
 This release has support for
-- seeking
+- seeking in on-demand files
 - the above-mentioned plugins
 - basic HTTP authentication
 - buffering
+
+FAQ
+---
+
+We maintain a FAQ in our trac installation:
+https://core.fluendo.com/flumotion/trac/wiki/FAQ
+
+If any questions should be added, let us know.
 
 BUGS
 ----
@@ -107,6 +115,9 @@ parameters:
 
   url:        string
               the URL to load, must be a fully qualified URL.
+              IMPORTANT: if the applet is not signed, the hostname of the
+              url *is required* to be the same as the hostname of the link
+              to the jar file.  This is a Java security limitation.
 
   seekable:   boolean
               Whether or not you can seek in the file.  For live streams,
