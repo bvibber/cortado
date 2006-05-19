@@ -1,5 +1,10 @@
 2006-05-19  Thomas Vander Stichele  <thomas at apestaart dot org>
 
+	* build.xml:
+	  add a release target
+
+2006-05-19  Thomas Vander Stichele  <thomas at apestaart dot org>
+
 	* build.config.sample:
 	* build.properties:
 	* build.xml:

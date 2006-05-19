@@ -550,6 +550,7 @@ com/fluendo/plugin/Vorbis*
   <target name="distclean" depends="clean"
         description="clean up dist dir" >
     <delete dir="${out.dist}" />
+    <delete dir="${out}/distcheck" />
   </target>
 
   <target name="dist" depends="init"
@@ -602,6 +603,12 @@ com/fluendo/plugin/Vorbis*
          inheritAll="false" />
     <delete dir="${tmp-builddir}" />
     <echo message="distcheck: cortado-${product.version} is ready for distribution." />
+  </target>
+
+  <target name="release" depends="dist"
+          description="make the release">
+    <checksum file="${out.dist}/src/cortado-${product.version}.tar.gz"
+              algorithm="MD5" fileext=".md5" />
   </target>
 
 </project>
