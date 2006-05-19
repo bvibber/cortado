@@ -66,7 +66,7 @@ You also need to set the classpath to your build tree when running
 
 - Jikes does not have a VM
 - gij (the GNU Java VM) does not have a javax.sound.sampled implementation, so
-  fails when playing audio
+  fails when playing audio, but can still play video-only files
 - Sun Java VM works for me:
 
   /usr/java/jre1.5.0_04/bin/java -cp output/build/debug com.fluendo.examples.Player http://stream.fluendo.com:8850
