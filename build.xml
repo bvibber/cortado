@@ -1,4 +1,4 @@
-<project name="cortado" default="all" basedir=".">
+<project name="cortado" default="all">
 
     <description>
 Cortado ANT build file
@@ -44,6 +44,8 @@ Cortado ANT build file
   <!-- figure out what build type we are using and set build.${type} stuff -->
   <target name="type">
     <echo message="Building ${build.type} version" />
+    <echo message="Using basedir ${basedir}" />
+    <echo message="Using out ${out}" />
     <propertycopy name="build.flags" from="build.${build.type}.flags" />
     <!-- we make out.build depend on the release type -->
     <property name="out.build"   value="${out}/build/${build.type}" />
@@ -587,11 +589,18 @@ com/fluendo/plugin/Vorbis*
           description="build the source distribution before releasing">
     <property name="tar"
               value="${out.dist}/src/cortado-${product.version}.tar" />
-    <property name="srcdist-tgz-check" value="${tmp}/srcdist-tgz-check"/>
-    <untar src="${tar}.gz" dest="${basedir}" compression="gzip" />
-    <ant dir="cortado-${product.version}" />
-    <delete dir="cortado-${product.version}" />
-    <echo message="cortado-${product.version} is ready for distribution." />
+    <property name="distcheckdir" value="${out}/distcheck" />
+    <delete dir="${distcheckdir}" />
+    <untar src="${tar}.gz" dest="${distcheckdir}" compression="gzip" />
+    <echo message="distcheck: trying build of cortado-${product.version} ..."/>
+      <!-- setting inheritAll="false" makes sure that we don't keep this run's
+           properties, causing basedir to be set correctly, but derived
+           vars set wrong -->
+    <ant dir="${distcheckdir}/cortado-${product.version}"
+         antfile="${distcheckdir}/cortado-${product.version}/build.xml"
+         inheritAll="false" />
+    <delete dir="${tmp-builddir}" />
+    <echo message="distcheck: cortado-${product.version} is ready for distribution." />
   </target>
 
 </project>
