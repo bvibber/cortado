@@ -70,7 +70,7 @@ EXAMPLES
 
 You need a Java Virtual Machine to run the example code.
 You also need to set the classpath to your build tree when running
-(output/build/debug or output/build/release)
+(output/build/debug or output/build/stripped)
 
 - Jikes does not have a VM
 - gij (the GNU Java VM) does not have a javax.sound.sampled implementation, so

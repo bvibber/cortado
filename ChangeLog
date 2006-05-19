@@ -1,3 +1,16 @@
+=== release 0.2.0 ===
+
+2006-05-19  Thomas Vander Stichele  <thomas at apestaart dot org>
+
+	* HACKING:
+	* NEWS:
+	* README:
+	* RELEASE:
+	* build.xml:
+	  make release target build everything, plus distcheck
+	  add release notes, update other notes
+	  Releasing 0.2.0, "Broken Record"
+
 2006-05-19  Thomas Vander Stichele  <thomas at apestaart dot org>
 
 	* build.xml:

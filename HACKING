@@ -56,7 +56,10 @@ HISTORY
 ------
 
 - applet sizes:
-  - cortado-ovt-0.1.2.1.jar:
-    - 2005-04-29: 179327 bytes
-    - 2006-01-17: 191901 bytes (after JST implementation)
+  - cortado ovt debug:
+    - 2006-05-19: 259354 bytes
 
+  - cortado ovt release:
+    - 0.1.2.1, 2005-04-29: 179327 bytes
+    - 0.1.2.1, 2006-01-17: 191901 bytes (after JST implementation)
+    - 0.2.0,   2006-05-19: 1895960 bytes
