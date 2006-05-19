@@ -65,7 +65,7 @@ public class Status extends Component implements MouseListener,
 
     private double position = 0;
     private long time;
-    private long duration;
+    private double duration;
 
     private String speaker = "\0\0\0\0\0\357\0\0\357U\27"
             + "\36\0\0\0\0\357\357\0\0" + "\0\357U\30\0\0\0\357\0\357"
@@ -264,19 +264,19 @@ public class Status extends Component implements MouseListener,
         component.repaint();
     }
 
-    public void setTime(long seconds) {
+    public void setTime(double seconds) {
         if (clicked == NONE) {
             if (seconds < duration)
-                time = seconds;
+                time = (long) seconds;
             else
-                time = duration;
+                time = (long) duration;
 
             position = ((double) time) / duration;
             component.repaint();
         }
     }
 
-    public void setDuration(long seconds) {
+    public void setDuration(double seconds) {
         duration = seconds;
         component.repaint();
     }

@@ -44,7 +44,7 @@ public class Cortado extends Applet implements Runnable, MouseMotionListener,
     private int bufferLow;
     private int bufferHigh;
     private int debug;
-    private long duration;
+    private double duration;
 
     private Thread statusThread;
     private Status status;
@@ -69,8 +69,8 @@ public class Cortado extends Applet implements Runnable, MouseMotionListener,
                 { "url", "URL", "The media file to play" },
                 { "seekable", "boolean",
                         "Can you seek in this file (default false)" },
-                { "duration", "string",
-                        "Total duration of the file in hmmss (default unknown)" },
+                { "duration", "float",
+                        "Total duration of the file in seconds (default unknown)" },
                 { "framerate", "float",
                         "The default framerate of the video (default 5.0)" },
                 { "audio", "boolean", "Enable audio playback (default true)" },
@@ -123,25 +123,6 @@ public class Cortado extends Applet implements Runnable, MouseMotionListener,
         cortado.stop();
     }
 
-    private long stringToTime(String d) {
-        int hours, min, sec;
-        int len;
-
-        if (d == null)
-            return -1;
-
-        len = d.length();
-
-        if (len < 5)
-	    return -1;
-
-        sec = Integer.valueOf(d.substring(len - 2)).intValue();
-        min = Integer.valueOf(d.substring(len - 4, len - 2)).intValue();
-        hours = Integer.valueOf(d.substring(0, len - 4)).intValue();
-
-        return ((hours * 60) + min) * 60 + sec;
-    }
-
     public void init() {
         cortado = this;
 
@@ -150,7 +131,7 @@ public class Cortado extends Applet implements Runnable, MouseMotionListener,
 
         urlString = getParam("url", null);
         seekable = String.valueOf(getParam("seekable", "false")).equals("true");
-        duration = stringToTime(getParam("duration", null));
+        duration = Double.valueOf(getParam("duration", "-1.0")).doubleValue();
         framerate = Double.valueOf(getParam("framerate", "5.0")).doubleValue();
         audio = String.valueOf(getParam("audio", "true")).equals("true");
         video = String.valueOf(getParam("video", "true")).equals("true");
@@ -523,12 +504,16 @@ class AboutFrame extends AppFrame {
     ta.appendText("(C) Copyright 2004,2005,2006 Fluendo\n\n");
     ta.appendText("Built on " + configure.buildDate + "\n");
     ta.appendText("Built in " + configure.buildType + " mode.\n");
+    ta.appendText("Running on Java VM " + System.getProperty("java.version")
+                  + " from " + System.getProperty("java.vendor") + "\n");
 
-    if (pipeline.usingJavaX) {
-      ta.appendText("Using the javax.sound backend.");
-    } else {
-      ta.appendText("Using the sun.audio backend.\n\n");
-      ta.appendText("NOTE: you should install the Java(TM) from Sun.");
+    if (pipeline.isAudioEnabled()) {
+      if (pipeline.usingJavaX) {
+        ta.appendText("Using the javax.sound backend.");
+      } else {
+        ta.appendText("Using the sun.audio backend.\n\n");
+        ta.appendText("NOTE: you should install the Java(TM) from Sun for better audio quality.");
+      }
     }
 
     d.add(dbtn = new Button("OK"), 

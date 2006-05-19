@@ -1,3 +1,16 @@
+2006-05-19  Thomas Vander Stichele  <thomas at apestaart dot org>
+
+	* README:
+	  update properties in use
+	* src/com/fluendo/player/Cortado.java: (Cortado),
+	(Cortado.getParameterInfo), (Cortado.shutdown), (Cortado.init),
+	(AboutFrame.AboutFrame):
+	* src/com/fluendo/player/Status.java:
+	  use a double for duration, is more intuitive than HMMSS
+	  only mention audio backend details if the applet is configured to
+	  play audio
+	  show VM information in about box
+
 2006-05-19  Wim Taymans  <wim@fluendo.com>
 
 	* src/com/fluendo/player/Cortado.java: (Cortado),
