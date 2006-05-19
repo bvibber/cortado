@@ -567,6 +567,7 @@ com/fluendo/plugin/Vorbis*
         <include name="src/com/fluendo/codecs/*.java" />
         <include name="src/com/fluendo/plugin/*.java" />
         <include name="src/com/fluendo/examples/*.java" />
+        <include name="src/com/fluendo/jst/*.java" />
         <include name="stubs/sun/audio/*.java" />
         <include name="stubs/javax/sound/sampled/*.java" />
         <include name="build.properties" />
