@@ -33,7 +33,6 @@ public class Cortado extends Applet implements Runnable, MouseMotionListener,
     private static CortadoPipeline pipeline;
 
     private String urlString;
-    private boolean local;
     private boolean seekable;
     private double framerate;
     private boolean audio;
@@ -42,7 +41,6 @@ public class Cortado extends Applet implements Runnable, MouseMotionListener,
     private int bufferSize;
     private String userId;
     private String password;
-    private boolean usePrebuffer;
     private int bufferLow;
     private int bufferHigh;
     private int debug;
@@ -69,7 +67,6 @@ public class Cortado extends Applet implements Runnable, MouseMotionListener,
     public String[][] getParameterInfo() {
         String[][] info = {
                 { "url", "URL", "The media file to play" },
-                { "local", "boolean", "Is this a local file (default false)" },
                 { "seekable", "boolean",
                         "Can you seek in this file (default false)" },
                 { "duration", "string",
@@ -81,8 +78,6 @@ public class Cortado extends Applet implements Runnable, MouseMotionListener,
                 { "keepAspect", "boolean",
                         "Use aspect ratio of video (default true)" },
                 { "preBuffer", "boolean", "Use Prebuffering (default = true)" },
-                { "doubleBuffer", "boolean",
-                        "Use double buffering for screen updates (default = true)" },
                 { "bufferSize", "int",
                         "The size of the prebuffer in Kbytes (default 100)" },
                 { "bufferLow", "int", "Percent of empty buffer (default 10)" },
@@ -154,15 +149,12 @@ public class Cortado extends Applet implements Runnable, MouseMotionListener,
         configure = new Configure();
 
         urlString = getParam("url", null);
-        local = String.valueOf(getParam("local", "false")).equals("true");
         seekable = String.valueOf(getParam("seekable", "false")).equals("true");
         duration = stringToTime(getParam("duration", null));
         framerate = Double.valueOf(getParam("framerate", "5.0")).doubleValue();
         audio = String.valueOf(getParam("audio", "true")).equals("true");
         video = String.valueOf(getParam("video", "true")).equals("true");
         keepAspect = String.valueOf(getParam("keepAspect", "true")).equals(
-                "true");
-        usePrebuffer = String.valueOf(getParam("preBuffer", "true")).equals(
                 "true");
         bufferSize = Integer.valueOf(getParam("bufferSize", "200")).intValue();
         bufferLow = Integer.valueOf(getParam("bufferLow", "10")).intValue();

@@ -1,3 +1,9 @@
+2006-05-19  Wim Taymans  <wim@fluendo.com>
+
+	* src/com/fluendo/player/Cortado.java: (Cortado),
+	(Cortado.getParameterInfo), (Cortado.init):
+	Remove some unused properties
+
 2006-05-17  Zaheer Abbas Merali  <zaheerabbas at merali dot org>
 
 	* src/com/fluendo/player/Cortado.java: (Cortado.stringToTime):
