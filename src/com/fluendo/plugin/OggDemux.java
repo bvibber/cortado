@@ -379,7 +379,7 @@ public class OggDemux extends Element
           if (chain) {
 	    chain.forwardEvent (event);
 	  else
-            postMessage (Message.newError (this, "no streams found"));
+            postMessage (Message.newError (this, "unsupported media type"));
 	  break;
         default:
           if (chain) {
