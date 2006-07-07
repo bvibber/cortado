@@ -359,24 +359,31 @@ public class OggDemux extends Element
     {
       switch (event.getType()) {
         case Event.FLUSH_START:
-	  chain.forwardEvent (event);
+          if (chain)
+	    chain.forwardEvent (event);
 	  synchronized (streamLock) {
             Debug.log(Debug.INFO, "synced "+this);
 	  }
 	  break;
         case Event.FLUSH_STOP:
 	  oy.reset();
-	  chain.resetStreams();
-	  chain.forwardEvent (event);
+          if (chain) {
+	    chain.resetStreams();
+	    chain.forwardEvent (event);
+	  }
 	  break;
         case Event.NEWSEGMENT:
 	  break;
         case Event.EOS:
 	  Debug.log(Debug.INFO, "ogg: got EOS");
-	  chain.forwardEvent (event);
+          if (chain) {
+	    chain.forwardEvent (event);
+	  else
+            postMessage (Message.newError (this, "no streams found"));
 	  break;
         default:
-	  chain.forwardEvent (event);
+          if (chain) {
+	    chain.forwardEvent (event);
 	  break;
       }
       return true;

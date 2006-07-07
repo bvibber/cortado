@@ -1,3 +1,9 @@
+2006-07-07  Wim Taymans  <wim@fluendo.com>
+
+	* src/com/fluendo/plugin/OggDemux.java:
+	Don't try to push events when we have no chain.
+	Post an error if we run EOS and still haven't found a chain.
+
 2006-05-19  Thomas Vander Stichele  <thomas at apestaart dot org>
 
 	* build.properties:
