@@ -19,9 +19,9 @@
 package com.fluendo.utils;
 
 public class MemUtils {
-  private static char[] bytes = { '0','1','2','3','4','5','6','7','8','9','a','b','c','d','e','f' };
+  private static final char[] bytes = { '0','1','2','3','4','5','6','7','8','9','a','b','c','d','e','f' };
 
-  public static int cmp (byte[] mem1, byte[] mem2, int len)
+  public static final int cmp (byte[] mem1, byte[] mem2, int len)
   {
     for (int i=0; i<len; i++) {
       if (mem1[i] != mem2[i]) {
@@ -33,7 +33,7 @@ public class MemUtils {
     }
     return 0;
   }
-  public static void set (byte[] mem, int offset, int val, int len)
+  public static final void set (byte[] mem, int offset, int val, int len)
   {
     len += offset;
 
@@ -41,7 +41,7 @@ public class MemUtils {
       mem[i] = (byte)val;
     }
   }
-  public static void set (short[] mem, int offset, int val, int len)
+  public static final void set (short[] mem, int offset, int val, int len)
   {
     len += offset;
 
@@ -49,7 +49,7 @@ public class MemUtils {
       mem[i] = (short)val;
     }
   }
-  public static void set (int[] mem, int offset, int val, int len)
+  public static final void set (int[] mem, int offset, int val, int len)
   {
     len += offset;
 
@@ -57,7 +57,7 @@ public class MemUtils {
       mem[i] = (int)val;
     }
   }
-  public static void set (Object[] mem, int offset, Object val, int len)
+  public static final void set (Object[] mem, int offset, Object val, int len)
   {
     len += offset;
 
@@ -65,8 +65,23 @@ public class MemUtils {
       mem[i] = val;
     }
   }
+  /* check if a given arr starts with the given pattern */
+  public static final boolean startsWith (byte[] arr, int offset, int len, byte[] pattern)
+  {
+    int length = pattern.length;
+    int i;
 
-  public static void dump (byte[] mem, int start, int len)
+    if (len < length)
+      return false;
+
+    for (i=0; i < length; i++)
+      if (arr[offset+i] != pattern[i])
+        break;
+
+    return i == length;
+  }
+
+  public static final void dump (byte[] mem, int start, int len)
   {
     int i, j;
     StringBuffer string = new StringBuffer(50);

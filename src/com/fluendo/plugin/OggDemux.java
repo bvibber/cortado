@@ -30,6 +30,14 @@ public class OggDemux extends Element
   private Page og;
   private Packet op;
   private static final byte[] signature = { 0x4f, 0x67, 0x67, 0x53 };
+  private static final byte[] fishead_signature = { 0x66, 0x69, 0x73, 0x68, 0x65, 0x61, 0x64};
+  private static final byte[] cmml_signature = {0x43, 0x4d, 0x4d, 0x4c};
+
+  private static final int TYPE_NEW = 0;
+  private static final int TYPE_UNKNOWN = 1;
+  private static final int TYPE_SKELETON = 2;
+  private static final int TYPE_CMML = 3;
+  private static final int TYPE_MEDIA = 4;
 
   private OggPayload payloads[] = {
     new TheoraDec(),
@@ -48,6 +56,7 @@ public class OggDemux extends Element
     public boolean active;
     public boolean haveKeyframe;
     public boolean sentHeaders;
+    public int type;
     
     private OggPayload payload;
 
@@ -142,43 +151,75 @@ public class OggDemux extends Element
       return data;
     }
 
-    public int pushPacket (Packet op) {
-      if (payload == null) {
-        for (int i=0; i<payloads.length; i++) {
-	  OggPayload pl = payloads[i];
 
-	  if (pl.isType (op)) {
-            try {
-	      payload = (OggPayload) pl.getClass().newInstance();
-	      break;
-	    }
-	    catch (Exception e) {}
+    /* initialize a stream based on the first packet */
+    private void initNewStream (Packet op) {
+      int i;
+
+      payload = null;
+      /* find out if it is a media payload */
+      for (i=0; i<payloads.length; i++) {
+	OggPayload pl = payloads[i];
+
+	if (pl.isType (op)) {
+          try {
+	    payload = (OggPayload) pl.getClass().newInstance();
+            /* we have a valid media type */
+            type = TYPE_MEDIA;
+            /* set mime type */
+            String mime = payload.getMime();
+            Debug.log(Debug.INFO, "new stream "+serialno+", mime "+mime);
+            setCaps (new Caps (mime));
+	    return;
 	  }
+	  catch (Exception e) {}
 	}
-	if (payload == null) {
-          Debug.log(Debug.INFO, "unknown stream "+serialno);
-          postMessage (Message.newError (this, "unknown stream"));
-	  return Pad.ERROR;
-	}
-
-        String mime = payload.getMime();
-        Debug.log(Debug.INFO, "new stream "+serialno+", mime "+mime);
-      
-        setCaps (new Caps (mime));
       }
-      if (!haveHeaders && payload.isHeader(op)) {
-        if (payload.takeHeader (op) < 0) {
-          postMessage (Message.newError (this, "cannot read header"));
-	  return Pad.ERROR;
-	}
-
-        com.fluendo.jst.Buffer data = bufferFromPacket (op);
-        headers.addElement(data);
+      /* no payload, check for skeleton */
+      if (MemUtils.startsWith (op.packet_base, op.packet, op.bytes, fishead_signature)) {
+        type = TYPE_SKELETON;
+        Debug.log(Debug.INFO, "ignoring skeleton stream "+serialno);
+        postMessage (Message.newWarning (this, "ignoring skeleton stream "+serialno));
+	return;
       }
-      else {
-        haveHeaders = true;
+      /* check for cmml */
+      if (MemUtils.startsWith (op.packet_base, op.packet, op.bytes, cmml_signature)) {
+        type = TYPE_CMML;
+        Debug.log(Debug.INFO, "ignoring CMML stream "+serialno);
+        postMessage (Message.newWarning (this, "ignoring CMML stream "+serialno));
+	return;
       }
+      /* else we don't know what it is */
+      type = TYPE_UNKNOWN;
+      Debug.log(Debug.INFO, "ignoring unknown stream "+serialno);
+      postMessage (Message.newWarning (this, "ignoring unknown stream "+serialno));
+    }
 
+    public int pushPacket (Packet op) {
+      /* new stream, find out what it is  */
+      if (type == TYPE_NEW) {
+	initNewStream (op);
+      }
+      /* drop everything that is not recognized as media from here on. */
+      if (type != TYPE_MEDIA) {
+	complete = true;
+	return Pad.OK;
+      }
+      /* first read all the headers */
+      if (!haveHeaders) {
+	if (payload.isHeader(op)) {
+          if (payload.takeHeader (op) < 0) {
+            postMessage (Message.newError (this, "cannot read header"));
+	    return Pad.ERROR;
+	  }
+          com.fluendo.jst.Buffer data = bufferFromPacket (op);
+          headers.addElement(data);
+        }
+        else {
+          haveHeaders = true;
+        }
+      }
+      /* if we have all the headers we can stream */
       if (haveHeaders) {
         if (complete && started) {
           com.fluendo.jst.Buffer data = bufferFromPacket (op);
@@ -277,6 +318,11 @@ public class OggDemux extends Element
         /* collect first timestamp */
         for (int i=0; i<streams.size(); i++) {
           OggStream stream = (OggStream) streams.elementAt(i);
+
+	  /* skip all streams not recognized as media streams */
+	  if (stream.type != TYPE_MEDIA)
+	    continue;
+
 	  long ts = stream.getFirstTs();
 	  maxTs = Math.max (maxTs, ts);
 	  minTs = Math.min (minTs, ts);
@@ -359,7 +405,7 @@ public class OggDemux extends Element
     {
       switch (event.getType()) {
         case Event.FLUSH_START:
-          if (chain)
+          if (chain != null)
 	    chain.forwardEvent (event);
 	  synchronized (streamLock) {
             Debug.log(Debug.INFO, "synced "+this);
@@ -367,7 +413,7 @@ public class OggDemux extends Element
 	  break;
         case Event.FLUSH_STOP:
 	  oy.reset();
-          if (chain) {
+          if (chain != null) {
 	    chain.resetStreams();
 	    chain.forwardEvent (event);
 	  }
@@ -376,13 +422,13 @@ public class OggDemux extends Element
 	  break;
         case Event.EOS:
 	  Debug.log(Debug.INFO, "ogg: got EOS");
-          if (chain) {
+          if (chain != null)
 	    chain.forwardEvent (event);
 	  else
             postMessage (Message.newError (this, "unsupported media type"));
 	  break;
         default:
-          if (chain) {
+          if (chain != null)
 	    chain.forwardEvent (event);
 	  break;
       }
@@ -461,14 +507,10 @@ public class OggDemux extends Element
   }
   public int typeFind (byte[] data, int offset, int length)
   {
-    if (length < signature.length)
-      return -1;
+    if (MemUtils.startsWith (data, offset, length, signature))
+      return 10;
 
-    for (int i=0; i < signature.length; i++) {
-      if (data[offset+i] != signature[i])
-        return -1;
-    }
-    return 10;
+    return -1;
   }
 
   public OggDemux () {

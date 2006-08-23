@@ -1,3 +1,41 @@
+2006-08-23  Wim Taymans  <wim@fluendo.com>
+
+	* src/com/fluendo/jst/Message.java: (Message.newError):
+	Add constructor for WARNING messages.
+
+	* src/com/fluendo/plugin/OggDemux.java: (OggDemux),
+	(OggDemux.....OggStream),
+	(OggDemux.....OggStream.bufferFromPacket),
+	(OggDemux.....OggStream.OggChain),
+	(OggDemux.....OggStream.OggChain.OggChain),
+	(OggDemux.....OggStream.OggChain.isActive),
+	(OggDemux.....OggStream.OggChain.activate),
+	(OggDemux.....OggStream.OggChain.deActivate),
+	(OggDemux.....OggStream.OggChain.reStart),
+	(OggDemux.....OggStream.OggChain.findStream),
+	(OggDemux.....OggStream.OggChain.resetStreams),
+	(OggDemux.....OggStream.OggChain.forwardEvent),
+	(OggDemux.....OggStream.OggChain.pushPage),
+	(OggDemux.....OggStream.Pad),
+	(OggDemux.....OggStream.getFactoryName),
+	(OggDemux.....OggStream.getMime):
+	Improve how new streams are typefound and handled. 
+	Added field to mark the stream type.
+	Add skeleton and CMML stream detection very loosly based on a
+	patch by Tahseen Mohammad. 
+	Skip unknown and non media streams.
+	Fix compilation.
+	Use startsWith in typefind to reduce code.
+
+	* src/com/fluendo/plugin/TheoraDec.java: (TheoraDec..getMime):
+	* src/com/fluendo/plugin/VorbisDec.java: (VorbisDec..getMime):
+	Use startsWith to reduce code.
+
+	* src/com/fluendo/utils/MemUtils.java: (MemUtils..cmp),
+	(MemUtils..set):
+	Add startsWith mostly to check for signatures in typefinding.
+	Make functions final to improve inlining.
+
 2006-07-07  Wim Taymans  <wim@fluendo.com>
 
 	* src/com/fluendo/plugin/OggDemux.java:

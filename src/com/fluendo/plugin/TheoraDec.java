@@ -283,13 +283,8 @@ public class TheoraDec extends Element implements OggPayload
   }
   public int typeFind (byte[] data, int offset, int length)
   {
-    if (length < signature.length)
-      return -1;
-
-    for (int i=0; i < signature.length; i++) {
-      if (data[offset+i] != signature[i])
-        return -1;
-    }
-    return 10;
+    if (MemUtils.startsWith (data, offset, length, signature))
+      return 10;
+    return -1;
   }
 }

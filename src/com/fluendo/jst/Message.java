@@ -92,6 +92,14 @@ public class Message {
 
     return msg;
   }
+  public static Message newWarning(com.fluendo.jst.Object src, String str) {
+    Message msg;
+
+    msg = new Message(src, WARNING);
+    msg.string = str;
+
+    return msg;
+  }
   public String parseErrorString() {
     return string;
   }
