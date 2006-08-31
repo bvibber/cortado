@@ -27,6 +27,12 @@ ant -Dprefix=$RPM_BUILD_ROOT%{_prefix} install_class
 ant -Dprefix=$RPM_BUILD_ROOT%{_prefix} install_applet
 ant -Dprefix=$RPM_BUILD_ROOT%{_prefix} -Dtype=debug install_applet
 
+# make some symlinks so that we can have a version-independent cortado
+for type in ov ovt mmjs
+do
+  ln -sf %{_datadir}/cortado/cortado-$type-%{version}-debug.jar \
+    $RPM_BUILD_ROOT%{_datadir}/cortado/cortado-$type.jar
+done
 
 %clean
 rm -rf $RPM_BUILD_ROOT

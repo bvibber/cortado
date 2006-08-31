@@ -28,7 +28,7 @@
 	(OggDemux.....OggStream.getMime):
 	Improve how new streams are typefound and handled. 
 	Added field to mark the stream type.
-	Add skeleton and CMML stream detection very loosly based on a
+	Add skeleton and CMML stream detection very losely based on a
 	patch by Tahseen Mohammad. 
 	Skip unknown and non media streams.
 	Fix compilation.
