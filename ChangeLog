@@ -1,3 +1,10 @@
+2006-08-31  Thomas Vander Stichele  <thomas at apestaart dot org>
+
+	* build.xml:
+	  separate out install_applet, install_class, install_doc
+	* cortado.spec:
+	  add a first spec file
+
 2006-08-23  Wim Taymans  <wim@fluendo.com>
 
 	* src/com/fluendo/jst/Message.java: (Message.newError):

@@ -517,25 +517,41 @@ com/fluendo/plugin/Vorbis*
     </antcall>
   </target>
 
-  <target name="install" depends="jar"
-          description="install cortado">
-    <!-- Create the installation locations -->
-    <mkdir dir="${libdir}/cortado"/>
-
-    <!-- Put everything in ${out.buildtyped} into $libdir/cortado -->
-    <copy todir="${libdir}/cortado">
-      <fileset dir="out.buildtyped">
-        <include name="com/jcraft/*/*.class"/>
-        <include name="com/fluendo/*/*.class"/>
-        <include name="${out.buildtyped}/applet/cortado.jar"/>
-      </fileset>
-    </copy>
-
+  <target name="install_doc"
+          description="install cortado docs">
     <!-- Install documentation -->
     <copy todir="${datadir}/cortado-${product.version}">
       <fileset dir=".">
         <include name="LICENSE.*"/>
         <include name="TODO"/>
+      </fileset>
+    </copy>
+  </target>
+
+  <!-- install class files -->
+  <target name="install_class" depends="jar"
+          description="install cortado class files">
+    <!-- Create the installation locations -->
+    <mkdir dir="${libdir}/cortado"/>
+
+    <!-- Put everything in ${out.buildtyped} into $libdir/cortado -->
+    <copy todir="${libdir}/cortado">
+      <fileset dir="${out.buildtyped}">
+        <include name="com/jcraft/*/*.class"/>
+        <include name="com/fluendo/*/*.class"/>
+        <include name="${out.buildtyped}/applet/cortado.jar"/>
+      </fileset>
+    </copy>
+  </target>
+
+  <!-- install applets -->
+  <target name="install_applet" depends="applet"
+          description="install cortado applets">
+    <!-- Create the installation locations -->
+    <mkdir dir="${datadir}/cortado"/>
+    <copy todir="${datadir}/cortado">
+      <fileset dir="${out.dist}/applet">
+        <include name="cortado-*${product.version}*.jar"/>
       </fileset>
     </copy>
   </target>
@@ -581,6 +597,7 @@ com/fluendo/plugin/Vorbis*
         <include name="RELEASE" />
         <include name="TODO" />
         <include name="NEWS" />
+        <include name="cortado.spec" />
       </tarfileset>
     </tar>
     <gzip zipfile="${tar}.gz"
