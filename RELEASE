@@ -1,5 +1,5 @@
 
-Release notes for Cortado 0.2.0 "Broken Record"
+Release notes for Cortado 0.2.1 "Flapoorke"
         
 
 Cortado applet
@@ -7,18 +7,12 @@ Cortado applet
   
 Features of this release
     
-      * Seeking in on-demand files and streams
-      * Deadlock fixes
-      * Build now uses ant
-      * Shutdown fixes
-      * Autoplugging based on mimetype; makes local file playback work
-      * Autodect audio backend from sun.audio or javax.sound
+      * Documentation updates
+      * Very preliminary Annodex support
 
 Bugs fixed in this release
     
-      * 265 : NullPointerException
-      * 142 : JPEG applet's internal buffering produces "lag"
-      * 367 : cortado fails to build on ubuntu dapper
+      * 390 : README not inline with code
 
 Download
 
@@ -45,10 +39,9 @@ It is hosted on https://core.fluendo.com/svn/
         
 Contributors to this release
     
-      * Andy Wingo
-      * Thomas Vander Stichele
+      * J^
       * Wim Taymans
-      * Zaheer Merali
+      * Thomas Vander Stichele
  
         
 Maintainers

@@ -1,4 +1,13 @@
-This is Cortado 0.2.0, "Broken Record"
+This is Cortado 0.2.1, "Flapoorke"
+
+Changes since 0.2.0:
+
+      * Documentation updates
+      * Very preliminary Annodex support
+
+Bugs fixed since 0.2.0:
+    
+      * 390 : README not inline with code
    
 Changes since 0.1.2:
 
