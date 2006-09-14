@@ -1,3 +1,10 @@
+2006-09-14  Thomas Vander Stichele  <thomas at apestaart dot org>
+
+	patch by: <j at v2v dot cc>
+
+	* README:
+	  fix bufferSize default values 
+
 2006-08-31  Thomas Vander Stichele  <thomas at apestaart dot org>
 
 	* build.xml:

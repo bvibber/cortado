@@ -102,7 +102,7 @@ Embed the applet in a web page with code like this:
      <param name="keepAspect" value="true"/>
      <param name="video" value="true"/>
      <param name="audio" value="true"/>
-     <param name="bufferSize" value="100"/>
+     <param name="bufferSize" value="200"/>
      <param name="userId" value="user"/>
      <param name="password" value="test"/>
    </applet>
@@ -147,7 +147,7 @@ parameters:
   bufferSize: int
               The size of the network buffer, in KB.
               A good value is Kbps of the stream * 33
-              defaults to 100
+              defaults to 200
 
   bufferLow:  int
               Percentage of low watermark for buffer.  Below this, the applet
