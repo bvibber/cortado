@@ -87,14 +87,14 @@ public final class iDCT
         t2 = (xC5S3 * ip[3 + off]) >> 16;
         _D = t1 - t2;
 
-        _Ad = (xC4S4 * (_A - _C)) >> 16;
-        _Bd = (xC4S4 * (_B - _D)) >> 16;
+        _Ad = (xC4S4 * (short)(_A - _C)) >> 16;
+        _Bd = (xC4S4 * (short)(_B - _D)) >> 16;
 
         _Cd = _A + _C;
         _Dd = _B + _D;
 
-        _E = (xC4S4 * (ip[0 + off] + ip[4 + off])) >> 16;
-        _F = (xC4S4 * (ip[0 + off] - ip[4 + off])) >> 16;
+        _E = (xC4S4 * (short)(ip[0 + off] + ip[4 + off])) >> 16;
+        _F = (xC4S4 * (short)(ip[0 + off] - ip[4 + off])) >> 16;
 
         t1 = (xC2S6 * ip[2 + off]) >> 16;
         t2 = (xC6S2 * ip[6 + off]) >> 16;
@@ -150,14 +150,14 @@ public final class iDCT
         t2 = (xC5S3 * ip[3*8 + off]) >> 16;
         _D = t1 - t2;
 
-        _Ad = (xC4S4 * (_A - _C)) >> 16;
-        _Bd = (xC4S4 * (_B - _D)) >> 16;
+        _Ad = (xC4S4 * (short)(_A - _C)) >> 16;
+        _Bd = (xC4S4 * (short)(_B - _D)) >> 16;
 
         _Cd = _A + _C;
         _Dd = _B + _D;
 
-        _E = (xC4S4 * (ip[0*8 + off] + ip[4*8 + off])) >> 16;
-        _F = (xC4S4 * (ip[0*8 + off] - ip[4*8 + off])) >> 16;
+        _E = (xC4S4 * (short)(ip[0*8 + off] + ip[4*8 + off])) >> 16;
+        _F = (xC4S4 * (short)(ip[0*8 + off] - ip[4*8 + off])) >> 16;
 
         t1 = (xC2S6 * ip[2*8 + off]) >> 16;
         t2 = (xC6S2 * ip[6*8 + off]) >> 16;
@@ -246,8 +246,8 @@ public final class iDCT
         _C = (xC3S5 * ip[3 + off]) >> 16;
         _D = (xC5S3 * ip[3 + off]) >> 16;
 
-        _Ad = (xC4S4 * (_A - _C)) >> 16;
-        _Bd = (xC4S4 * (_B - _D)) >> 16;
+        _Ad = (xC4S4 * (short)(_A - _C)) >> 16;
+        _Bd = (xC4S4 * (short)(_B - _D)) >> 16;
 
         _Cd = _A + _C;
         _Dd = _B + _D;
@@ -291,8 +291,8 @@ public final class iDCT
         _C = (xC3S5 * ip[3*8 + off]) >> 16;
         _D = (xC5S3 * ip[3*8 + off]) >> 16;
 
-        _Ad = (xC4S4 * (_A - _C)) >> 16;
-        _Bd = (xC4S4 * (_B - _D)) >> 16;
+        _Ad = (xC4S4 * (short)(_A - _C)) >> 16;
+        _Bd = (xC4S4 * (short)(_B - _D)) >> 16;
 
         _Cd = _A + _C;
         _Dd = _B + _D;

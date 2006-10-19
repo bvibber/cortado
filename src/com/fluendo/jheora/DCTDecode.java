@@ -475,9 +475,6 @@ public class DCTDecode
         Recon.CopyBlock(SrcReconPtr, DestReconPtr, PixelIndex, PlaneLineStep);
       }
     }
-
-    /* We may need to update the UMV border */
-    UpdateUMVBorder(pbi, DestReconPtr);
   }
 
   private void CopyNotRecon( Playback pbi, short[] DestReconPtr,
@@ -505,9 +502,6 @@ public class DCTDecode
         Recon.CopyBlock(SrcReconPtr, DestReconPtr, PixelIndex, PlaneLineStep);
       }
     }
-
-    /*  We may need to update the UMV border */
-    UpdateUMVBorder(pbi, DestReconPtr);
   }
 
   public void ExpandToken( short[] ExpandedBlock,
@@ -779,9 +773,14 @@ public class DCTDecode
     /* Apply a loop filter to edge pixels of updated blocks */
     pbi.filter.LoopFilter(pbi);
 
+    /* We may need to update the UMV border */ 
+    UpdateUMVBorder(pbi, pbi.LastFrameRecon);
+
     /* Reconstruct the golden frame if necessary.
        For VFW codec only on key frames */
-    if (isBaseFrame)
+    if (isBaseFrame) {
       CopyRecon( pbi, pbi.GoldenFrame, pbi.LastFrameRecon );
+      UpdateUMVBorder(pbi, pbi.GoldenFrame);
+    }
   }
 }

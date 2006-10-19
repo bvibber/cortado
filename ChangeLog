@@ -1,3 +1,27 @@
+2006-10-19  Wim Taymans  <wim@fluendo.com>
+
+	* src/com/fluendo/jheora/DCTDecode.java: (DCTDecode.....CopyRecon),
+	(DCTDecode.....CopyNotRecon), (DCTDecode.....ReconRefFrames):
+	Move UpdateUMVBorder after the loop functions.
+
+	* src/com/fluendo/jheora/iDCT.java: (iDCT.IDctSlow), (iDCT.IDct10):
+	Update IDCT 16 bit truncating updates. 
+
+	* src/com/fluendo/player/Cortado.java: (Cortado),
+	(Cortado.getParameterInfo), (Cortado.init), (Cortado.getGraphics),
+	(Cortado.paint):
+	Remove framerate property
+	Added statusHeight property to configure the size of the status area.
+
+	* src/com/fluendo/player/Status.java: (Status), (Status.paintStop),
+	(Status.paintMessage), (Status.paintBuffering), (Status.paint),
+	(Status.setHavePercent), (Status.setSeekable), (Status.setState),
+	(Status.intersectButton1), (Status.intersectButton2),
+	(Status.intersectSeek), (Status.mouseReleased),
+	(Status.mouseDragged):
+	Make statusHeight configurable.
+	Make the slider handle a bit bigger.
+
 === release 0.2.1 ===
 
 2006-09-14  Thomas Vander Stichele  <thomas at apestaart dot org>

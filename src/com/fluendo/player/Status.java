@@ -52,10 +52,7 @@ public class Status extends Component implements MouseListener,
     private Color button2Color;
     private Color seekColor;
 
-    private static final int triangleX[] = { 4, 4, 9 };
-    private static final int triangleY[] = { 3, 9, 6 };
-
-    private static final int SEEK_END = 82;
+    private static final int SEEK_END = 60;
 
     public static final int STATE_STOPPED = 0;
     public static final int STATE_PAUSED = 1;
@@ -133,27 +130,42 @@ public class Status extends Component implements MouseListener,
     }
 
     private void paintPlayPause(Graphics g) {
+	int x,y,w,h;
+
+	x = 1;
+	y = 1;
+	w = r.height-2;
+	h = r.height-2;
         g.setColor(Color.darkGray);
-        g.drawRect(1, 1, 10, 10);
+        g.drawRect(x, y, w, h);
         g.setColor(button1Color);
-        g.fillRect(2, 2, 9, 9);
+        g.fillRect(x+1, y+1, w-1, h-1);
         if (state == STATE_PLAYING) {
             g.setColor(Color.darkGray);
-            g.fillRect(4, 4, 2, 5);
-            g.fillRect(7, 4, 2, 5);
+            g.fillRect((int)(w * .4), (int)(h * .4), (int)(w * .2), (int)(h * .5));
+            g.fillRect((int)(w * .7), (int)(h * .4), (int)(w * .2), (int)(h * .5));
         } else {
+            int triangleX[] = { (int)(w*.4), (int)(w*.4), (int)(w*.9) };
+            int triangleY[] = { (int)(w*.3), (int)(w*.9), (int)(w*.6) };
             g.setColor(Color.darkGray);
             g.fillPolygon(triangleX, triangleY, 3);
         }
     }
 
     private void paintStop(Graphics g) {
+	int x,y,w,h;
+
+	x = r.height + 1;
+	y = 1;
+	w = r.height - 2;
+	h = r.height - 2;
+
         g.setColor(Color.darkGray);
-        g.drawRect(13, 1, 10, 10);
+        g.drawRect(x, y, w, h);
         g.setColor(button2Color);
-        g.fillRect(14, 2, 9, 9);
+        g.fillRect(x+1, y+1, w-1, h-1);
         g.setColor(Color.darkGray);
-        g.fillRect(16, 4, 5, 5);
+        g.fillRect(r.height + (int)(w * .4), (int)(w * .4), (int)(w * .5), (int)(w * .5));
     }
 
     private void paintMessage(Graphics g, int pos) {
@@ -169,26 +181,28 @@ public class Status extends Component implements MouseListener,
     }
 
     private void paintSeekBar(Graphics g) {
-        int pos, end;
+        int pos, end, base;
 
-        end = r.width - SEEK_END;
+        end = r.width - SEEK_END - (r.height * 2);
+
+	base = r.height*2 + 1;
 
         g.setColor(Color.darkGray);
-        g.drawRect(27, 2, end, 8);
+        g.drawRect(base, 2, end, r.height-4);
 
         pos = (int) (end * position);
 
         g.setColor(Color.gray);
-        g.fillRect(29, 5, pos, 3);
-        g.setColor(Color.darkGray);
+        g.fillRect(base + 2, 5, pos, r.height-9);
 
-        g.drawLine(pos + 28, 1, pos + 30, 1);
-        g.drawLine(pos + 28, 11, pos + 30, 11);
-        g.drawLine(pos + 27, 2, pos + 27, 10);
-        g.drawLine(pos + 31, 2, pos + 31, 10);
+        g.setColor(Color.darkGray);
+        g.drawLine(pos + base + 1, 1,  pos + base + 7, 1);
+        g.drawLine(pos + base + 1, r.height-1, pos + base + 7, r.height-1);
+        g.drawLine(pos + base,     2,  pos + base    , r.height-2);
+        g.drawLine(pos + base + 8, 2,  pos + base + 8, r.height-2);
 
         g.setColor(seekColor);
-        g.fillRect(pos + 28, 2, 3, 9);
+        g.fillRect(pos + base + 1, 2, 7, r.height-3);
     }
 
     private void paintTime(Graphics g) {
@@ -234,10 +248,10 @@ public class Status extends Component implements MouseListener,
             paintStop(g2);
             if (buffering) {
                 paintPercent(g2);
-                paintBuffering(g2, 27);
+                paintBuffering(g2, r.height*2 + 3);
 	    }
             else if (state == STATE_STOPPED) {
-                paintMessage(g2, 27);
+                paintMessage(g2, r.height*2 + 3);
             } else {
                 paintSeekBar(g2);
                 paintTime(g2);
@@ -307,11 +321,11 @@ public class Status extends Component implements MouseListener,
     }
 
     private boolean intersectButton1(MouseEvent e) {
-        return (e.getX() >= 0 && e.getX() <= 10 && e.getY() > 0 && e.getY() <= 10);
+        return (e.getX() >= 0 && e.getX() <= r.height-2 && e.getY() > 0 && e.getY() <= r.height-2);
     }
 
     private boolean intersectButton2(MouseEvent e) {
-        return (e.getX() >= 12 && e.getX() <= 22 && e.getY() > 0 && e.getY() <= 10);
+        return (e.getX() >= r.height && e.getX() <= r.height + r.height-2 && e.getY() > 0 && e.getY() <= r.height-2);
     }
 
     private boolean intersectSeek(MouseEvent e) {
@@ -319,11 +333,11 @@ public class Status extends Component implements MouseListener,
 
         r = getBounds();
 
-        end = r.width - SEEK_END;
-        int pos = (int) (end * position) + 27;
+        end = r.width - SEEK_END - (r.height * 2);
+        int pos = (int) (end * position) + r.height*2+1;
 
-        return (e.getX() >= pos && e.getX() <= pos + 5 && e.getY() > 0 && e
-                .getY() <= 10);
+        return (e.getX() >= pos && e.getX() <= pos + 9 && e.getY() > 0 && e
+                .getY() <= r.height-2);
     }
 
     private int findComponent(MouseEvent e) {
@@ -396,7 +410,8 @@ public class Status extends Component implements MouseListener,
         if (seekable) {
             e.translatePoint(-1, -1);
             if (clicked == SEEKBAR) {
-                double pos = (e.getX() - 29) / (double) (r.width - SEEK_END);
+                int end = r.width - SEEK_END - (r.height * 2);
+                double pos = (e.getX() - (r.height*2 + 5)) / (double) (end);
 
                 if (pos < 0.0)
                     position = 0.0;

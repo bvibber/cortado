@@ -34,7 +34,6 @@ public class Cortado extends Applet implements Runnable, MouseMotionListener,
 
     private String urlString;
     private boolean seekable;
-    private double framerate;
     private boolean audio;
     private boolean video;
     private boolean keepAspect;
@@ -48,6 +47,7 @@ public class Cortado extends Applet implements Runnable, MouseMotionListener,
 
     private Thread statusThread;
     private Status status;
+    private int statusHeight = 20;
     private boolean inStatus;
     private boolean isBuffering;
 
@@ -71,8 +71,6 @@ public class Cortado extends Applet implements Runnable, MouseMotionListener,
                         "Can you seek in this file (default false)" },
                 { "duration", "float",
                         "Total duration of the file in seconds (default unknown)" },
-                { "framerate", "float",
-                        "The default framerate of the video (default 5.0)" },
                 { "audio", "boolean", "Enable audio playback (default true)" },
                 { "video", "boolean", "Enable video playback (default true)" },
                 { "keepAspect", "boolean",
@@ -132,9 +130,9 @@ public class Cortado extends Applet implements Runnable, MouseMotionListener,
         urlString = getParam("url", null);
         seekable = String.valueOf(getParam("seekable", "false")).equals("true");
         duration = Double.valueOf(getParam("duration", "-1.0")).doubleValue();
-        framerate = Double.valueOf(getParam("framerate", "5.0")).doubleValue();
         audio = String.valueOf(getParam("audio", "true")).equals("true");
         video = String.valueOf(getParam("video", "true")).equals("true");
+        statusHeight = Integer.valueOf(getParam("statusHeight", "12")).intValue();
         keepAspect = String.valueOf(getParam("keepAspect", "true")).equals(
                 "true");
         bufferSize = Integer.valueOf(getParam("bufferSize", "200")).intValue();
@@ -191,7 +189,7 @@ public class Cortado extends Applet implements Runnable, MouseMotionListener,
         Graphics g = super.getGraphics();
 
         if (status.isVisible()) {
-            g.setClip(0, 0, getSize().width, getSize().height - 12);
+            g.setClip(0, 0, getSize().width, getSize().height - statusHeight);
         } else {
             g.setClip(0, 0, getSize().width, getSize().height);
         }
@@ -237,13 +235,13 @@ public class Cortado extends Applet implements Runnable, MouseMotionListener,
         int dheight = getSize().height;
 
         /* sometimes dimension is wrong */
-        if (dwidth <= 0 || dheight <= 12) {
-	  appletDimension =  null;
+        if (dwidth <= 0 || dheight <= statusHeight) {
+	  appletDimension = null;
 	  return;
 	}
 	
         if (status != null && status.isVisible()) {
-            status.setBounds(0, dheight - 12, dwidth, 12);
+            status.setBounds(0, dheight - statusHeight, dwidth, statusHeight);
             status.paint(g);
         }
     }
@@ -264,7 +262,7 @@ public class Cortado extends Applet implements Runnable, MouseMotionListener,
     }
 
     private boolean intersectStatus(MouseEvent e) {
-        inStatus = e.getY() > getSize().height - 12;
+        inStatus = e.getY() > getSize().height - statusHeight;
         return inStatus;
     }
 
@@ -280,7 +278,7 @@ public class Cortado extends Applet implements Runnable, MouseMotionListener,
 
     public void mousePressed(MouseEvent e) {
         if (intersectStatus(e)) {
-            int y = getSize().height - 12;
+            int y = getSize().height - statusHeight;
             e.translatePoint(0, -y);
             ((MouseListener) status).mousePressed(e);
         } else {
@@ -292,7 +290,7 @@ public class Cortado extends Applet implements Runnable, MouseMotionListener,
 
     public void mouseReleased(MouseEvent e) {
         if (intersectStatus(e)) {
-            int y = getSize().height - 12;
+            int y = getSize().height - statusHeight;
             e.translatePoint(0, -y);
             ((MouseListener) status).mouseReleased(e);
         }
@@ -300,7 +298,7 @@ public class Cortado extends Applet implements Runnable, MouseMotionListener,
 
     public void mouseDragged(MouseEvent e) {
         if (intersectStatus(e)) {
-            int y = getSize().height - 12;
+            int y = getSize().height - statusHeight;
             setStatusVisible(true);
             e.translatePoint(0, -y);
             ((MouseMotionListener) status).mouseDragged(e);
@@ -311,7 +309,7 @@ public class Cortado extends Applet implements Runnable, MouseMotionListener,
 
     public void mouseMoved(MouseEvent e) {
         if (intersectStatus(e)) {
-            int y = getSize().height - 12;
+            int y = getSize().height - statusHeight;
             setStatusVisible(true);
             e.translatePoint(0, -y);
             ((MouseMotionListener) status).mouseMoved(e);
