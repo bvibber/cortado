@@ -32,10 +32,7 @@ public class ElementFactory
   public static void loadElements()
   {
     try {
-      InputStream is = ElementFactory.class.getResourceAsStream("plugins.ini");
-      if (is == null) {
-        is = ElementFactory.class.getResourceAsStream("/plugins.ini");
-      }
+      InputStream is = ElementFactory.class.getResourceAsStream("/plugins.ini");
       if (is != null) {
         BufferedReader br = new BufferedReader (new InputStreamReader(is));
 

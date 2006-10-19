@@ -1,5 +1,16 @@
 2006-10-19  Wim Taymans  <wim@fluendo.com>
 
+	Patch by <j at v2v dot cc>.
+
+	* src/com/fluendo/jst/ElementFactory.java:
+	Don't try to load the .ini file from the webserver. Fixes #387.
+
+	* src/com/fluendo/player/Status.java: (Status.paintPlayPause),
+	(Status.paintStop), (Status.paintSeekBar):
+	Change the colors a bit to make the buttons more visible.
+
+2006-10-19  Wim Taymans  <wim@fluendo.com>
+
 	* src/com/fluendo/jst/Pipeline.java: (Pipeline), (Pipeline.doSeek):
 	Improve handling of seek wrt state changes and errors.
 
@@ -7,7 +18,7 @@
 	(Cortado.getParameterInfo), (Cortado.init), (Cortado.run),
 	(Cortado.handleMessage), (Cortado.newState), (Cortado.newSeek),
 	(Cortado.start):
-	Add autoPlay option.
+	Add autoPlay option. Fixes #384.
 	Simplify state management a little.
 
 2006-10-19  Wim Taymans  <wim@fluendo.com>

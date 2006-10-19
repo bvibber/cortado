@@ -141,14 +141,15 @@ public class Status extends Component implements MouseListener,
         g.drawRect(x, y, w, h);
         g.setColor(button1Color);
         g.fillRect(x+1, y+1, w-1, h-1);
+
         if (state == STATE_PLAYING) {
-            g.setColor(Color.darkGray);
+            g.setColor(Color.white);
             g.fillRect((int)(w * .4), (int)(h * .4), (int)(w * .2), (int)(h * .5));
             g.fillRect((int)(w * .7), (int)(h * .4), (int)(w * .2), (int)(h * .5));
         } else {
             int triangleX[] = { (int)(w*.4), (int)(w*.4), (int)(w*.9) };
             int triangleY[] = { (int)(w*.3), (int)(w*.9), (int)(w*.6) };
-            g.setColor(Color.darkGray);
+            g.setColor(Color.white);
             g.fillPolygon(triangleX, triangleY, 3);
         }
     }
@@ -165,7 +166,7 @@ public class Status extends Component implements MouseListener,
         g.drawRect(x, y, w, h);
         g.setColor(button2Color);
         g.fillRect(x+1, y+1, w-1, h-1);
-        g.setColor(Color.darkGray);
+        g.setColor(Color.white);
         g.fillRect(r.height + (int)(w * .4), (int)(w * .4), (int)(w * .5), (int)(w * .5));
     }
 
@@ -196,7 +197,7 @@ public class Status extends Component implements MouseListener,
         g.setColor(Color.gray);
         g.fillRect(base + 2, 5, pos, r.height-9);
 
-        g.setColor(Color.darkGray);
+        g.setColor(Color.white);
         g.drawLine(pos + base + 1, 1,  pos + base + 7, 1);
         g.drawLine(pos + base + 1, r.height-1, pos + base + 7, r.height-1);
         g.drawLine(pos + base,     2,  pos + base    , r.height-2);
