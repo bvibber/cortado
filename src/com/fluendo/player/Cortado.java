@@ -37,6 +37,7 @@ public class Cortado extends Applet implements Runnable, MouseMotionListener,
     private boolean audio;
     private boolean video;
     private boolean keepAspect;
+    private boolean autoPlay;
     private int bufferSize;
     private String userId;
     private String password;
@@ -50,9 +51,9 @@ public class Cortado extends Applet implements Runnable, MouseMotionListener,
     private int statusHeight = 20;
     private boolean inStatus;
     private boolean isBuffering;
+    private int desiredState;
 
     private PopupMenu menu;
-    private boolean stopping;
 
     private Hashtable params = new Hashtable();
 
@@ -73,6 +74,8 @@ public class Cortado extends Applet implements Runnable, MouseMotionListener,
                         "Total duration of the file in seconds (default unknown)" },
                 { "audio", "boolean", "Enable audio playback (default true)" },
                 { "video", "boolean", "Enable video playback (default true)" },
+                { "statusHeight", "int", "The height of the status area (default 12)" },
+                { "autoPlay", "boolean", "Automatically start playback (default true)" },
                 { "keepAspect", "boolean",
                         "Use aspect ratio of video (default true)" },
                 { "preBuffer", "boolean", "Use Prebuffering (default = true)" },
@@ -133,6 +136,7 @@ public class Cortado extends Applet implements Runnable, MouseMotionListener,
         audio = String.valueOf(getParam("audio", "true")).equals("true");
         video = String.valueOf(getParam("video", "true")).equals("true");
         statusHeight = Integer.valueOf(getParam("statusHeight", "12")).intValue();
+        autoPlay = String.valueOf(getParam("autoPlay", "true")).equals( "true");
         keepAspect = String.valueOf(getParam("keepAspect", "true")).equals(
                 "true");
         bufferSize = Integer.valueOf(getParam("bufferSize", "200")).intValue();
@@ -217,13 +221,13 @@ public class Cortado extends Applet implements Runnable, MouseMotionListener,
 
     private void realRun() {
         Debug.log(Debug.INFO, "entering status thread");
-        while (!stopping) {
+        while (!(desiredState == Element.STOP)) {
             try {
                 status.setTime(pipeline.getPosition() / Clock.SECOND);
 
                 Thread.sleep(1000);
             } catch (Exception e) {
-                if (!stopping)
+                if (!(desiredState == Element.STOP))
                     e.printStackTrace();
             }
         }
@@ -349,7 +353,8 @@ public class Cortado extends Applet implements Runnable, MouseMotionListener,
 	    if (busy) {
 	      if (!isBuffering) {
                 Debug.log(Debug.INFO, "PAUSE: we are buffering");
-	        pipeline.setState(Element.PAUSE);
+		if (desiredState == Element.PLAY)
+	          pipeline.setState(Element.PAUSE);
 		isBuffering = true;
                 setStatusVisible(true);
 	      }
@@ -358,7 +363,8 @@ public class Cortado extends Applet implements Runnable, MouseMotionListener,
 	    else {
 	      if (isBuffering) {
                 Debug.log(Debug.INFO, "PLAY: we finished buffering");
-	        pipeline.setState(Element.PLAY);
+		if (desiredState == Element.PLAY)
+	          pipeline.setState(Element.PLAY);
 		isBuffering = false;
                 setStatusVisible(false);
 	      }
@@ -400,19 +406,21 @@ public class Cortado extends Applet implements Runnable, MouseMotionListener,
         switch (aState) {
         case Status.STATE_PAUSED:
             status.setMessage("Pause");
+	    desiredState = Element.PAUSE;
             ret = pipeline.setState(Element.PAUSE);
             break;
         case Status.STATE_PLAYING:
             status.setMessage("Play");
-            ret = pipeline.setState(Element.PLAY);
+	    desiredState = Element.PLAY;
             break;
         case Status.STATE_STOPPED:
             status.setMessage("Stop");
-            pipeline.setState(Element.STOP);
+	    desiredState = Element.STOP;
             break;
         default:
             break;
         }
+        ret = pipeline.setState(desiredState);
     }
 
     public void newSeek(double aPos) {
@@ -433,20 +441,24 @@ public class Cortado extends Applet implements Runnable, MouseMotionListener,
     public void start() {
         int res;
 
-        stopping = false;
-
         addMouseListener(this);
         addMouseMotionListener(this);
         status.addStatusListener(this);
 
-        res = pipeline.setState(Element.PLAY);
+	if (autoPlay) 
+          desiredState = Element.PLAY;
+	else
+          desiredState = Element.PAUSE;
+
+        res = pipeline.setState(desiredState);
+
         statusThread = new Thread(this);
         statusThread.start();
     }
 
     public void stop() {
-        stopping = true;
-        pipeline.setState(Element.STOP);
+        desiredState = Element.STOP;
+        pipeline.setState(desiredState);
         try {
             if (statusThread != null)
                 statusThread.interrupt();

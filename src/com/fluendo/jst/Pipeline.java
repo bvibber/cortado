@@ -497,13 +497,21 @@ public class Pipeline extends com.fluendo.jst.Element implements BusSyncHandler
   private boolean doSeek(Event event)
   {
     boolean ret;
+    int[] state = new int[1];
+    boolean wasPlaying;
 
-    setState (Element.PAUSE);
+    getState(state, null, 0);
+    wasPlaying = (state[0] == Element.PLAY);
+
+    if (wasPlaying)
+      setState (Element.PAUSE);
 
     ret = doSendEvent (event);
+    if (ret)
+      streamTime = 0;
 
-    streamTime = 0;
-    setState (Element.PLAY);
+    if (wasPlaying)
+      setState (Element.PLAY);
 
     return ret;
   }
