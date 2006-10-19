@@ -1,5 +1,15 @@
 2006-10-19  Wim Taymans  <wim@fluendo.com>
 
+	* src/com/fluendo/player/Status.java: (Status),
+	(Status.intersectButton2), (Status.intersectSeeker),
+	(Status.findComponent), (Status.mouseClicked),
+	(Status.mouseEntered), (Status.mouseExited), (Status.mousePressed),
+	(Status.mouseReleased), (Status.mouseDragged), (Status.mouseMoved):
+	Allow seeking by clicking on the timeline instead of trying to grab the
+	slider. Fixes #358.
+
+2006-10-19  Wim Taymans  <wim@fluendo.com>
+
 	* src/com/fluendo/jheora/DCTDecode.java: (DCTDecode.....CopyRecon),
 	(DCTDecode.....CopyNotRecon), (DCTDecode.....ReconRefFrames):
 	Move UpdateUMVBorder after the loop functions.

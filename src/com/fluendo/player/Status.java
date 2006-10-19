@@ -45,7 +45,8 @@ public class Status extends Component implements MouseListener,
     private static final int NONE = 0;
     private static final int BUTTON1 = 1;
     private static final int BUTTON2 = 2;
-    private static final int SEEKBAR = 3;
+    private static final int SEEKER = 3;
+    private static final int SEEKBAR = 4;
     private int clicked = NONE;
 
     private Color button1Color;
@@ -328,7 +329,7 @@ public class Status extends Component implements MouseListener,
         return (e.getX() >= r.height && e.getX() <= r.height + r.height-2 && e.getY() > 0 && e.getY() <= r.height-2);
     }
 
-    private boolean intersectSeek(MouseEvent e) {
+    private boolean intersectSeeker(MouseEvent e) {
         int end;
 
         r = getBounds();
@@ -340,12 +341,25 @@ public class Status extends Component implements MouseListener,
                 .getY() <= r.height-2);
     }
 
+    private boolean intersectSeekbar(MouseEvent e) {
+        int end;
+
+        r = getBounds();
+
+        end = r.width - SEEK_END;
+
+        return (e.getX() >= r.height*2 && e.getX() <= end && e.getY() > 0 && e
+                .getY() <= r.height-2);
+    }
+
     private int findComponent(MouseEvent e) {
         if (intersectButton1(e))
             return BUTTON1;
         else if (intersectButton2(e))
             return BUTTON2;
-        else if (intersectSeek(e))
+        else if (intersectSeeker(e))
+            return SEEKER;
+        else if (intersectSeekbar(e))
             return SEEKBAR;
         else
             return NONE;
@@ -364,6 +378,11 @@ public class Status extends Component implements MouseListener,
         if (seekable) {
             e.translatePoint(-1, -1);
             clicked = findComponent(e);
+	    if (clicked == SEEKBAR) {
+	      clicked = SEEKER;
+              seekColor = Color.gray;
+	      mouseDragged (e);
+	    }
         }
     }
 
@@ -375,7 +394,7 @@ public class Status extends Component implements MouseListener,
 
             comp = findComponent(e);
             if (clicked != comp) {
-                if (clicked == SEEKBAR)
+                if (clicked == SEEKER)
                     comp = clicked;
                 else
                     return;
@@ -395,8 +414,10 @@ public class Status extends Component implements MouseListener,
                 state = STATE_STOPPED;
                 notifyNewState(state);
                 break;
-            case SEEKBAR:
+            case SEEKER:
                 notifySeek(position);
+                break;
+            case SEEKBAR:
                 break;
             case NONE:
                 break;
@@ -409,7 +430,7 @@ public class Status extends Component implements MouseListener,
     public void mouseDragged(MouseEvent e) {
         if (seekable) {
             e.translatePoint(-1, -1);
-            if (clicked == SEEKBAR) {
+            if (clicked == SEEKER) {
                 int end = r.width - SEEK_END - (r.height * 2);
                 double pos = (e.getX() - (r.height*2 + 5)) / (double) (end);
 
@@ -441,7 +462,7 @@ public class Status extends Component implements MouseListener,
                 } else {
                     button2Color = Color.black;
 
-                    if (intersectSeek(e)) {
+                    if (intersectSeeker(e)) {
                         seekColor = Color.gray;
                     } else
                         seekColor = Color.black;
