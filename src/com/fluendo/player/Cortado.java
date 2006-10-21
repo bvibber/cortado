@@ -46,6 +46,7 @@ public class Cortado extends Applet implements Runnable, MouseMotionListener,
     private int debug;
     private double duration;
 
+    private boolean statusRunning;
     private Thread statusThread;
     private Status status;
     private int statusHeight = 20;
@@ -76,6 +77,8 @@ public class Cortado extends Applet implements Runnable, MouseMotionListener,
                 { "video", "boolean", "Enable video playback (default true)" },
                 { "statusHeight", "int", "The height of the status area (default 12)" },
                 { "autoPlay", "boolean", "Automatically start playback (default true)" },
+                { "showStatus", "enum", "Show status area (auto|show|hide) (default auto)" },
+                { "hideTimeout", "int", "Hide the status area after N seconds (default 0)" },
                 { "keepAspect", "boolean",
                         "Use aspect ratio of video (default true)" },
                 { "preBuffer", "boolean", "Use Prebuffering (default = true)" },
@@ -176,8 +179,6 @@ public class Cortado extends Applet implements Runnable, MouseMotionListener,
         menu.add("About...");
         menu.addActionListener(this);
         this.add(menu);
-
-        pipeline.build();
     }
 
     public void actionPerformed(ActionEvent e) {
@@ -221,13 +222,13 @@ public class Cortado extends Applet implements Runnable, MouseMotionListener,
 
     private void realRun() {
         Debug.log(Debug.INFO, "entering status thread");
-        while (!(desiredState == Element.STOP)) {
+        while (statusRunning) {
             try {
                 status.setTime(pipeline.getPosition() / Clock.SECOND);
 
                 Thread.sleep(1000);
             } catch (Exception e) {
-                if (!(desiredState == Element.STOP))
+                if (statusRunning)
                     e.printStackTrace();
             }
         }
@@ -452,11 +453,13 @@ public class Cortado extends Applet implements Runnable, MouseMotionListener,
 
         res = pipeline.setState(desiredState);
 
+	statusRunning = true;
         statusThread = new Thread(this);
         statusThread.start();
     }
 
     public void stop() {
+	statusRunning = false;
         desiredState = Element.STOP;
         pipeline.setState(desiredState);
         try {

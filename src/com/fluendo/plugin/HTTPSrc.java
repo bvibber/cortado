@@ -155,6 +155,9 @@ public class HTTPSrc extends Element
         case MODE_NONE:
 	  postMessage (Message.newStreamStatus (this, false, Pad.WRONG_STATE, "stopping"));
 	  res = stopTask();
+	  input = null;
+	  outCaps = null;
+	  mime = null;
 	  break;
         case MODE_PUSH:
 	  try {

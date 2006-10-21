@@ -270,6 +270,16 @@ public class TheoraDec extends Element implements OggPayload
 
     res = super.changeState (transition);
 
+    switch (transition) {
+      case PAUSE_STOP:
+	ti.clear();
+	tc.clear();
+	ts.clear();
+	break;
+      default:
+        break;
+    }
+
     return res;
   }
 

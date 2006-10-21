@@ -1,3 +1,37 @@
+2006-10-21  Wim Taymans  <wim@fluendo.com>
+
+	* src/com/fluendo/jst/Pipeline.java: (Pipeline.doChildStateChange):
+	changeState is supposed to be protected.
+
+	* src/com/fluendo/player/Cortado.java: (Cortado),
+	(Cortado.getParameterInfo), (Cortado.init), (Cortado.run),
+	(Cortado.start):
+	Fix statusThread not working after going to STOP
+	Move pipeline construction to the state change.
+
+	* src/com/fluendo/player/CortadoPipeline.java: (CortadoPipeline),
+	(CortadoPipeline.setupAudioDec), (CortadoPipeline.setupVideoDec),
+	(CortadoPipeline.padAdded), (CortadoPipeline.setUrl),
+	(CortadoPipeline.getUrl), (CortadoPipeline.setUserId),
+	(CortadoPipeline.setPassword), (CortadoPipeline.enableAudio),
+	(CortadoPipeline.isAudioEnabled), (CortadoPipeline.enableVideo),
+	(CortadoPipeline.isVideoEnabled), (CortadoPipeline.setComponent),
+	(CortadoPipeline.getComponent), (CortadoPipeline.setBufferSize),
+	(CortadoPipeline.getBufferSize), (CortadoPipeline.setBufferLow),
+	(CortadoPipeline.getBufferLow), (CortadoPipeline.setBufferHigh),
+	(CortadoPipeline.getBufferHigh), (CortadoPipeline.buildOgg),
+	(CortadoPipeline.buildMultipart), (CortadoPipeline.capsChanged),
+	(CortadoPipeline.noSuchElement), (CortadoPipeline.build):
+	Fix cleanup when going to STOP.
+	Give better error messages for missing codecs.
+
+	* src/com/fluendo/plugin/OggDemux.java:
+	(OggDemux.....OggStream.Pad):
+	* src/com/fluendo/plugin/HTTPSrc.java: (HTTPSrc.Pad):
+	* src/com/fluendo/plugin/Queue.java: (Queue.Pad):
+	* src/com/fluendo/plugin/TheoraDec.java: (TheoraDec..changeState):
+	Do some more cleanups when stopping/starting.
+
 2006-10-19  Wim Taymans  <wim@fluendo.com>
 
 	Patch by <j at v2v dot cc>.

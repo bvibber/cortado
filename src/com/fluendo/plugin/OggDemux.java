@@ -491,7 +491,8 @@ public class OggDemux extends Element
     {
       if (mode == MODE_NONE) {
 	oy.reset();
-	chain.resetStreams();
+	chain.deActivate();
+	chain = null;
       }
       return true;
     }

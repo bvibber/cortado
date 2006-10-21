@@ -448,7 +448,7 @@ public class Pipeline extends com.fluendo.jst.Element implements BusSyncHandler
     return result;
   }
 
-  public int changeState(int transition)
+  protected int changeState(int transition)
   {
     int result;
 

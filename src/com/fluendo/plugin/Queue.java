@@ -164,6 +164,7 @@ public class Queue extends Element
 	    /* if we buffer, we start when we are hitting the
 	     * high watermark */
 	    if (!isBuffer) {
+	      isBuffering = false;
 	      postMessage (Message.newStreamStatus (this, true, Pad.OK, "activating"));
               res = startTask();
 	    }
