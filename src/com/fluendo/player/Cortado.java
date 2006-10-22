@@ -408,7 +408,6 @@ public class Cortado extends Applet implements Runnable, MouseMotionListener,
         case Status.STATE_PAUSED:
             status.setMessage("Pause");
 	    desiredState = Element.PAUSE;
-            ret = pipeline.setState(Element.PAUSE);
             break;
         case Status.STATE_PLAYING:
             status.setMessage("Play");

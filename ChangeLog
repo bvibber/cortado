@@ -1,5 +1,16 @@
 2006-10-22  Wim Taymans  <wim@fluendo.com>
 
+	* README:
+	Review readme, Fixes #390.
+
+	* src/com/fluendo/jst/Sink.java: (Sink.Pad):
+	Small cleanup.
+
+	* src/com/fluendo/player/Cortado.java: (Cortado.newState):
+	Remove superfluous setState call.
+
+2006-10-22  Wim Taymans  <wim@fluendo.com>
+
 	* src/com/fluendo/jst/Element.java: (Element),
 	(Element.getStateNext), (Element.continueState):
 	Make state transitions more debuggable.
@@ -17,7 +28,7 @@
 
 	* src/com/fluendo/player/CortadoPipeline.java:
 	(CortadoPipeline.padRemoved):
-	Remove unused sinks after all media is detected.
+	Remove unused sinks after all media is detected. (Fixes #157)
 
 2006-10-21  Wim Taymans  <wim@fluendo.com>
 

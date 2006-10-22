@@ -184,9 +184,8 @@ public abstract class Sink extends Element
       buf.setFlag (com.fluendo.jst.Buffer.FLAG_DISCONT, discont);
       discont = false;
 
-      if ((res = finishPreroll(buf)) != Pad.OK) {
+      if ((res = finishPreroll(buf)) != Pad.OK)
         return res;
-      }
 
       status = doSync(time);
       switch (status) {
