@@ -57,6 +57,7 @@ public class OggDemux extends Element
     public boolean haveKeyframe;
     public boolean sentHeaders;
     public int type;
+    public int lastRet;
     
     private OggPayload payload;
 
@@ -75,6 +76,7 @@ public class OggDemux extends Element
       discont = true;
       complete = false;
       started = false;
+      lastRet = OK;
     }
 
     public void markDiscont () {
@@ -86,6 +88,7 @@ public class OggDemux extends Element
     public void reset () {
       markDiscont();
       os.reset();
+      lastRet = OK;
     }
 
     public boolean isComplete () {
@@ -96,6 +99,7 @@ public class OggDemux extends Element
         return;
 
       sentHeaders = false;
+      lastRet = OK;
       addPad(this);
       active = true;
     }
@@ -222,8 +226,10 @@ public class OggDemux extends Element
       /* if we have all the headers we can stream */
       if (haveHeaders) {
         if (complete && started) {
+          int ret;
           com.fluendo.jst.Buffer data = bufferFromPacket (op);
-	  return push (data);
+	  ret = push (data);
+	  return combineFlows (this, ret);
 	}
         if (haveKeyframe || payload.isKeyFrame(op)) {
           com.fluendo.jst.Buffer data = bufferFromPacket (op);
@@ -497,6 +503,37 @@ public class OggDemux extends Element
       return true;
     }
   };
+
+  private int combineFlows (OggStream stream, int ret) {
+    /* store the value */
+    stream.lastRet = ret;
+
+    /* if it's success we can return the value right away */
+    if (Pad.isFlowSuccess (ret))
+      return ret;
+
+    /* any other error that is not-linked can be returned right
+     * away */
+    if (ret != Pad.NOT_LINKED)
+      return ret;
+
+    /* only return NOT_LINKED if all other pads returned NOT_LINKED */
+    if (chain != null) {
+      for (int i=0; i<chain.streams.size(); i++) {
+	OggStream ostream = (OggStream) chain.streams.elementAt(i);
+
+        ret = ostream.lastRet;
+        /* some other return value (must be SUCCESS but we can return
+         * other values as well) */
+        if (ret != Pad.NOT_LINKED)
+          return ret;
+      }
+      /* if we get here, all other pads were unlinked and we return
+       * NOT_LINKED then */
+    }
+    return ret;
+  }
+
 
   public String getFactoryName ()
   {

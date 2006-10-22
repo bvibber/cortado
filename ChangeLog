@@ -1,5 +1,20 @@
 2006-10-22  Wim Taymans  <wim@fluendo.com>
 
+	* src/com/fluendo/jst/Pad.java: (Pad):
+	Add helper function.
+
+	* src/com/fluendo/plugin/OggDemux.java: (OggDemux.....OggStream),
+	(OggDemux.....OggStream.OggStream),
+	(OggDemux.....OggStream.markDiscont),
+	(OggDemux.....OggStream.reset),
+	(OggDemux.....OggStream.isComplete),
+	(OggDemux.....OggStream.activate),
+	(OggDemux.....OggStream.pushPacket), (OggDemux.....OggStream.Pad):
+	Combine the flow of all streams so that we don't crap out when only one
+	stream is linked. Fixes #434 
+
+2006-10-22  Wim Taymans  <wim@fluendo.com>
+
 	* README:
 	Review readme, Fixes #390.
 

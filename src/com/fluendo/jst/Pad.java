@@ -56,9 +56,13 @@ public class Pad extends com.fluendo.jst.Object implements Runnable
   private static final int T_START = 2;
   private Thread thread;
   private int taskState;
-  public boolean isFlowFatal (int ret) 
+  public static final boolean isFlowFatal (int ret) 
   {
     return ret <= UNEXPECTED;
+  }
+  public static final boolean isFlowSuccess (int ret) 
+  {
+    return ret >= OK;
   }
   public static final String getFlowName (int ret) {
     switch (ret) {
