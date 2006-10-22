@@ -21,6 +21,7 @@ package com.fluendo.player;
 import java.applet.*;
 import java.awt.*;
 import java.awt.event.*;
+import java.net.*;
 import java.util.*;
 import com.fluendo.utils.*;
 import com.fluendo.jst.*;
@@ -161,6 +162,15 @@ public class Cortado extends Applet implements Runnable, MouseMotionListener,
         pipeline.setBufferLow(bufferLow);
         pipeline.setBufferHigh(bufferHigh);
 
+	URL documentBase;
+	try {
+	  documentBase = getDocumentBase();
+          Debug.log(Debug.INFO, "Document base: " + documentBase);
+	}
+	catch (Throwable t) {
+          documentBase = null;
+	}
+        pipeline.setDocumentBase(documentBase);
         pipeline.setComponent(this);
         pipeline.getBus().addHandler(this);
 

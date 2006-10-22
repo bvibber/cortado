@@ -1,5 +1,17 @@
 2006-10-22  Wim Taymans  <wim@fluendo.com>
 
+	* src/com/fluendo/player/Cortado.java: (Cortado.init):
+	* src/com/fluendo/player/CortadoPipeline.java: (CortadoPipeline),
+	(CortadoPipeline.setComponent), (CortadoPipeline.getComponent),
+	(CortadoPipeline.build):
+	Set documentBase when configuring HTTPSrc.
+
+	* src/com/fluendo/plugin/HTTPSrc.java: (HTTPSrc),
+	(HTTPSrc.getInputStream), (HTTPSrc.HTTPSrc), (HTTPSrc.setProperty):
+	Add documentBase property and parse the URL in that context. Fixes #467.
+
+2006-10-22  Wim Taymans  <wim@fluendo.com>
+
 	* src/com/fluendo/jst/Pad.java: (Pad):
 	Add helper function.
 

@@ -19,6 +19,7 @@
 package com.fluendo.player;
 
 import java.awt.*;
+import java.net.URL;
 
 import com.fluendo.jst.*;
 import com.fluendo.utils.*;
@@ -34,6 +35,7 @@ public class CortadoPipeline extends Pipeline implements PadListener, CapsListen
   private int bufferSize = -1;
   private int bufferLow = -1;
   private int bufferHigh = -1;
+  private URL documentBase = null;
 	
   private Element httpsrc;
   private Element buffer;
@@ -248,6 +250,13 @@ public class CortadoPipeline extends Pipeline implements PadListener, CapsListen
     return component;
   }
 
+  public void setDocumentBase(URL base) {
+    documentBase = base;
+  }
+  public URL getDocumentBase() {
+    return documentBase;
+  }
+
   public void setBufferSize(int size) {
     bufferSize = size;
   }
@@ -344,6 +353,7 @@ public class CortadoPipeline extends Pipeline implements PadListener, CapsListen
     httpsrc.setProperty("url", url);
     httpsrc.setProperty("userId", userId);
     httpsrc.setProperty("password", password);
+    httpsrc.setProperty("documentBase", documentBase);
     add(httpsrc);
 
     httpsrc.getPad("src").addCapsListener (this);

@@ -33,6 +33,7 @@ public class HTTPSrc extends Element
   private String mime;
   private Caps outCaps;
   private boolean discont;
+  private URL documentBase;
 
   private static final int DEFAULT_READSIZE = 4096;
 
@@ -186,9 +187,13 @@ public class HTTPSrc extends Element
     InputStream dis = null;
 
     try {
+      URL url;
       postMessage(Message.newResource (this, "Opening "+urlString));
       Debug.log(Debug.INFO, "reading from url "+urlString);
-      URL url = new URL(urlString);
+      if (documentBase != null)
+        url = new URL(documentBase, urlString);
+      else
+        url = new URL(urlString);
       Debug.log(Debug.INFO, "trying to open "+url);
       URLConnection uc = url.openConnection();
       if (userId != null && password != null) {
@@ -235,6 +240,9 @@ public class HTTPSrc extends Element
 
     if (name.equals("url")) {
       urlString = String.valueOf(value);
+    }
+    else if (name.equals("documentBase")) {
+      documentBase = (URL)value;
     }
     else if (name.equals("userId")) {
       userId = String.valueOf(value);
