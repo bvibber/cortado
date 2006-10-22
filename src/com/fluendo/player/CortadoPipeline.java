@@ -185,7 +185,26 @@ public class CortadoPipeline extends Pipeline implements PadListener, CapsListen
   }
 
   public void noMorePads() {
-    Debug.log(Debug.INFO, "no more pads");
+    boolean changed = false;
+
+    Debug.log(Debug.INFO, "all streams detected");
+
+    if (apad == null && enableAudio) {
+      Debug.log(Debug.INFO, "file has no audio, remove audiosink");
+      audiosink.setState(STOP);
+      remove (audiosink);
+      audiosink = null;
+      changed = true;
+    }
+    if (vpad == null && enableVideo) {
+      Debug.log(Debug.INFO, "file has no video, remove videosink");
+      videosink.setState(STOP);
+      remove (videosink);
+      videosink = null;
+      changed = true;
+    }
+    if (changed)
+      scheduleReCalcState();
   }
 
   public CortadoPipeline ()

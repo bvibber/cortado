@@ -1,3 +1,24 @@
+2006-10-22  Wim Taymans  <wim@fluendo.com>
+
+	* src/com/fluendo/jst/Element.java: (Element),
+	(Element.getStateNext), (Element.continueState):
+	Make state transitions more debuggable.
+	Mark element as busy while it performs a state change.
+
+	* src/com/fluendo/jst/Pipeline.java: (Pipeline),
+	(Pipeline.Pipeline), (Pipeline.add), (Pipeline.remove),
+	(Pipeline.SortedEnumerator.queueNextElement),
+	(Pipeline.SinkEnumerator.nextElement), (Pipeline.SinkEnumerator),
+	(Pipeline.enumSinks), (Pipeline.handleSyncMessage),
+	(Pipeline.getState), (Pipeline.reCalcState):
+	Handle switching of clock providers.
+	Mark state dirty when removing elements.
+	Add helper method to mark state dirty and force a state recalc.
+
+	* src/com/fluendo/player/CortadoPipeline.java:
+	(CortadoPipeline.padRemoved):
+	Remove unused sinks after all media is detected.
+
 2006-10-21  Wim Taymans  <wim@fluendo.com>
 
 	* src/com/fluendo/jst/Pipeline.java: (Pipeline.doChildStateChange):

@@ -26,6 +26,7 @@ public class Pipeline extends com.fluendo.jst.Element implements BusSyncHandler
 
   protected Clock defClock;
   protected Clock fixedClock = null;
+  protected Element clockProvider;
 
   protected Bus internalBus;
   private Thread busThread;
@@ -100,6 +101,7 @@ public class Pipeline extends com.fluendo.jst.Element implements BusSyncHandler
     super (name);
 
     defClock = new SystemClock(); 
+    clockProvider = null;
 
     internalBus = new Bus();
     internalBus.setSyncHandler (this);
@@ -118,8 +120,10 @@ public class Pipeline extends com.fluendo.jst.Element implements BusSyncHandler
     if (elem == null)
       return false;
 
-    if (elem instanceof ClockProvider)
+    if (elem instanceof ClockProvider) {
       defClock = ((ClockProvider)elem).provideClock();
+      clockProvider = elem;
+    }
 
     elements.addElement (elem);
     elem.baseTime = baseTime;
@@ -133,8 +137,15 @@ public class Pipeline extends com.fluendo.jst.Element implements BusSyncHandler
       return false;
 
     if ((res = elements.removeElement (elem))) {
+      if (elem == clockProvider) {
+        defClock = new SystemClock(); 
+        clockProvider = null;
+      }
       elem.setBus (null);
       elem.setClock (null);
+      synchronized (this) {
+        stateDirty = true;
+      }
     }
     return res;
   }
@@ -233,7 +244,7 @@ public class Pipeline extends com.fluendo.jst.Element implements BusSyncHandler
 	}
 	if (bestElem != null) {
 	  if (bestDeg != 0) {
-	    System.out.println ("loop detected!!");
+	    System.out.println (this+" loop detected in pipeline!!");
 	  }
 	  next = bestElem;
 	  hash.put (next, new Integer(-1));
@@ -322,10 +333,7 @@ public class Pipeline extends com.fluendo.jst.Element implements BusSyncHandler
       case Message.EOS:
         break;
       case Message.STATE_DIRTY:
-        synchronized (this) {
-	  stateDirty = true;
-          stateThread.stateDirty();
-	}
+	scheduleReCalcState ();
         break;
       default:
         /* post to app */
@@ -338,6 +346,13 @@ public class Pipeline extends com.fluendo.jst.Element implements BusSyncHandler
   public int getState(int[] resState, int[] resPending, long timeout) {
     reCalcState (false);
     return super.getState (resState, resPending, timeout);
+  }
+
+  protected void scheduleReCalcState() {
+    synchronized (this) {
+      stateDirty = true;
+      stateThread.stateDirty();
+    }
   }
 
   private void reCalcState(boolean force) 
@@ -382,7 +397,7 @@ public class Pipeline extends com.fluendo.jst.Element implements BusSyncHandler
       if (haveAsync)
         res = ASYNC;
     }
-    
+
     synchronized (this) {
       polling = false;
 

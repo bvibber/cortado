@@ -39,11 +39,13 @@ public abstract class Element extends com.fluendo.jst.Object
   public static final int PAUSE = 2;
   public static final int PLAY = 3;
 
+  private static final int SHIFT = 4;
+  private static final int MASK = 0xf;
   /* transition */
-  public static final int STOP_PAUSE = (STOP << 3) | PAUSE;
-  public static final int PAUSE_PLAY = (PAUSE << 3) | PLAY;
-  public static final int PLAY_PAUSE = (PLAY << 3) | PAUSE;
-  public static final int PAUSE_STOP = (PAUSE << 3) | STOP;
+  public static final int STOP_PAUSE = (STOP << SHIFT) | PAUSE;
+  public static final int PAUSE_PLAY = (PAUSE << SHIFT) | PLAY;
+  public static final int PLAY_PAUSE = (PLAY << SHIFT) | PAUSE;
+  public static final int PAUSE_STOP = (PAUSE << SHIFT) | STOP;
 
   /* state return values */
   public static final int FAILURE = 0;
@@ -226,17 +228,17 @@ public abstract class Element extends com.fluendo.jst.Object
 
   public int getTransition (int current, int next)
   {
-    return (current << 3) | next;
+    return (current << SHIFT) | next;
   }
 
   public int getTransitionCurrent (int transition)
   {
-    return transition >> 3;
+    return transition >> SHIFT;
   }
 
   public int getTransitionNext (int transition)
   {
-    return transition & 0x7;
+    return transition & MASK;
   }
 
   public int continueState(int result)
@@ -274,6 +276,7 @@ public abstract class Element extends com.fluendo.jst.Object
         transition = getTransition (current, next);
 
 	nextState = next;
+        lastReturn = ASYNC;
 
         message = Message.newStateChanged (this,
 	            oldState, oldNext, pending);
