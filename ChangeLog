@@ -1,5 +1,14 @@
 2006-10-23  Wim Taymans  <wim@fluendo.com>
 
+	* README:
+	Document javascrip methods.
+
+	* src/com/fluendo/player/Cortado.java: (Cortado..handleMessage):
+	Add doPlay(),doPause(),doStop(),doSeek() methods so that they can be
+	used from javascript. Fixes #155
+
+2006-10-23  Wim Taymans  <wim@fluendo.com>
+
 	* src/com/fluendo/jheora/YUVBuffer.java:
 	(YUVBuffer.prepareRGBData):
 	Catch Exceptions while doing color conversions. Fixes #283.

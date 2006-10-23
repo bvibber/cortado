@@ -463,44 +463,59 @@ public class Cortado extends Applet implements Runnable, MouseMotionListener,
         }
     }
 
+    public void doPause()
+    {
+      isError = false;
+      isEOS = false;
+      status.setMessage("Pause");
+      desiredState = Element.PAUSE;
+      pipeline.setState(desiredState);
+    }
+    public void doPlay()
+    {
+      isError = false;
+      isEOS = false;
+      status.setMessage("Play");
+      desiredState = Element.PLAY;
+      pipeline.setState(desiredState);
+    }
+    public void doStop() {
+      status.setMessage("Stop");
+      desiredState = Element.STOP;
+    }
+    public void doSeek(double aPos) {
+      boolean res;
+      com.fluendo.jst.Event event;
+
+      /* get value, convert to PERCENT and construct seek event */
+      event = com.fluendo.jst.Event.newSeek(Format.PERCENT,
+              (int) (aPos * 100.0 * Format.PERCENT_SCALE));
+
+      /* send event to pipeline */
+      res = pipeline.sendEvent(event);
+      if (!res) {
+          Debug.log(Debug.WARNING, "seek failed");
+      }
+    }
+
     public void newState(int aState) {
         int ret;
         switch (aState) {
         case Status.STATE_PAUSED:
-	    isError = false;
-	    isEOS = false;
-            status.setMessage("Pause");
-	    desiredState = Element.PAUSE;
+            doPause();
             break;
         case Status.STATE_PLAYING:
-	    isError = false;
-	    isEOS = false;
-            status.setMessage("Play");
-	    desiredState = Element.PLAY;
+            doPlay();
             break;
         case Status.STATE_STOPPED:
-            status.setMessage("Stop");
-	    desiredState = Element.STOP;
+	    doStop();
             break;
         default:
             break;
         }
-        ret = pipeline.setState(desiredState);
     }
-
     public void newSeek(double aPos) {
-        boolean res;
-        com.fluendo.jst.Event event;
-
-        /* get value, convert to PERCENT and construct seek event */
-        event = com.fluendo.jst.Event.newSeek(Format.PERCENT,
-                (int) (aPos * 100.0 * Format.PERCENT_SCALE));
-
-        /* send event to pipeline */
-        res = pipeline.sendEvent(event);
-        if (!res) {
-            Debug.log(Debug.WARNING, "seek failed");
-        }
+      doSeek (aPos);
     }
 
     public void start() {
