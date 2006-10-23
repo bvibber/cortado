@@ -55,6 +55,9 @@ public class Cortado extends Applet implements Runnable, MouseMotionListener,
     private boolean isBuffering;
     private int desiredState;
 
+    private boolean isEOS;
+    private boolean isError;
+
     private PopupMenu menu;
 
     private Hashtable params = new Hashtable();
@@ -339,14 +342,19 @@ public class Cortado extends Applet implements Runnable, MouseMotionListener,
         case Message.ERROR:
             System.out.println(msg.toString());
             status.setMessage(msg.parseErrorString());
+            status.setState(Status.STATE_STOPPED);
             pipeline.setState(Element.STOP);
             setStatusVisible(true);
+	    isError = true;
             break;
         case Message.EOS:
             Debug.log(Debug.INFO, "EOS: playback ended");
-            pipeline.setState(Element.STOP);
-            status.setMessage("Playback ended");
-            setStatusVisible(true);
+	    if (!isError) {
+              status.setMessage("Playback ended");
+              status.setState(Status.STATE_STOPPED);
+              pipeline.setState(Element.STOP);
+              setStatusVisible(true);
+	    }
             break;
         case Message.STREAM_STATUS:
             System.out.println(msg.toString());
@@ -401,9 +409,12 @@ public class Cortado extends Applet implements Runnable, MouseMotionListener,
                     setStatusVisible(false);
                     break;
                 case Element.STOP:
-                    status.setMessage("Stopped");
-                    status.setState(Status.STATE_STOPPED);
-                    setStatusVisible(true);
+		    if (!isError) {
+                      status.setMessage("Stopped");
+                      status.setState(Status.STATE_STOPPED);
+                      setStatusVisible(true);
+		    }
+		    isError = false;
                     break;
                 }
             }

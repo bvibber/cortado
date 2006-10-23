@@ -50,31 +50,12 @@ public class CortadoPipeline extends Pipeline implements PadListener, CapsListen
 
   public boolean usingJavaX = false;
 
-  private boolean setupAudioDec (String name) {
-    if (audiodec != null) {
-      audiodec.setState (STOP);
-      remove(audiodec);
-    }
-    audiodec = ElementFactory.makeByName(name, "audiodec");
-    if (audiodec == null) {
-      noSuchElement (name);
-      return false;
-    }
-
-    add(audiodec);
-    return true;
-  }
   private boolean setupVideoDec (String name) {
-    if (videodec != null) {
-      videodec.setState (STOP);
-      remove(videodec);
-    }
     videodec = ElementFactory.makeByName(name, "videodec");
     if (videodec == null) {
       noSuchElement (name);
       return false;
     }
-
     add(videodec);
     return true;
   }
@@ -84,10 +65,10 @@ public class CortadoPipeline extends Pipeline implements PadListener, CapsListen
     Pad tmp;
 
     if (caps == null) {
-      System.out.println("pad added without caps");
+      Debug.log(Debug.INFO, "pad added without caps: "+pad);
       return;
     }
-    System.out.println ("pad added "+pad);
+    Debug.log(Debug.INFO, "pad added "+pad);
 
     String mime = caps.getMime();
     
@@ -98,10 +79,14 @@ public class CortadoPipeline extends Pipeline implements PadListener, CapsListen
         return;
       }
 
-      if (!setupAudioDec ("vorbisdec"))
+      audiodec = ElementFactory.makeByName("vorbisdec", "audiodec");
+      if (audiodec == null) {
+        noSuchElement ("vorbisdec");
         return;
+      }
 
       add(a_queue);
+      add(audiodec);
 
       pad.link(a_queue.getPad("sink"));
       a_queue.getPad("src").link(audiodec.getPad("sink"));
@@ -141,7 +126,6 @@ public class CortadoPipeline extends Pipeline implements PadListener, CapsListen
     }
     else if (enableVideo && mime.equals("image/jpeg")) {
       if (!setupVideoDec ("jpegdec")) {
-        postMessage (Message.newError (this, "jpegdec plugin not found"));
         return;
       }
       videodec.setProperty ("component", component);
@@ -156,7 +140,6 @@ public class CortadoPipeline extends Pipeline implements PadListener, CapsListen
     }
     else if (enableVideo && mime.equals("video/x-smoke")) {
       if (!setupVideoDec ("smokedec")) {
-        postMessage (Message.newError (this, "smokedec plugin not found"));
         return;
       }
       videodec.setProperty ("component", component);
@@ -391,6 +374,7 @@ public class CortadoPipeline extends Pipeline implements PadListener, CapsListen
   }
 
   private boolean cleanup() {
+    Debug.log(Debug.INFO, "cleanup");
     if (httpsrc != null) {
       remove (httpsrc);
       httpsrc = null;
@@ -413,6 +397,22 @@ public class CortadoPipeline extends Pipeline implements PadListener, CapsListen
     if (buffer != null) {
       remove (buffer);
       buffer = null;
+    }
+    if (v_queue != null) {
+      remove (v_queue);
+      v_queue = null;
+    }
+    if (a_queue != null) {
+      remove (a_queue);
+      a_queue = null;
+    }
+    if (videodec != null) {
+      remove(videodec);
+      videodec = null;
+    }
+    if (audiodec != null) {
+      remove(audiodec);
+      audiodec = null;
     }
     return true;
   }
