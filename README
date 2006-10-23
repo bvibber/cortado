@@ -142,6 +142,12 @@ parameters:
               resources to play an audio stream. true or false.
 	      Defaults to true
 
+  statusHeight: int
+              The height of the status area (default 12)
+
+  autoPlay:   boolean
+              Automatically start playback (default true)
+
   bufferSize: int
               The size of the network buffer, in KB.
               A good value is max Kbps of the stream * 33
