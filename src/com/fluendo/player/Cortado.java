@@ -389,12 +389,17 @@ public class Cortado extends Applet implements Runnable, MouseMotionListener,
             System.out.println(msg.toString());
             break;
         case Message.RESOURCE:
-            status.setMessage(msg.parseResourceString());
-            setStatusVisible(true, false);
+	    if (!isError) {
+              status.setMessage(msg.parseResourceString());
+              setStatusVisible(true, false);
+	    }
             break;
         case Message.BUFFERING:
 	    boolean busy;
 	    int percent;
+
+	    if (isError)
+	      break;
 
 	    busy = msg.parseBufferingBusy();
 	    percent = msg.parseBufferingPercent();
@@ -435,9 +440,11 @@ public class Cortado extends Applet implements Runnable, MouseMotionListener,
                     status.setState(Status.STATE_PAUSED);
                     break;
                 case Element.PLAY:
-                    status.setMessage("Playing");
+		    if (!isError && !isEOS) {
+                      status.setMessage("Playing");
+                      setStatusVisible(false, false);
+		    }
                     status.setState(Status.STATE_PLAYING);
-                    setStatusVisible(false, false);
                     break;
                 case Element.STOP:
 		    if (!isError && !isEOS) {

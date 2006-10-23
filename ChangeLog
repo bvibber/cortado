@@ -1,5 +1,10 @@
 2006-10-23  Wim Taymans  <wim@fluendo.com>
 
+	* src/com/fluendo/player/Cortado.java: (Cortado..handleMessage):
+	Make sure we never overwrite error messages. Fixes #351.
+
+2006-10-23  Wim Taymans  <wim@fluendo.com>
+
 	* README:
 	Add showStatus param
 
