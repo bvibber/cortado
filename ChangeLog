@@ -13,7 +13,7 @@
 	(Cortado..mouseDragged), (Cortado..mouseMoved),
 	(Cortado..handleMessage), (Cortado..newState):
 	Add showStatus param.
-	Handle hiding/showing of status area based on param.
+	Handle hiding/showing of status area based on param. Fixes #389.
 
 	* src/com/fluendo/player/Status.java: (Status.setState):
 	Don't error out when the statusbar is invisible when we hover over it.
