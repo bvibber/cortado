@@ -1,6 +1,26 @@
 2006-10-23  Wim Taymans  <wim@fluendo.com>
 
 	* README:
+	Add showStatus param
+
+	* src/com/fluendo/player/Cortado.java: (Cortado),
+	(Cortado..getParameterInfo), (Cortado..getParam),
+	(Cortado..shutdown), (Cortado.), (Cortado..init),
+	(Cortado..realRun), (Cortado..paint), (Cortado..setStatusVisible),
+	(Cortado..intersectStatus), (Cortado..mouseClicked),
+	(Cortado..mouseEntered), (Cortado..mouseExited),
+	(Cortado..mousePressed), (Cortado..mouseReleased),
+	(Cortado..mouseDragged), (Cortado..mouseMoved),
+	(Cortado..handleMessage), (Cortado..newState):
+	Add showStatus param.
+	Handle hiding/showing of status area based on param.
+
+	* src/com/fluendo/player/Status.java: (Status.setState):
+	Don't error out when the statusbar is invisible when we hover over it.
+
+2006-10-23  Wim Taymans  <wim@fluendo.com>
+
+	* README:
 	Add new properties to README
 
 2006-10-23  Wim Taymans  <wim@fluendo.com>

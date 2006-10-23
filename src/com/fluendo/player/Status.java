@@ -323,10 +323,16 @@ public class Status extends Component implements MouseListener,
     }
 
     private boolean intersectButton1(MouseEvent e) {
+        if (r == null)
+            return false;
+
         return (e.getX() >= 0 && e.getX() <= r.height-2 && e.getY() > 0 && e.getY() <= r.height-2);
     }
 
     private boolean intersectButton2(MouseEvent e) {
+        if (r == null)
+            return false;
+
         return (e.getX() >= r.height && e.getX() <= r.height + r.height-2 && e.getY() > 0 && e.getY() <= r.height-2);
     }
 

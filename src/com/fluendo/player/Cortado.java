@@ -58,6 +58,12 @@ public class Cortado extends Applet implements Runnable, MouseMotionListener,
     private boolean isEOS;
     private boolean isError;
 
+    private int showStatus;
+    private static final String[] showStatusVals = { "auto", "show", "hide" };
+    private static final int STATUS_AUTO = 0;
+    private static final int STATUS_SHOW = 1;
+    private static final int STATUS_HIDE = 2;
+
     private PopupMenu menu;
 
     private Hashtable params = new Hashtable();
@@ -82,10 +88,10 @@ public class Cortado extends Applet implements Runnable, MouseMotionListener,
                 { "statusHeight", "int", "The height of the status area (default 12)" },
                 { "autoPlay", "boolean", "Automatically start playback (default true)" },
                 { "showStatus", "enum", "Show status area (auto|show|hide) (default auto)" },
-                { "hideTimeout", "int", "Hide the status area after N seconds (default 0)" },
+                { "hideTimeout", "int", "Timeout in seconds to hide the status area when " +
+			"showStatus is auto (default 0)" },
                 { "keepAspect", "boolean",
                         "Use aspect ratio of video (default true)" },
-                { "preBuffer", "boolean", "Use Prebuffering (default = true)" },
                 { "bufferSize", "int",
                         "The size of the prebuffer in Kbytes (default 100)" },
                 { "bufferLow", "int", "Percent of empty buffer (default 10)" },
@@ -124,6 +130,14 @@ public class Cortado extends Applet implements Runnable, MouseMotionListener,
         }
         return result;
     }
+    public int getEnum(String name, String[] vals, String def) {
+      String val = getParam (name, def);
+      for (int i=0; i<vals.length;i++) {
+	 if (vals[i].equals (val))
+           return i;
+      }
+      return 0;
+    }
 
     public static void shutdown(Throwable error) {
         Debug.log(Debug.INFO, "shutting down: reason: " + error.getMessage());
@@ -144,6 +158,7 @@ public class Cortado extends Applet implements Runnable, MouseMotionListener,
         video = String.valueOf(getParam("video", "true")).equals("true");
         statusHeight = Integer.valueOf(getParam("statusHeight", "12")).intValue();
         autoPlay = String.valueOf(getParam("autoPlay", "true")).equals( "true");
+        showStatus = getEnum("showStatus", showStatusVals, "auto");
         keepAspect = String.valueOf(getParam("keepAspect", "true")).equals(
                 "true");
         bufferSize = Integer.valueOf(getParam("bufferSize", "200")).intValue();
@@ -181,12 +196,17 @@ public class Cortado extends Applet implements Runnable, MouseMotionListener,
         setForeground(Color.white);
 
         status = new Status(this);
-        status.setVisible(true);
         status.setHaveAudio(audio);
         status.setHavePercent(true);
         status.setSeekable(seekable);
         status.setDuration(duration);
         inStatus = false;
+	if (showStatus != STATUS_HIDE) {
+          status.setVisible(true);
+	}
+	else {
+          status.setVisible(false);
+	}
 
         menu = new PopupMenu();
         menu.add("About...");
@@ -264,14 +284,22 @@ public class Cortado extends Applet implements Runnable, MouseMotionListener,
         }
     }
 
-    private void setStatusVisible(boolean b) {
+    private void setStatusVisible(boolean b, boolean force) {
         /* no change, do nothing */
         if (status.isVisible() == b)
             return;
 
-        /*
-         * don't make invisible when the mouse pointer is inside status area
-         */
+	if (!force) {
+	  if (showStatus == STATUS_SHOW && !b)
+              return;
+	  if (showStatus == STATUS_HIDE && b)
+              return;
+	}
+	/* never hide when we are in error */
+	if (isError && !b)
+            return;
+          
+        /* don't make invisible when the mouse pointer is inside status area */
         if (inStatus && !b)
             return;
 
@@ -291,7 +319,7 @@ public class Cortado extends Applet implements Runnable, MouseMotionListener,
     }
 
     public void mouseExited(MouseEvent e) {
-        setStatusVisible(false);
+        setStatusVisible(false, false);
     }
 
     public void mousePressed(MouseEvent e) {
@@ -317,22 +345,22 @@ public class Cortado extends Applet implements Runnable, MouseMotionListener,
     public void mouseDragged(MouseEvent e) {
         if (intersectStatus(e)) {
             int y = getSize().height - statusHeight;
-            setStatusVisible(true);
+            setStatusVisible(true, false);
             e.translatePoint(0, -y);
             ((MouseMotionListener) status).mouseDragged(e);
         } else {
-            setStatusVisible(false);
+            setStatusVisible(false, false);
         }
     }
 
     public void mouseMoved(MouseEvent e) {
         if (intersectStatus(e)) {
             int y = getSize().height - statusHeight;
-            setStatusVisible(true);
+            setStatusVisible(true, false);
             e.translatePoint(0, -y);
             ((MouseMotionListener) status).mouseMoved(e);
         } else {
-            setStatusVisible(false);
+            setStatusVisible(false, false);
         }
     }
 
@@ -344,16 +372,17 @@ public class Cortado extends Applet implements Runnable, MouseMotionListener,
             status.setMessage(msg.parseErrorString());
             status.setState(Status.STATE_STOPPED);
             pipeline.setState(Element.STOP);
-            setStatusVisible(true);
+            setStatusVisible(true, true);
 	    isError = true;
             break;
         case Message.EOS:
             Debug.log(Debug.INFO, "EOS: playback ended");
 	    if (!isError) {
-              status.setMessage("Playback ended");
               status.setState(Status.STATE_STOPPED);
+              status.setMessage("Playback ended");
+	      isEOS = true;
               pipeline.setState(Element.STOP);
-              setStatusVisible(true);
+              setStatusVisible(true, false);
 	    }
             break;
         case Message.STREAM_STATUS:
@@ -361,7 +390,7 @@ public class Cortado extends Applet implements Runnable, MouseMotionListener,
             break;
         case Message.RESOURCE:
             status.setMessage(msg.parseResourceString());
-            setStatusVisible(true);
+            setStatusVisible(true, false);
             break;
         case Message.BUFFERING:
 	    boolean busy;
@@ -376,7 +405,7 @@ public class Cortado extends Applet implements Runnable, MouseMotionListener,
 		if (desiredState == Element.PLAY)
 	          pipeline.setState(Element.PAUSE);
 		isBuffering = true;
-                setStatusVisible(true);
+                setStatusVisible(true, false);
 	      }
               status.setBufferPercent(busy, percent);
 	    }
@@ -386,7 +415,7 @@ public class Cortado extends Applet implements Runnable, MouseMotionListener,
 		if (desiredState == Element.PLAY)
 	          pipeline.setState(Element.PLAY);
 		isBuffering = false;
-                setStatusVisible(false);
+                setStatusVisible(false, false);
 	      }
               status.setBufferPercent(busy, percent);
 	    }
@@ -400,21 +429,22 @@ public class Cortado extends Applet implements Runnable, MouseMotionListener,
 
                 switch (next) {
                 case Element.PAUSE:
-                    status.setMessage("Paused");
+		    if (!isError && !isEOS) {
+                      status.setMessage("Paused");
+		    }
                     status.setState(Status.STATE_PAUSED);
                     break;
                 case Element.PLAY:
                     status.setMessage("Playing");
                     status.setState(Status.STATE_PLAYING);
-                    setStatusVisible(false);
+                    setStatusVisible(false, false);
                     break;
                 case Element.STOP:
-		    if (!isError) {
+		    if (!isError && !isEOS) {
                       status.setMessage("Stopped");
-                      status.setState(Status.STATE_STOPPED);
-                      setStatusVisible(true);
+                      setStatusVisible(true, false);
 		    }
-		    isError = false;
+                    status.setState(Status.STATE_STOPPED);
                     break;
                 }
             }
@@ -428,10 +458,14 @@ public class Cortado extends Applet implements Runnable, MouseMotionListener,
         int ret;
         switch (aState) {
         case Status.STATE_PAUSED:
+	    isError = false;
+	    isEOS = false;
             status.setMessage("Pause");
 	    desiredState = Element.PAUSE;
             break;
         case Status.STATE_PLAYING:
+	    isError = false;
+	    isEOS = false;
             status.setMessage("Play");
 	    desiredState = Element.PLAY;
             break;

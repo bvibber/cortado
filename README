@@ -148,6 +148,13 @@ parameters:
   autoPlay:   boolean
               Automatically start playback (default true)
 
+  showStatus: enum (auto|show|hide)
+              Controls how to make the status area visible. 
+	      auto will show the status area when hovered over with the mouse.
+	      hide will only show the status area on error.
+	      show will always show the status area.
+	      (default auto)
+
   bufferSize: int
               The size of the network buffer, in KB.
               A good value is max Kbps of the stream * 33
