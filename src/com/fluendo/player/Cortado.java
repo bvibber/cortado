@@ -339,13 +339,14 @@ public class Cortado extends Applet implements Runnable, MouseMotionListener,
         case Message.ERROR:
             System.out.println(msg.toString());
             status.setMessage(msg.parseErrorString());
-            status.setState(Status.STATE_STOPPED);
+            pipeline.setState(Element.STOP);
             setStatusVisible(true);
             break;
         case Message.EOS:
             Debug.log(Debug.INFO, "EOS: playback ended");
-            System.out.println(msg.toString());
+            pipeline.setState(Element.STOP);
             status.setMessage("Playback ended");
+            setStatusVisible(true);
             break;
         case Message.STREAM_STATUS:
             System.out.println(msg.toString());

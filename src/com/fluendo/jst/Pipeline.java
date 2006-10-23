@@ -19,6 +19,7 @@
 package com.fluendo.jst;
 
 import java.util.*;
+import com.fluendo.utils.*;
 
 public class Pipeline extends com.fluendo.jst.Element implements BusSyncHandler
 {
@@ -27,6 +28,7 @@ public class Pipeline extends com.fluendo.jst.Element implements BusSyncHandler
   protected Clock defClock;
   protected Clock fixedClock = null;
   protected Element clockProvider;
+  protected Vector messages = new Vector();
 
   protected Bus internalBus;
   private Thread busThread;
@@ -327,11 +329,68 @@ public class Pipeline extends com.fluendo.jst.Element implements BusSyncHandler
     return new SinkEnumerator();
   }
 
+  private void replaceMessage (Message message, int type)
+  {
+    int len = messages.size();
+    Message msg;
+    com.fluendo.jst.Object src = message.getSrc();
+
+    for (int i=0; i<len; i++) {
+      msg = (Message) messages.elementAt(i);
+
+      if (msg.getType() == type && msg.getSrc() == src) {
+	messages.setElementAt(message, i);
+	return;
+      }
+    }
+    messages.addElement(message);
+  }
+
+  private boolean findMessage (com.fluendo.jst.Object obj, int type)
+  {
+    int len = messages.size();
+    Message msg;
+
+    for (int i=0; i<len; i++) {
+      msg = (Message) messages.elementAt(i);
+
+      if (msg.getType() == type && msg.getSrc() == obj)
+	return true;
+    }
+    return false;
+  }
+
+  protected boolean isEOS ()
+  {
+    com.fluendo.jst.Object obj;
+
+    for (Enumeration e = enumSinks(); e.hasMoreElements();) {
+      obj = (com.fluendo.jst.Object) e.nextElement();
+
+      if (!findMessage (obj, Message.EOS))
+	return false;
+    }
+    return true;
+  }
+
   public int handleSyncMessage (Message message) 
   {
     switch (message.getType()) {
       case Message.EOS:
+      {
+	boolean isEOS;
+
+	synchronized (this) {
+          Debug.log(Debug.INFO, this+" got EOS from sink: "+message.getSrc());
+          replaceMessage (message, Message.EOS);
+	  isEOS = isEOS();
+	}
+	if (isEOS) {
+          Debug.log(Debug.INFO, "all sinks posted EOS "+this);
+          postMessage (Message.newEOS (this));
+	}
         break;
+      }
       case Message.STATE_DIRTY:
 	scheduleReCalcState ();
         break;
@@ -469,6 +528,7 @@ public class Pipeline extends com.fluendo.jst.Element implements BusSyncHandler
 
     switch (transition) {
       case STOP_PAUSE:
+	messages.setSize(0);
         break;
       case PAUSE_PLAY:
         long now = defClock.getTime();
@@ -487,8 +547,10 @@ public class Pipeline extends com.fluendo.jst.Element implements BusSyncHandler
       case PLAY_PAUSE:
         long now = defClock.getTime();
         streamTime = now - baseTime;
+	messages.setSize(0);
         break;
       case PAUSE_STOP:
+	messages.setSize(0);
         break;
       default:
         break;

@@ -138,26 +138,20 @@ public abstract class Sink extends Element
 	  }
 	  break;
         case Event.FLUSH_STOP:
-	  synchronized (streamLock) {
-	    sink.flushing = false;
-	  }
+	  sink.flushing = false;
 	  break;
         case Event.NEWSEGMENT:
-	  synchronized (streamLock) {
-	    int segFmt = event.parseNewsegmentFormat();
-	    if (segFmt == Format.TIME) {
-	      segStart = event.parseNewsegmentStart();
-	      segStop = event.parseNewsegmentStop();
-	      segPosition = event.parseNewsegmentPosition();
-	    }
+	  int segFmt = event.parseNewsegmentFormat();
+	  if (segFmt == Format.TIME) {
+	    segStart = event.parseNewsegmentStart();
+	    segStop = event.parseNewsegmentStop();
+	    segPosition = event.parseNewsegmentPosition();
 	  }
 	  break;
         case Event.EOS:
-	  synchronized (streamLock) {
-	    isEOS = true;
-	    Debug.log(Debug.INFO, this+" got EOS");
-	    postMessage (Message.newEOS (this));
-	  }
+	  isEOS = true;
+	  Debug.log(Debug.INFO, this+" got EOS");
+	  postMessage (Message.newEOS (parent));
 	  break;
 	default:
 	  break;

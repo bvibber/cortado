@@ -1,3 +1,21 @@
+2006-10-23  Wim Taymans  <wim@fluendo.com>
+
+	* src/com/fluendo/jst/Pipeline.java: (Pipeline),
+	(Pipeline.enumSinks), (Pipeline.reCalcState),
+	(Pipeline.doChildStateChange), (Pipeline.changeState):
+	Catch, store, replace EOS messages and detect when all sinks posted
+	EOS so that we can forward EOS to the app.
+
+	* src/com/fluendo/jst/Sink.java: (Sink.Pad):
+	Remove locks, they are already taken.
+
+	* src/com/fluendo/player/Cortado.java: (Cortado.handleMessage):
+	Stop playback on EOS.
+
+	* src/com/fluendo/plugin/TheoraDec.java: (TheoraDec..Pad):
+	* src/com/fluendo/plugin/VorbisDec.java: (VorbisDec..Pad):
+	Add some debugging in EOS.
+
 2006-10-22  Wim Taymans  <wim@fluendo.com>
 
 	* src/com/fluendo/player/Cortado.java: (Cortado.init):

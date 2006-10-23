@@ -123,6 +123,9 @@ public class TheoraDec extends Element implements OggPayload
           result = srcPad.pushEvent(event);
           break;
         case com.fluendo.jst.Event.EOS:
+          Debug.log(Debug.INFO, "got EOS "+this);
+          result = srcPad.pushEvent(event);
+          break;
         case com.fluendo.jst.Event.NEWSEGMENT:
 	default:
           result = srcPad.pushEvent(event);

@@ -134,6 +134,10 @@ public class VorbisDec extends Element implements OggPayload
         case Event.FLUSH_STOP:
           result = srcPad.pushEvent(event);
 	  break;
+        case Event.EOS:
+          Debug.log(Debug.INFO, "got EOS "+this);
+          result = srcPad.pushEvent(event);
+	  break;
         default:
           result = srcPad.pushEvent(event);
 	  break;
