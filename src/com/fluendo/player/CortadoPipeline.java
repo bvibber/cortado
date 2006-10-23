@@ -313,11 +313,16 @@ public class CortadoPipeline extends Pipeline implements PadListener, CapsListen
   }
 
   public void capsChanged(Caps caps) {
-    if (caps.getMime().equals ("application/ogg")) {
+    String mime = caps.getMime();
+
+    if (mime.equals ("application/ogg")) {
       buildOgg();
     }
-    else if (caps.getMime().equals ("multipart/x-mixed-replace")) {
+    else if (mime.equals ("multipart/x-mixed-replace")) {
       buildMultipart();
+    }
+    else {
+      postMessage (Message.newError (this, "unknown type: "+mime));
     }
   }
   private void noSuchElement(String elemName)
@@ -389,14 +394,14 @@ public class CortadoPipeline extends Pipeline implements PadListener, CapsListen
       videosink = null;
       vsinkpad = null;
     }
+    if (buffer != null) {
+      remove (buffer);
+      buffer = null;
+    }
     if (demux != null) {
       demux.removePadListener (this);
       remove (demux);
       demux = null;
-    }
-    if (buffer != null) {
-      remove (buffer);
-      buffer = null;
     }
     if (v_queue != null) {
       remove (v_queue);

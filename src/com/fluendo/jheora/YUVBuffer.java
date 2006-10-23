@@ -81,11 +81,16 @@ public class YUVBuffer implements ImageProducer
 
     int size = width * height;
 
-    if (size != pix_size) {
-      pixels = new int[size];
-      pix_size = size;
+    try {
+      if (size != pix_size) {
+        pixels = new int[size];
+        pix_size = size;
+      }
+      YUVtoRGB(x, y, width, height);
     }
-    YUVtoRGB(x, y, width, height);
+    catch (Throwable t) {
+      /* ignore */
+    }
     newPixels = false;
   }
 

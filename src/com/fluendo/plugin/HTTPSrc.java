@@ -142,8 +142,12 @@ public class HTTPSrc extends Element
 	data.setFlag (com.fluendo.jst.Buffer.FLAG_DISCONT, discont);
 	discont = false;
         if ((ret = push(data)) != OK) {
+	  if (isFlowFatal(ret) || ret == Pad.NOT_LINKED) {
+	    postMessage (Message.newError (this, "error: "+getFlowName (ret)));
+	  }
 	  postMessage (Message.newStreamStatus (this, false, ret, "reason: "+getFlowName (ret)));
 	  pauseTask();
+	  pushEvent (Event.newEOS());
         }
       }
     }

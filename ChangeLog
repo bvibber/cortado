@@ -1,5 +1,21 @@
 2006-10-23  Wim Taymans  <wim@fluendo.com>
 
+	* src/com/fluendo/jheora/YUVBuffer.java:
+	(YUVBuffer.prepareRGBData):
+	Catch Exceptions while doing color conversions. Fixes #283.
+
+	* src/com/fluendo/player/Cortado.java: (Cortado..handleMessage):
+	Don't overwrite error messages.
+
+	* src/com/fluendo/player/CortadoPipeline.java:
+	(CortadoPipeline.buildMultipart), (CortadoPipeline.cleanup):
+	Post an error when the media type cannot be found.
+
+	* src/com/fluendo/plugin/HTTPSrc.java: (HTTPSrc.Pad):
+	Post an error when streaming stops.
+
+2006-10-23  Wim Taymans  <wim@fluendo.com>
+
 	* src/com/fluendo/player/Cortado.java: (Cortado..handleMessage):
 	Make sure we never overwrite error messages. Fixes #351.
 
