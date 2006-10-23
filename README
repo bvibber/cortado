@@ -155,6 +155,13 @@ parameters:
 	      show will always show the status area.
 	      (default auto)
 
+  hideTimeout: int 
+              Timeout in seconds to hide the status area when showStatus is
+	      auto. This timeout is to make sure that the status area is visible
+	      for the first timeout seconds of playback so that the user can see
+	      that there is a clickable status area too.
+	      (default 0)
+
   bufferSize: int
               The size of the network buffer, in KB.
               A good value is max Kbps of the stream * 33

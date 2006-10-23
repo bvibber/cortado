@@ -63,6 +63,9 @@ public class Cortado extends Applet implements Runnable, MouseMotionListener,
     private static final int STATUS_AUTO = 0;
     private static final int STATUS_SHOW = 1;
     private static final int STATUS_HIDE = 2;
+    private int hideTimeout;
+    private int hideCounter;
+    private boolean mayHide;
 
     private PopupMenu menu;
 
@@ -159,6 +162,7 @@ public class Cortado extends Applet implements Runnable, MouseMotionListener,
         statusHeight = Integer.valueOf(getParam("statusHeight", "12")).intValue();
         autoPlay = String.valueOf(getParam("autoPlay", "true")).equals( "true");
         showStatus = getEnum("showStatus", showStatusVals, "auto");
+        hideTimeout = Integer.valueOf(getParam("hideTimeout", "0")).intValue();
         keepAspect = String.valueOf(getParam("keepAspect", "true")).equals(
                 "true");
         bufferSize = Integer.valueOf(getParam("bufferSize", "200")).intValue();
@@ -201,6 +205,8 @@ public class Cortado extends Applet implements Runnable, MouseMotionListener,
         status.setSeekable(seekable);
         status.setDuration(duration);
         inStatus = false;
+        mayHide = (hideTimeout == 0);
+	hideCounter = 0;
 	if (showStatus != STATUS_HIDE) {
           status.setVisible(true);
 	}
@@ -257,9 +263,18 @@ public class Cortado extends Applet implements Runnable, MouseMotionListener,
         Debug.log(Debug.INFO, "entering status thread");
         while (statusRunning) {
             try {
-                status.setTime(pipeline.getPosition() / Clock.SECOND);
+		long now = pipeline.getPosition() / Clock.SECOND;
+                status.setTime(now);
 
                 Thread.sleep(1000);
+
+		if (hideCounter > 0) {
+	          hideCounter--;
+		  if (hideCounter == 0) {
+	            mayHide = true;
+                    setStatusVisible(false, false);
+		  }
+		}
             } catch (Exception e) {
                 if (statusRunning)
                     e.printStackTrace();
@@ -287,6 +302,10 @@ public class Cortado extends Applet implements Runnable, MouseMotionListener,
     private void setStatusVisible(boolean b, boolean force) {
         /* no change, do nothing */
         if (status.isVisible() == b)
+            return;
+
+	/* refuse to hide when hideTimeout did not expire */
+	if (!b && !mayHide)
             return;
 
 	if (!force) {
@@ -445,6 +464,8 @@ public class Cortado extends Applet implements Runnable, MouseMotionListener,
 		    if (!isError && !isEOS) {
                       status.setMessage("Playing");
                       setStatusVisible(false, false);
+		      if (!mayHide)
+		        hideCounter = hideTimeout;
 		    }
                     status.setState(Status.STATE_PLAYING);
                     break;
@@ -482,7 +503,9 @@ public class Cortado extends Applet implements Runnable, MouseMotionListener,
     public void doStop() {
       status.setMessage("Stop");
       desiredState = Element.STOP;
+      pipeline.setState(desiredState);
     }
+
     public void doSeek(double aPos) {
       boolean res;
       com.fluendo.jst.Event event;
