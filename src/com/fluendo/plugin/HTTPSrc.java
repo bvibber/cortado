@@ -192,12 +192,21 @@ public class HTTPSrc extends Element
 
     try {
       URL url;
+      boolean isAbsolute;
+
       postMessage(Message.newResource (this, "Opening "+urlString));
       Debug.log(Debug.INFO, "reading from url "+urlString);
-      if (documentBase != null)
+
+      /* IE fails parsing absolute urls in an absolute context; it adds some
+       * random slashes. We workaround this by checking if the urlString is
+       * absolute and avoid the documentBase parsing */
+      isAbsolute = urlString.startsWith("http://");
+
+      if (!isAbsolute && documentBase != null)
         url = new URL(documentBase, urlString);
       else
         url = new URL(urlString);
+
       Debug.log(Debug.INFO, "trying to open "+url);
       URLConnection uc = url.openConnection();
       if (userId != null && password != null) {

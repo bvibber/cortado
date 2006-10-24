@@ -1,5 +1,13 @@
 2006-10-24  Wim Taymans  <wim@fluendo.com>
 
+	* src/com/fluendo/jst/Sink.java: (Sink.Pad):
+	Add needed locks.
+
+	* src/com/fluendo/plugin/HTTPSrc.java: (HTTPSrc.getInputStream):
+	Work around IE bug of parsing absolute URLS in a documentBase.
+
+2006-10-24  Wim Taymans  <wim@fluendo.com>
+
 	* src/com/fluendo/plugin/HTTPSrc.java: (HTTPSrc.Pad):
 	Only push EOS on fatal errors so we don't screw up seeking.
 

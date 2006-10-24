@@ -138,7 +138,9 @@ public abstract class Sink extends Element
 	  }
 	  break;
         case Event.FLUSH_STOP:
-	  sink.flushing = false;
+	  synchronized (sink) {
+	    sink.flushing = false;
+	  }
 	  break;
         case Event.NEWSEGMENT:
 	  int segFmt = event.parseNewsegmentFormat();
@@ -149,9 +151,11 @@ public abstract class Sink extends Element
 	  }
 	  break;
         case Event.EOS:
-	  isEOS = true;
-	  Debug.log(Debug.INFO, this+" got EOS");
-	  postMessage (Message.newEOS (parent));
+          synchronized (prerollLock) {
+	    isEOS = true;
+	    Debug.log(Debug.INFO, this+" got EOS");
+	    postMessage (Message.newEOS (parent));
+	  }
 	  break;
 	default:
 	  break;
