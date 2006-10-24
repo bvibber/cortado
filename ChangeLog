@@ -1,5 +1,10 @@
 2006-10-24  Wim Taymans  <wim@fluendo.com>
 
+	* src/com/fluendo/player/Status.java: (Status.paint):
+	Don't crash on null pointers.
+
+2006-10-24  Wim Taymans  <wim@fluendo.com>
+
 	* src/com/fluendo/jst/Pad.java: (Pad.run), (Pad), (Pad.startTask),
 	(Pad.pauseTask):
 	Catch and report Exceptions exiting the taskFunc instead of stopping the

@@ -241,7 +241,11 @@ public class Status extends Component implements MouseListener,
         r = getBounds();
 
         Image img = component.createImage(r.width, r.height);
+	if (img == null)
+          return;
         Graphics g2 = img.getGraphics();
+	if (g2 == null)
+          return;
         g2.setFont(font);
 
         paintBox(g2);
