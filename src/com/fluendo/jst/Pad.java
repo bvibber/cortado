@@ -56,6 +56,7 @@ public class Pad extends com.fluendo.jst.Object implements Runnable
   private static final int T_START = 2;
   private Thread thread;
   private int taskState;
+
   public static final boolean isFlowFatal (int ret) 
   {
     return ret <= UNEXPECTED;
@@ -331,12 +332,12 @@ public class Pad extends com.fluendo.jst.Object implements Runnable
     }
   }
 
-  public boolean startTask()
+  public boolean startTask(String name)
   {
     synchronized (streamLock) {
       taskState = T_START;
       if (thread == null) {
-        thread = new Thread(this);
+        thread = new Thread(this, name);
         thread.start();
       }
       streamLock.notify();

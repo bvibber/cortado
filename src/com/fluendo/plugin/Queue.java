@@ -165,15 +165,13 @@ public class Queue extends Element
 	     * high watermark */
 	    if (!isBuffer) {
 	      isBuffering = false;
-	      postMessage (Message.newStreamStatus (this, true, Pad.OK, "activating"));
-              res = startTask();
 	    }
 	    else {
 	      isBuffering = true;
 	      postMessage (Message.newBuffering (this, true, 0)); 
-	      postMessage (Message.newStreamStatus (this, true, Pad.OK, "activating"));
-              res = startTask();
 	    }
+	    postMessage (Message.newStreamStatus (this, true, Pad.OK, "activating"));
+            res = startTask("cortado-Queue-Stream-"+Debug.genId());
 	  }
           break;
         default:
@@ -216,16 +214,12 @@ public class Queue extends Element
 	     srcResult = OK;
 	     queue.notifyAll();
 	   }
-	   if (!isBuffer) {
-	     postMessage (Message.newStreamStatus (srcpad, true, Pad.OK, "restart after flush"));
-	     srcpad.startTask();
-	   }
-	   else {
+	   if (isBuffer) {
 	     isBuffering = true;
-	     postMessage (Message.newStreamStatus (srcpad, true, Pad.OK, "restart after flush"));
 	     postMessage (Message.newBuffering (this, true, 0)); 
-	     srcpad.startTask();
 	   }
+	   postMessage (Message.newStreamStatus (srcpad, true, Pad.OK, "restart after flush"));
+           srcpad.startTask("cortado-Queue-Stream-"+Debug.genId());
 	   doQueue = false;
 	   break;
         case Event.EOS:

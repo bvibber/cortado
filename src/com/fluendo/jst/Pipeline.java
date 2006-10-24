@@ -31,7 +31,7 @@ public class Pipeline extends com.fluendo.jst.Element implements BusSyncHandler
   protected Vector messages = new Vector();
 
   protected Bus internalBus;
-  private Thread busThread;
+  private BusThread busThread;
 
   private StateThread stateThread;
   private boolean stateDirty = false;
@@ -46,17 +46,18 @@ public class Pipeline extends com.fluendo.jst.Element implements BusSyncHandler
 
     public BusThread (Bus bus)
     {
+      super("cortado-BusThread-"+Debug.genId());
       this.bus = bus;
       stopping = false;
     }
-    public synchronized void run() {
+    public void run() {
       while (!stopping) {
         bus.waitAndDispatch ();
       }
     }
-    public synchronized void shutDown() {
+    public void shutDown() {
       stopping = true;
-      bus.unblockPoll();
+      bus.setFlushing(true);
     }
   }
 
@@ -67,26 +68,33 @@ public class Pipeline extends com.fluendo.jst.Element implements BusSyncHandler
 
     public StateThread ()
     {
+      super("cortado-StateThread-"+Debug.genId());
       stopping = false;
       stateDirty = false;
     }
     public void run() {
       while (!stopping) {
         synchronized (this) {
-          while (!stateDirty) {
+          while (!stateDirty && !stopping) {
 	    try {
               wait();
 	    } catch (InterruptedException e) {}
 	  }
           stateDirty = false;
         }
-        synchronized (stateLock) {
-          reCalcState(false);
-        }
+	if (!stopping) {
+          synchronized (stateLock) {
+            reCalcState(false);
+          }
+	}
       }
     }
     public synchronized void stateDirty() {
       stateDirty = true;
+      notifyAll ();
+    }
+    public synchronized void shutDown() {
+      stopping = true;
       notifyAll ();
     }
   }
@@ -112,6 +120,27 @@ public class Pipeline extends com.fluendo.jst.Element implements BusSyncHandler
     busThread.start();
     stateThread = new StateThread();
     stateThread.start();
+  }
+
+  public synchronized void shutDown() {
+    if (stateThread != null) {
+      stateThread.shutDown();
+      try {
+        stateThread.join();
+      }
+      catch (InterruptedException ie) {
+      }
+      stateThread = null;
+    }
+    if (busThread != null) {
+      busThread.shutDown();
+      try {
+        busThread.join();
+      }
+      catch (InterruptedException ie) {
+      }
+      busThread = null;
+    }
   }
 
   public void useClock(Clock clock) {

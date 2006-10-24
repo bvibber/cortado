@@ -1,5 +1,25 @@
 2006-10-24  Wim Taymans  <wim@fluendo.com>
 
+	* src/com/fluendo/jst/Bus.java: (Bus), (Bus.post), (Bus.poll):
+	Implement flush().
+
+	* src/com/fluendo/jst/Pipeline.java: (Pipeline),
+	(Pipeline.BusThread), (Pipeline.StateThread), (Pipeline.Pipeline):
+	cleanup threads.
+
+	* src/com/fluendo/jst/Pad.java: (Pad), (Pad.run):
+	* src/com/fluendo/player/Cortado.java: (Cortado..start):
+	* src/com/fluendo/plugin/HTTPSrc.java: (HTTPSrc.Pad),
+	(HTTPSrc.getInputStream):
+	* src/com/fluendo/plugin/Queue.java: (Queue.Pad):
+	Give Threads a name.
+	Don't send range for offset 0.
+
+	* src/com/fluendo/utils/Debug.java: (Debug):
+	Add code to generate unique ids.
+
+2006-10-24  Wim Taymans  <wim@fluendo.com>
+
 	* src/com/fluendo/jst/Sink.java: (Sink.Pad):
 	Add needed locks.
 

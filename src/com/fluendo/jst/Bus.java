@@ -23,11 +23,13 @@ import java.util.*;
 public class Bus {
   private Vector queue;
   private Vector handlers;
+  private boolean flushing;
   private BusSyncHandler syncHandler;
 
   public Bus() {
     queue = new Vector();
     handlers = new Vector();
+    flushing = false;
   }
 
   public synchronized void addHandler (BusHandler handler) {
@@ -54,33 +56,35 @@ public class Bus {
     BusSyncHandler handler;
 
     synchronized (this) {
+      if (flushing)
+	return;
       handler = syncHandler;
     }
     post = (handler == null || handler.handleSyncMessage (message) == BusSyncHandler.PASS);
 
     synchronized (this) {
-      if (post) {
+      if (post && !flushing) {
         queue.addElement (message);
         notifyAll();
       }
     }
   }
   public synchronized Message peek() {
-    if (queue.isEmpty())
+    if (queue.isEmpty() || flushing)
       return null;
     return (Message) queue.firstElement();
   }
   public synchronized Message pop() {
     Message ret;
 
-    if (queue.isEmpty())
+    if (queue.isEmpty() || flushing)
       return null;
     ret = (Message) queue.elementAt(0);
     queue.removeElementAt(0);
     return ret;
   }
   public synchronized Message poll(long timeout) {
-    if (queue.isEmpty()) {
+    if (queue.isEmpty() && !flushing) {
       try {
         wait(timeout);
       }
@@ -88,7 +92,9 @@ public class Bus {
     }
     return pop();
   }
-  public synchronized void unblockPoll() {
+  public synchronized void setFlushing (boolean flush) {
+    flushing = flush;
+    queue.setSize(0);
     notifyAll();
   }
   public void waitAndDispatch() {

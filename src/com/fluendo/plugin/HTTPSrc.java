@@ -75,7 +75,7 @@ public class HTTPSrc extends Element
 
         if (result) {
 	  postMessage (Message.newStreamStatus (this, true, Pad.OK, "restart after seek"));
-	  result = startTask();
+	  result = startTask("cortado-HTTPSrc-Stream-"+Debug.genId());
 	}
       }
       return result;
@@ -175,7 +175,7 @@ public class HTTPSrc extends Element
 	  }
 	  if (res) {
 	    postMessage (Message.newStreamStatus (this, true, Pad.OK, "activating"));
-	    res = startTask();
+	    res = startTask("cortado-HTTPSrc-Stream-"+Debug.genId());
 	  }
 	  break;
 	default:
@@ -202,19 +202,29 @@ public class HTTPSrc extends Element
        * absolute and avoid the documentBase parsing */
       isAbsolute = urlString.startsWith("http://");
 
-      if (!isAbsolute && documentBase != null)
+      if (!isAbsolute && documentBase != null) {
+        Debug.log(Debug.INFO, "parsing in document base");
         url = new URL(documentBase, urlString);
-      else
+      }
+      else {
+        Debug.log(Debug.INFO, "parsing as abslute URL");
         url = new URL(urlString);
+      }
 
       Debug.log(Debug.INFO, "trying to open "+url);
       URLConnection uc = url.openConnection();
+      uc.setUseCaches(false);
+      /* avoid IE sending double slashes */
+      uc.setRequestProperty("content-type","application/octet-stream");
+
       if (userId != null && password != null) {
         String userPassword = userId + ":" + password;
         String encoding = Base64Converter.encode (userPassword.getBytes());
         uc.setRequestProperty ("Authorization", "Basic " + encoding);
       }
-      uc.setRequestProperty ("Range", "bytes=" + offset+"-");
+      if (offset != 0) {
+        uc.setRequestProperty ("Range", "bytes=" + offset+"-");
+      }
       /* FIXME, do typefind ? */
       dis = uc.getInputStream();
       contentLength = uc.getHeaderFieldInt ("Content-Length", 0) + offset;

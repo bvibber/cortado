@@ -27,6 +27,14 @@ public class Debug {
 
   public static int level = INFO;
 
+  /* static id counter */
+  private static int counter = 0;
+  public static final int genId() {
+    synchronized (Debug.class) {
+      return counter++;
+    }
+  }
+
   public static final String[] prefix = {
        "[NONE] ",
        "[ERRO] ",
