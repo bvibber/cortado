@@ -327,7 +327,12 @@ public class Pad extends com.fluendo.jst.Object implements Runnable
         if (taskState == T_STOP) 
 	  break;
 
-        taskFunc();
+	try {
+          taskFunc();
+	}
+	catch (Throwable t) {
+          t.printStackTrace();
+	}
       }
     }
   }
@@ -340,7 +345,7 @@ public class Pad extends com.fluendo.jst.Object implements Runnable
         thread = new Thread(this, name);
         thread.start();
       }
-      streamLock.notify();
+      streamLock.notifyAll();
     }
     return true;
   }
@@ -352,15 +357,18 @@ public class Pad extends com.fluendo.jst.Object implements Runnable
 
   public boolean stopTask()
   {
+    Thread t;
+
     taskState = T_STOP;
     synchronized (streamLock) {
-      streamLock.notify();
+      streamLock.notifyAll();
+      t = thread;
+      thread = null;
     }
     try {
-      thread.join();
+      t.join();
     }
     catch (InterruptedException ie) {}
-    thread = null;
 
     return true;
   }

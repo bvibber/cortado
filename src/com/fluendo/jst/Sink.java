@@ -47,7 +47,13 @@ public abstract class Sink extends Element
         if (needPreroll) {
 
 	  havePreroll = true;
-          preroll (buf);
+          try {
+            res = preroll (buf);
+	  }
+	  catch (Throwable t) {
+	    postMessage (Message.newError (this, "preroll exception: "+t.getMessage()));
+	    return Pad.ERROR;
+	  }
 
 	  boolean postPause = false;
 	  boolean postPlaying = false;
@@ -189,7 +195,13 @@ public abstract class Sink extends Element
       switch (status) {
         case Clock.EARLY:
         case Clock.OK:
-          res = render (buf);
+          try {
+            res = render (buf);
+	  }
+	  catch (Throwable t) {
+	    postMessage (Message.newError (this, "render exception: "+t.getMessage()));
+	    res = Pad.ERROR;
+	  }
 	  break;
 	default:
 	  res = Pad.OK;

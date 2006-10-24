@@ -456,6 +456,9 @@ public class CortadoPipeline extends Pipeline implements PadListener, CapsListen
     if (event.parseSeekFormat() != Format.PERCENT)
       return false;
 
+    if (httpsrc == null)
+      return false;
+
     res = httpsrc.getPad("src").sendEvent (event);
     getState(null, null, 50 * Clock.MSECOND);
 

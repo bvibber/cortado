@@ -151,6 +151,8 @@ public class Cortado extends Applet implements Runnable, MouseMotionListener,
     public synchronized void init() {
         cortado = this;
 
+	System.out.println("init()");
+
 	if (pipeline != null)
           stop();
 
@@ -546,6 +548,8 @@ public class Cortado extends Applet implements Runnable, MouseMotionListener,
     public synchronized void start() {
         int res;
 
+	System.out.println("start()");
+
         addMouseListener(this);
         addMouseMotionListener(this);
         status.addStatusListener(this);
@@ -566,11 +570,15 @@ public class Cortado extends Applet implements Runnable, MouseMotionListener,
     }
 
     public synchronized void stop() {
+	System.out.println("stop()");
 	statusRunning = false;
         desiredState = Element.STOP;
 	if (pipeline != null) {
+	  System.out.println("pipeline stop");
           pipeline.setState(desiredState);
+	  System.out.println("pipeline shutdown");
           pipeline.shutDown();
+	  System.out.println("pipeline stopped");
 	  pipeline = null;
 	}
         if (statusThread != null) {

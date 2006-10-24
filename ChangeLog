@@ -1,5 +1,24 @@
 2006-10-24  Wim Taymans  <wim@fluendo.com>
 
+	* src/com/fluendo/jst/Pad.java: (Pad.run), (Pad), (Pad.startTask),
+	(Pad.pauseTask):
+	Catch and report Exceptions exiting the taskFunc instead of stopping the
+	task.
+	Fix possible race in shutting down a task.
+
+	* src/com/fluendo/jst/Sink.java: (Sink.Pad):
+	Catch prerol/render Exception and post an error.
+
+	* src/com/fluendo/player/Cortado.java: (Cortado..init),
+	(Cortado..newSeek), (Cortado.), (Cortado..start):
+	Add some more debug info.
+
+	* src/com/fluendo/player/CortadoPipeline.java:
+	(CortadoPipeline.doSendEvent):
+	Refuse a seek when we are not ready yet
+
+2006-10-24  Wim Taymans  <wim@fluendo.com>
+
 	* src/com/fluendo/jst/Object.java: (Object.Object):
 	Call super constructor
 
