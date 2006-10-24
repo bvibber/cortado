@@ -213,18 +213,19 @@ public class HTTPSrc extends Element
 
       Debug.log(Debug.INFO, "trying to open "+url);
       URLConnection uc = url.openConnection();
-      uc.setUseCaches(false);
-      /* avoid IE sending double slashes */
-      uc.setRequestProperty("content-type","application/octet-stream");
 
+      /* avoid IE sending double slashes */
+      uc.setRequestProperty ("Connection", "Keep-Alive");
+      uc.setRequestProperty ("Range", "bytes=" + offset+"-");
+      uc.setRequestProperty ("User-Agent", "Cortado");
       if (userId != null && password != null) {
         String userPassword = userId + ":" + password;
         String encoding = Base64Converter.encode (userPassword.getBytes());
         uc.setRequestProperty ("Authorization", "Basic " + encoding);
       }
-      if (offset != 0) {
-        uc.setRequestProperty ("Range", "bytes=" + offset+"-");
-      }
+      uc.setRequestProperty ("Content-Type","application/octet-stream");
+      uc.connect();
+
       /* FIXME, do typefind ? */
       dis = uc.getInputStream();
       contentLength = uc.getHeaderFieldInt ("Content-Length", 0) + offset;

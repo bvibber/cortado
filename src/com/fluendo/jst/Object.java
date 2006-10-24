@@ -36,6 +36,7 @@ public abstract class Object
     this("unnamed");
   }
   public Object(String name) {
+    super();
     this.name = name;
     parent = null;
   }

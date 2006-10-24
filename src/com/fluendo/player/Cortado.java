@@ -142,14 +142,17 @@ public class Cortado extends Applet implements Runnable, MouseMotionListener,
       return 0;
     }
 
-    public static void shutdown(Throwable error) {
+    public static void shutDown(Throwable error) {
         Debug.log(Debug.INFO, "shutting down: reason: " + error.getMessage());
         error.printStackTrace();
         cortado.stop();
     }
 
-    public void init() {
+    public synchronized void init() {
         cortado = this;
+
+	if (pipeline != null)
+          stop();
 
         pipeline = new CortadoPipeline();
         configure = new Configure();
@@ -163,8 +166,7 @@ public class Cortado extends Applet implements Runnable, MouseMotionListener,
         autoPlay = String.valueOf(getParam("autoPlay", "true")).equals( "true");
         showStatus = getEnum("showStatus", showStatusVals, "auto");
         hideTimeout = Integer.valueOf(getParam("hideTimeout", "0")).intValue();
-        keepAspect = String.valueOf(getParam("keepAspect", "true")).equals(
-                "true");
+        keepAspect = String.valueOf(getParam("keepAspect", "true")).equals("true");
         bufferSize = Integer.valueOf(getParam("bufferSize", "200")).intValue();
         bufferLow = Integer.valueOf(getParam("bufferLow", "10")).intValue();
         bufferHigh = Integer.valueOf(getParam("bufferHigh", "70")).intValue();
@@ -229,10 +231,10 @@ public class Cortado extends Applet implements Runnable, MouseMotionListener,
         }
     }
 
-    public synchronized Graphics getGraphics() {
+    public Graphics getGraphics() {
         Graphics g = super.getGraphics();
 
-        if (status.isVisible()) {
+        if (status != null && status.isVisible()) {
             g.setClip(0, 0, getSize().width, getSize().height - statusHeight);
         } else {
             g.setClip(0, 0, getSize().width, getSize().height);
@@ -240,14 +242,14 @@ public class Cortado extends Applet implements Runnable, MouseMotionListener,
         return g;
     }
 
-    public synchronized Dimension getSize() {
+    public Dimension getSize() {
         if (appletDimension == null)
             appletDimension = super.getSize();
 
         return appletDimension;
     }
 
-    public synchronized void update(Graphics g) {
+    public void update(Graphics g) {
         paint(g);
     }
 
@@ -255,7 +257,7 @@ public class Cortado extends Applet implements Runnable, MouseMotionListener,
         try {
             realRun();
         } catch (Throwable t) {
-            Cortado.shutdown(t);
+            Cortado.shutDown(t);
         }
     }
 
@@ -283,7 +285,7 @@ public class Cortado extends Applet implements Runnable, MouseMotionListener,
         Debug.log(Debug.INFO, "exit status thread");
     }
 
-    public synchronized void paint(Graphics g) {
+    public void paint(Graphics g) {
         int dwidth = getSize().width;
         int dheight = getSize().height;
 
@@ -541,7 +543,7 @@ public class Cortado extends Applet implements Runnable, MouseMotionListener,
       doSeek (aPos);
     }
 
-    public void start() {
+    public synchronized void start() {
         int res;
 
         addMouseListener(this);
@@ -555,12 +557,15 @@ public class Cortado extends Applet implements Runnable, MouseMotionListener,
 
         res = pipeline.setState(desiredState);
 
-	statusRunning = true;
+	if (statusThread != null)
+          throw new RuntimeException ("invalid state");
+
         statusThread = new Thread(this, "cortado-StatusThread-"+Debug.genId());
+	statusRunning = true;
         statusThread.start();
     }
 
-    public void stop() {
+    public synchronized void stop() {
 	statusRunning = false;
         desiredState = Element.STOP;
 	if (pipeline != null) {

@@ -1,5 +1,22 @@
 2006-10-24  Wim Taymans  <wim@fluendo.com>
 
+	* src/com/fluendo/jst/Object.java: (Object.Object):
+	Call super constructor
+
+	* src/com/fluendo/player/Cortado.java: (Cortado..getEnum),
+	(Cortado..init), (Cortado..actionPerformed),
+	(Cortado..getGraphics), (Cortado.), (Cortado..run),
+	(Cortado..realRun), (Cortado..newState), (Cortado..newSeek),
+	(Cortado..start):
+	Remove a bunch of synchronized calls that could potentially lock
+	up the AWT thread.
+	Add synchronized calls to init/start/stop
+
+	* src/com/fluendo/plugin/HTTPSrc.java: (HTTPSrc.getInputStream):
+	Do some stuff differently.
+
+2006-10-24  Wim Taymans  <wim@fluendo.com>
+
 	* src/com/fluendo/jst/Bus.java: (Bus), (Bus.post), (Bus.poll):
 	Implement flush().
 
