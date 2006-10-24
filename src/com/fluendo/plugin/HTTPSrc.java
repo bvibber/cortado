@@ -144,10 +144,10 @@ public class HTTPSrc extends Element
         if ((ret = push(data)) != OK) {
 	  if (isFlowFatal(ret) || ret == Pad.NOT_LINKED) {
 	    postMessage (Message.newError (this, "error: "+getFlowName (ret)));
+	    pushEvent (Event.newEOS());
 	  }
 	  postMessage (Message.newStreamStatus (this, false, ret, "reason: "+getFlowName (ret)));
 	  pauseTask();
-	  pushEvent (Event.newEOS());
         }
       }
     }
