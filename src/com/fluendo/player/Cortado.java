@@ -78,6 +78,9 @@ public class Cortado extends Applet implements Runnable, MouseMotionListener,
     public String getAppletInfo() {
         return "Title: Fluendo media player \nAuthor: Wim Taymans \nA Java based network multimedia player.";
     }
+    public String getRevision() {
+        return "$Revision$";
+    }
 
     public String[][] getParameterInfo() {
         String[][] info = {
@@ -178,6 +181,7 @@ public class Cortado extends Applet implements Runnable, MouseMotionListener,
 
         Debug.level = debug;
         Debug.log(Debug.INFO, "build info: " + configure.buildInfo);
+        Debug.log(Debug.INFO, "revision: " + getRevision());
 
         pipeline.setUrl(urlString);
         pipeline.setUserId(userId);
@@ -618,6 +622,10 @@ class AppFrame extends Frame
 
 class AboutFrame extends AppFrame { 
   Dialog d; 
+
+    public String getRevision() {
+        return "$Revision$";
+    }
  
   public AboutFrame(CortadoPipeline pipeline) { 
     super("AboutFrame"); 
@@ -636,6 +644,7 @@ class AboutFrame extends AppFrame {
     ta.appendText("(C) Copyright 2004,2005,2006 Fluendo\n\n");
     ta.appendText("Built on " + configure.buildDate + "\n");
     ta.appendText("Built in " + configure.buildType + " mode.\n");
+    ta.appendText("Built from SVN revision " + getRevision() + "\n");
     ta.appendText("Running on Java VM " + System.getProperty("java.version")
                   + " from " + System.getProperty("java.vendor") + "\n");
 
