@@ -58,6 +58,11 @@ public class VideoSink extends Sink
       width = width * aspect_x / aspect_y;
     }
 
+    /* in applets, setSize() is not supposed to do anything, you can't resize
+     * the applet. Except in MS JVM, where the size does not change but the
+     * getSize() call returns different results. This screws up our layout.
+     * FIXME, probably do something smarter here so that it still works when we
+     * actually can resize the component. */
     //component.setSize (width, height);
     component.setVisible(true);
 
