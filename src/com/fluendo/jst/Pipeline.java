@@ -125,22 +125,10 @@ public class Pipeline extends com.fluendo.jst.Element implements BusSyncHandler
   public synchronized void shutDown() {
     if (stateThread != null) {
       stateThread.shutDown();
-      try {
-        stateThread.join();
-      }
-      catch (InterruptedException ie) {
-      }
       stateThread = null;
     }
     if (busThread != null) {
       busThread.shutDown();
-      /* Don't join, it's too dangerous for now. 
-      try {
-        busThread.join();
-      }
-      catch (InterruptedException ie) {
-      }
-      */
       busThread = null;
     }
   }

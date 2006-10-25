@@ -1,5 +1,11 @@
 2006-10-25  Wim Taymans  <wim@fluendo.com>
 
+	* src/com/fluendo/jst/Pipeline.java: (Pipeline.shutDown):
+	Don't join the state thread, it might be performing a callback when
+	being joined.
+
+2006-10-25  Wim Taymans  <wim@fluendo.com>
+
 	* src/com/fluendo/jst/Pad.java: (Pad), (Pad.pauseTask):
 	Take lock a little differently.
 
