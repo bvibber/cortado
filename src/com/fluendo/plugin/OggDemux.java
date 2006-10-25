@@ -114,6 +114,7 @@ public class OggDemux extends Element
       if (!active)
         return;
 
+      Debug.log(Debug.DEBUG, this+" pushing segment start "+firstTs);
       pushEvent (Event.newNewsegment (false, Format.TIME, firstTs, -1, firstTs));
 
       if (!sentHeaders) {
@@ -127,6 +128,8 @@ public class OggDemux extends Element
       }
       for (int i=0; i<queue.size(); i++) {
         com.fluendo.jst.Buffer buf = (com.fluendo.jst.Buffer) queue.elementAt(i);
+	if (i == 0)
+          Debug.log(Debug.DEBUG, this+" pushing first data buffer: "+buf.timestamp);
         buf.setFlag (com.fluendo.jst.Buffer.FLAG_DISCONT, discont);
 	discont = false;
 	push (buf);

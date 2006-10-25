@@ -1,5 +1,17 @@
 2006-10-25  Wim Taymans  <wim@fluendo.com>
 
+	* src/com/fluendo/jst/Pad.java: (Pad), (Pad.pauseTask):
+	Take lock a little differently.
+
+	* src/com/fluendo/jst/Pipeline.java: (Pipeline.shutDown):
+	Don't try to join the bus thread as this might cause a deadly embrace.
+
+	* src/com/fluendo/plugin/OggDemux.java:
+	(OggDemux.....OggStream.reStart):
+	Add some debug for the segment/timestamps
+
+2006-10-25  Wim Taymans  <wim@fluendo.com>
+
 	* src/com/fluendo/jst/Pad.java: (Pad.startTask):
 	Avoid deadly embrace, the variable is now unprotected but that is fine.
 
