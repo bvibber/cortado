@@ -1,5 +1,14 @@
 2006-10-25  Wim Taymans  <wim@fluendo.com>
 
+	* src/com/fluendo/jst/Pipeline.java: (Pipeline.doChildStateChange):
+	More DEBUG.
+
+	* src/com/fluendo/plugin/OggDemux.java:
+	(OggDemux.....OggStream.Pad):
+	Make sure the streaming thread is not running when we do our cleanup.
+
+2006-10-25  Wim Taymans  <wim@fluendo.com>
+
 	* src/com/fluendo/jst/Pipeline.java: (Pipeline.shutDown):
 	Don't join the state thread, it might be performing a callback when
 	being joined.

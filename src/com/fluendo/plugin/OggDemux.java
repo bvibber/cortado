@@ -499,10 +499,12 @@ public class OggDemux extends Element
     protected boolean activateFunc (int mode) 
     {
       if (mode == MODE_NONE) {
-	oy.reset();
-	if (chain != null) {
-	  chain.deActivate();
-	  chain = null;
+	synchronized (sinkPad) {
+	  oy.reset();
+	  if (chain != null) {
+	    chain.deActivate();
+	    chain = null;
+	  }
 	}
       }
       return true;
