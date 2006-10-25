@@ -1,5 +1,10 @@
 2006-10-25  Wim Taymans  <wim@fluendo.com>
 
+	* src/com/fluendo/plugin/VideoSink.java: (VideoSink.setCapsFunc):
+	Don't mess with the component size, the parent does that for us.
+
+2006-10-25  Wim Taymans  <wim@fluendo.com>
+
 	* src/com/fluendo/jst/Pipeline.java: (Pipeline.reCalcState):
 	release lock when continuing the state change.
 

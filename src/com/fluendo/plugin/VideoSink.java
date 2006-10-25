@@ -58,7 +58,7 @@ public class VideoSink extends Sink
       width = width * aspect_x / aspect_y;
     }
 
-    component.setSize (width, height);
+    //component.setSize (width, height);
     component.setVisible(true);
 
     return true;
