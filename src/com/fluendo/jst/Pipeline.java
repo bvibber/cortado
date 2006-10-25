@@ -478,21 +478,21 @@ public class Pipeline extends com.fluendo.jst.Element implements BusSyncHandler
 
     synchronized (this) {
       polling = false;
+    }
 
-      switch (res) {
-        case SUCCESS:
-        case NO_PREROLL:
-          res = continueState(res);
-          break;
-        case ASYNC:
-	  lostState();
-          break;
-        case FAILURE:
-          abortState();
-          break;
-        default:
-          break;
-      }
+    switch (res) {
+      case SUCCESS:
+      case NO_PREROLL:
+        res = continueState(res);
+        break;
+      case ASYNC:
+	lostState();
+        break;
+      case FAILURE:
+        abortState();
+        break;
+      default:
+        break;
     }
     return;
   }
