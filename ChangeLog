@@ -1,3 +1,37 @@
+2006-10-25  Wim Taymans  <wim@fluendo.com>
+
+	* src/com/fluendo/jst/Pad.java: (Pad.startTask), (Pad.stopTask):
+	Protect task state with streamLock.
+
+	* src/com/fluendo/jst/Pipeline.java: (Pipeline.doChildStateChange):
+	* src/com/fluendo/jst/Sink.java: (Sink.changeState):
+	Add debug info for state changes.
+
+	* src/com/fluendo/player/Cortado.java: (Cortado..handleMessage):
+	Fix indentation.
+
+	* src/com/fluendo/player/Status.java: (Status.mousePressed),
+	(Status.mouseReleased), (Status.mouseMoved):
+	Don't try to seek when we are stopped.
+
+	* src/com/fluendo/plugin/AudioSink.java:
+	(AudioSink.RingBuffer.setAutoStart):
+	Fix potential deadly embracy between clock lock and ringbuffer lock.
+
+	* src/com/fluendo/plugin/AudioSinkJ2.java: (AudioSinkJ2.delay):
+	Add debug info.
+
+	* src/com/fluendo/plugin/HTTPSrc.java: (HTTPSrc.Pad),
+	(HTTPSrc.openWithConnection), (HTTPSrc), (HTTPSrc.openWithSocket),
+	(HTTPSrc.getInputStream):
+	Add more debug info.
+	Catch seek failures in a better way.
+	Add start of IE JVM compatible HTTP range requests. 
+
+	* src/com/fluendo/plugin/OggDemux.java:
+	(OggDemux.....OggStream.Pad):
+	Don't deactivate non-existing chains.
+
 2006-10-24  Thomas Vander Stichele  <thomas at apestaart dot org>
 
 	* src/com/fluendo/player/Cortado.java: (Cortado..getAppletInfo),

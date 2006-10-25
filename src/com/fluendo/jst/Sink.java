@@ -356,22 +356,28 @@ public abstract class Sink extends Element
     }
 
     presult = super.changeState(transition);
-    if (presult == FAILURE)
+    if (presult == FAILURE) {
+      Debug.log(Debug.DEBUG, this+" super state change failed");
       return presult;
+    }
 
     switch (transition) {
       case PLAY_PAUSE:
       {
         boolean checkEOS;
+        Debug.log(Debug.DEBUG, this+" play->paused");
 
         /* unlock clock */
         synchronized (this) {
 	  if (clockID != null) {
+            Debug.log(Debug.DEBUG, this+" unschedule clockID: "+ clockID);
 	    clockID.unschedule();
 	  }
 	  checkEOS = this.isEOS;
+          Debug.log(Debug.DEBUG, this+" checkEOS: "+ checkEOS);
 	}
         synchronized (prerollLock) {
+          Debug.log(Debug.DEBUG, this+" havePreroll: "+ havePreroll);
 	  if (!havePreroll && !checkEOS && pendingState == PAUSE) {
 	    needPreroll = true;
 	    result = ASYNC;

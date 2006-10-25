@@ -61,21 +61,24 @@ public class HTTPSrc extends Element
       synchronized (streamLock) {
         Debug.log(Debug.INFO, "synced "+this);
 
+	result = false;
         try {
           input = getInputStream (position);
-          result = true;
+	  if (input != null)
+            result = true;
         }
         catch (Exception e) {
 	  e.printStackTrace ();
-          result = false;
         }
         pushEvent (Event.newFlushStop());
 
-        pushEvent (Event.newNewsegment(false, Format.BYTES, position, contentLength, position));
-
         if (result) {
+          pushEvent (Event.newNewsegment(false, Format.BYTES, position, contentLength, position));
 	  postMessage (Message.newStreamStatus (this, true, Pad.OK, "restart after seek"));
 	  result = startTask("cortado-HTTPSrc-Stream-"+Debug.genId());
+	}
+	else {
+	  postMessage (Message.newError (this, "error: Seek failed"));
 	}
       }
       return result;
@@ -166,6 +169,7 @@ public class HTTPSrc extends Element
 	  break;
         case MODE_PUSH:
 	  try {
+	    contentLength = -1;
 	    input = getInputStream(0); 
 	    if (input == null)
 	      res = false;
@@ -185,6 +189,100 @@ public class HTTPSrc extends Element
       return res;
     }
   };
+
+  private InputStream openWithConnection(URL url, long offset) throws IOException
+  {
+    InputStream dis = null;
+
+    Debug.log(Debug.INFO, "trying to open "+url);
+    URLConnection uc = url.openConnection();
+
+    uc.setRequestProperty ("Connection", "Keep-Alive");
+
+    String range;
+    if (offset != 0 && contentLength != -1)
+      range = "bytes=" + offset+"-"+(contentLength-1);
+    else if (offset != 0)
+      range = "bytes=" + offset+"-";
+    else 
+      range = null;
+    if (range != null) {
+      Debug.log(Debug.INFO, "doing range: "+range);
+      uc.setRequestProperty ("Range", range);
+    }
+
+    uc.setRequestProperty ("User-Agent", "Cortado");
+    if (userId != null && password != null) {
+      String userPassword = userId + ":" + password;
+      String encoding = Base64Converter.encode (userPassword.getBytes());
+      uc.setRequestProperty ("Authorization", "Basic " + encoding);
+    }
+    uc.setRequestProperty ("Content-Type","application/octet-stream");
+
+    /* This will send the request. */
+    dis = uc.getInputStream();
+
+    contentLength = uc.getHeaderFieldInt ("Content-Length", 0) + offset;
+    mime = uc.getContentType();
+
+    return dis;
+  }
+
+  private InputStream openWithSocket(URL url, long offset) throws IOException
+  {
+    InputStream dis = null;
+
+    Debug.log(Debug.INFO, "trying to open "+url);
+
+    String hostname = url.getHost();
+    int port = url.getPort();
+    if (port == -1)
+      port = url.getDefaultPort();
+    InetAddress addr = InetAddress.getByName(hostname);
+    Socket socket = new Socket(addr, port);
+    
+    String file = url.getFile();
+    OutputStream os = socket.getOutputStream();
+
+    StringBuffer sb = new StringBuffer();
+    sb.append("GET ").append(file).append(" HTTP/1.0\r\n");
+    sb.append("Content-Type: application/octet-stream\r\n");
+    sb.append("Connection: Keep-Alive\r\n");
+    String range;
+    if (offset != 0 && contentLength != -1)
+      range = "bytes=" + offset+"-"+(contentLength-1);
+    else if (offset != 0)
+      range = "bytes=" + offset+"-";
+    else 
+      range = null;
+    if (range != null) {
+      Debug.log(Debug.INFO, "doing range: "+range);
+      sb.append("Range: ").append(range).append("\r\n");
+    }
+    sb.append ("User-Agent: Cortado\r\n");
+    if (userId != null && password != null) {
+      String userPassword = userId + ":" + password;
+      String encoding = Base64Converter.encode (userPassword.getBytes());
+      sb.append ("Authorization: Basic ").append(encoding).append("\r\n");
+    }
+    sb.append("\r\n\r\n");
+
+    /* send the request. */
+    os.write(sb.toString().getBytes());
+    os.flush();
+
+    /* read response */
+    dis = socket.getInputStream();
+
+    contentLength = 10000000;
+    mime = "application/ogg";
+    /*
+    contentLength = uc.getHeaderFieldInt ("Content-Length", 0) + offset;
+    mime = uc.getContentType();
+    */
+
+    return dis;
+  }
 
   private InputStream getInputStream (long offset) throws Exception
   {
@@ -211,26 +309,8 @@ public class HTTPSrc extends Element
         url = new URL(urlString);
       }
 
-      Debug.log(Debug.INFO, "trying to open "+url);
-      URLConnection uc = url.openConnection();
-
-      /* avoid IE sending double slashes */
-      uc.setRequestProperty ("Connection", "Keep-Alive");
-      uc.setRequestProperty ("Range", "bytes=" + offset+"-");
-      uc.setRequestProperty ("User-Agent", "Cortado");
-      if (userId != null && password != null) {
-        String userPassword = userId + ":" + password;
-        String encoding = Base64Converter.encode (userPassword.getBytes());
-        uc.setRequestProperty ("Authorization", "Basic " + encoding);
-      }
-      uc.setRequestProperty ("Content-Type","application/octet-stream");
-      uc.connect();
-
-      /* FIXME, do typefind ? */
-      dis = uc.getInputStream();
-      contentLength = uc.getHeaderFieldInt ("Content-Length", 0) + offset;
-
-      mime = uc.getContentType();
+      dis = openWithConnection(url, offset);
+      //dis = openWithSocket(url, offset);
 
       discont = true;
 
@@ -244,6 +324,10 @@ public class HTTPSrc extends Element
     }
     catch (Exception e) {
       e.printStackTrace();
+      postMessage(Message.newError (this, "Failed opening "+urlString+"..."));
+    }
+    catch (Throwable t) {
+      t.printStackTrace();
       postMessage(Message.newError (this, "Failed opening "+urlString+"..."));
     }
 

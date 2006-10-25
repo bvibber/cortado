@@ -109,8 +109,10 @@ public class AudioSinkJ2 extends AudioSink
   }
 
   protected void reset () {
+    Debug.log(Debug.DEBUG, "reset audio: "+ line);
     line.flush();
     samplesWritten = line.getFramePosition();
+    Debug.log(Debug.DEBUG, "samples written: "+ samplesWritten);
   }
 
   public String getFactoryName ()

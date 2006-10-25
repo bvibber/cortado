@@ -351,7 +351,9 @@ public class Pad extends com.fluendo.jst.Object implements Runnable
   }
   public boolean pauseTask()
   {
-    taskState = T_PAUSE;
+    synchronized (streamLock) {
+      taskState = T_PAUSE;
+    }
     return true;
   }
 
@@ -361,6 +363,7 @@ public class Pad extends com.fluendo.jst.Object implements Runnable
 
     taskState = T_STOP;
     synchronized (streamLock) {
+      taskState = T_STOP;
       streamLock.notifyAll();
       t = thread;
       thread = null;

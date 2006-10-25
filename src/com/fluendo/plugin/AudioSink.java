@@ -363,41 +363,51 @@ public abstract class AudioSink extends Sink implements ClockProvider
     public synchronized void setAutoStart (boolean start) {
       autoStart = start;
     }
-    public synchronized boolean play () {
-      if (flushing)
-        return false;
+    public boolean play () {
+      synchronized (this) {
+        if (flushing)
+          return false;
 
-      state = PLAY;
-      audioClock.setStarted(true);
-      notifyAll();
+        state = PLAY;
+        notifyAll();
+        audioClock.setStarted(true);
+        Debug.log(Debug.DEBUG, this+" playing");
+      }
       return true;
     }
-    public synchronized boolean pause () {
-      state = PAUSE;
-      notifyAll();
-      if (thread != null) {
-        try {
-          wait();
+    public boolean pause () {
+      synchronized (this) {
+        state = PAUSE;
+        Debug.log(Debug.DEBUG, this+" pausing");
+        notifyAll();
+        if (thread != null) {
+          try {
+	    Debug.log(Debug.DEBUG, this+" waiting for pause");
+            wait();
+          }
+          catch (InterruptedException ie) {}
         }
-        catch (InterruptedException ie) {}
       }
       audioClock.setStarted(false);
+      Debug.log(Debug.DEBUG, this+" paused");
       return true;
     }
     public boolean stop () {
       synchronized (this) {
         state = STOP;
+        Debug.log(Debug.DEBUG, this+" stopping");
         notifyAll();
-        audioClock.setStarted(false);
       }
-
       if (thread != null) {
         try {
+          Debug.log(Debug.DEBUG, this+" joining thread");
           thread.join();
 	  thread = null;
         }
         catch (InterruptedException ie) {}
       }
+      audioClock.setStarted(false);
+      Debug.log(Debug.DEBUG, this+" stopped");
       return true;
     }
     public synchronized int getState() {

@@ -389,7 +389,7 @@ public class Status extends Component implements MouseListener,
         if (seekable) {
             e.translatePoint(-1, -1);
             clicked = findComponent(e);
-	    if (clicked == SEEKBAR) {
+	    if (clicked == SEEKBAR && state != STATE_STOPPED) {
 	      clicked = SEEKER;
               seekColor = Color.gray;
 	      mouseDragged (e);
@@ -426,7 +426,8 @@ public class Status extends Component implements MouseListener,
                 notifyNewState(state);
                 break;
             case SEEKER:
-                notifySeek(position);
+		if (state != STATE_STOPPED)
+                  notifySeek(position);
                 break;
             case SEEKBAR:
                 break;
@@ -479,7 +480,6 @@ public class Status extends Component implements MouseListener,
                         seekColor = Color.black;
                 }
             }
-
             component.repaint();
         }
     }

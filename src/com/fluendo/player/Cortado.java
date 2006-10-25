@@ -492,16 +492,14 @@ public class Cortado extends Applet implements Runnable, MouseMotionListener,
         }
     }
 
-    public void doPause()
-    {
+    public void doPause() {
       isError = false;
       isEOS = false;
       status.setMessage("Pause");
       desiredState = Element.PAUSE;
       pipeline.setState(desiredState);
     }
-    public void doPlay()
-    {
+    public void doPlay() {
       isError = false;
       isEOS = false;
       status.setMessage("Play");
