@@ -199,7 +199,7 @@ public class Queue extends Element
 	     queue.notifyAll();
 	   }
 	   synchronized (streamLock) {
-	     Debug.log(Debug.INFO, "synced "+this);
+	     Debug.log(Debug.DEBUG, this+" synced");
 	   }
 	   postMessage (Message.newStreamStatus (srcpad, false, Pad.WRONG_STATE, "flush start"));
 	   srcpad.pauseTask();

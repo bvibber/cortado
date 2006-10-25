@@ -296,7 +296,7 @@ public class OggDemux extends Element
       if (active)
         return;
 
-      Debug.log(Debug.INFO, "activating chain");
+      Debug.log(Debug.DEBUG, "activating chain");
       for (int i=0; i<streams.size(); i++) {
         OggStream stream = (OggStream) streams.elementAt(i);
 	stream.activate();
@@ -307,7 +307,7 @@ public class OggDemux extends Element
     public void deActivate() {
       if (!active)
         return;
-      Debug.log(Debug.INFO, "deActivating chain");
+      Debug.log(Debug.DEBUG, "deActivating chain");
       for (int i=0; i<streams.size(); i++) {
         OggStream stream = (OggStream) streams.elementAt(i);
 	stream.deActivate();
@@ -396,7 +396,7 @@ public class OggDemux extends Element
 	    break;
         }
 	if (check) {
-          Debug.log(Debug.INFO, "steams synced");
+          Debug.log(Debug.DEBUG, "steams synced");
 	  activate();
 	  reStart();
 	  synced = true;
@@ -414,7 +414,7 @@ public class OggDemux extends Element
           if (chain != null)
 	    chain.forwardEvent (event);
 	  synchronized (streamLock) {
-            Debug.log(Debug.INFO, "synced "+this);
+            Debug.log(Debug.DEBUG, this+" synced");
 	  }
 	  break;
         case Event.FLUSH_STOP:

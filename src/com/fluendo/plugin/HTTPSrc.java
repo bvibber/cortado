@@ -48,7 +48,7 @@ public class HTTPSrc extends Element
       format = event.parseSeekFormat();
       position = event.parseSeekPosition();
 
-      if (format == Format.PERCENT) {
+      if (format == Format.PERCENT && contentLength != -1) {
         position = position * contentLength / Format.PERCENT_MAX;
       }
       else if (format != Format.BYTES) {
@@ -56,10 +56,11 @@ public class HTTPSrc extends Element
         return false;
       }
 
+      Debug.log(Debug.DEBUG, this+" flushing");
       pushEvent (Event.newFlushStart());
 
       synchronized (streamLock) {
-        Debug.log(Debug.INFO, "synced "+this);
+        Debug.log(Debug.DEBUG, this+" synced");
 
 	result = false;
         try {
@@ -194,7 +195,6 @@ public class HTTPSrc extends Element
   {
     InputStream dis = null;
 
-    Debug.log(Debug.INFO, "trying to open "+url);
     URLConnection uc = url.openConnection();
 
     uc.setRequestProperty ("Connection", "Keep-Alive");
@@ -231,8 +231,6 @@ public class HTTPSrc extends Element
   private InputStream openWithSocket(URL url, long offset) throws IOException
   {
     InputStream dis = null;
-
-    Debug.log(Debug.INFO, "trying to open "+url);
 
     String hostname = url.getHost();
     int port = url.getPort();
@@ -308,6 +306,8 @@ public class HTTPSrc extends Element
         Debug.log(Debug.INFO, "parsing as abslute URL");
         url = new URL(urlString);
       }
+
+      Debug.log(Debug.INFO, "trying to open "+url+" at offset "+offset);
 
       dis = openWithConnection(url, offset);
       //dis = openWithSocket(url, offset);

@@ -128,7 +128,7 @@ public class VorbisDec extends Element implements OggPayload
         case Event.FLUSH_START:
           result = srcPad.pushEvent(event);
 	  synchronized (streamLock) {
-	    Debug.log(Debug.INFO, "synced "+this);
+	    Debug.log(Debug.DEBUG, "synced "+this);
 	  }
 	  break;
         case Event.FLUSH_STOP:

@@ -116,7 +116,7 @@ public class TheoraDec extends Element implements OggPayload
         case com.fluendo.jst.Event.FLUSH_START:
 	  result = srcPad.pushEvent (event);
 	  synchronized (streamLock) {
-            Debug.log(Debug.INFO, "synced "+this);
+            Debug.log(Debug.DEBUG, "synced "+this);
 	  }
           break;
         case com.fluendo.jst.Event.FLUSH_STOP:

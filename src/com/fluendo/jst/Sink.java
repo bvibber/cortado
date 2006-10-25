@@ -139,7 +139,7 @@ public abstract class Sink extends Element
 	    havePreroll = false;
 	  }
 	  synchronized (streamLock) {
-	    Debug.log(Debug.DEBUG, this+" flushed "+havePreroll+" "+needPreroll);
+	    Debug.log(Debug.DEBUG, this+" synced "+havePreroll+" "+needPreroll);
 	    lostState();
 	  }
 	  break;
