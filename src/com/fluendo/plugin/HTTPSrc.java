@@ -27,6 +27,7 @@ public class HTTPSrc extends Element
 {
   private String userId;
   private String password;
+  private String userAgent = "Cortado";
   private String urlString;
   private InputStream input;
   private long contentLength;
@@ -211,7 +212,7 @@ public class HTTPSrc extends Element
       uc.setRequestProperty ("Range", range);
     }
 
-    uc.setRequestProperty ("User-Agent", "Cortado");
+    uc.setRequestProperty ("User-Agent", userAgent);
     if (userId != null && password != null) {
       String userPassword = userId + ":" + password;
       String encoding = Base64Converter.encode (userPassword.getBytes());
@@ -354,6 +355,9 @@ public class HTTPSrc extends Element
     }
     else if (name.equals("userId")) {
       userId = String.valueOf(value);
+    }
+    else if (name.equals("userAgent")) {
+      userAgent = String.valueOf(value);
     }
     else if (name.equals("password")) {
       password = String.valueOf(value);

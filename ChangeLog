@@ -1,3 +1,18 @@
+2006-10-26  Thomas Vander Stichele  <thomas at apestaart dot org>
+
+	* build.xml:
+	* scripts/get-branch:
+	* scripts/get-revision:
+	  two scripts to help identify branch and revision/modification
+	* src/com/fluendo/player/Cortado.java:
+	(Cortado.AboutFrame.AboutFrame):
+	* src/com/fluendo/player/CortadoPipeline.java: (CortadoPipeline),
+	(CortadoPipeline.build):
+	* src/com/fluendo/plugin/HTTPSrc.java: (HTTPSrc),
+	(HTTPSrc.openWithConnection), (HTTPSrc.setProperty):
+	  set User-Agent string so that we identify ourselves with
+	  version of cortado, version of Java VM, and os name
+
 2006-10-25  Wim Taymans  <wim@fluendo.com>
 
 	* src/com/fluendo/player/Cortado.java: (Cortado..init):

@@ -77,8 +77,10 @@ Cortado ANT build file
 <!-- generate Configure-time options class as src/com/fluendo/player/Configure.java -->
   <target name="configure">
     <tstamp>
-      <format property="DATE" pattern="yyyy-MM-dd HH:mm:ss" />
+      <format property="DATE" timezone="GMT" pattern="yyyy-MM-dd HH:mm:ss" />
    </tstamp>
+   <exec executable="${src}/../scripts/get-revision" outputproperty="REVISION" />
+   <exec executable="${src}/../scripts/get-branch" outputproperty="BRANCH" />
 
     <echo file="${src}/com/fluendo/player/Configure.java" append="false"
 >
@@ -86,11 +88,13 @@ package com.fluendo.player;
 
 class Configure
 {
-  public String buildInfo = "Built on ${DATE} (version ${product.version}) in ${build.type} mode.";
+  public String buildInfo = "Built on ${DATE} GMT (version ${product.version}) in ${build.type} mode.";
 
-  public String buildDate = "${DATE}";
+  public String buildDate = "${DATE} GMT";
   public String buildVersion = "${product.version}";
   public String buildType = "${build.type}";
+  public String revision = "${REVISION}";
+  public String branch = "${BRANCH}";
 
   public Configure() {
   }

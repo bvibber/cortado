@@ -648,7 +648,8 @@ class AboutFrame extends AppFrame {
     ta.appendText("(C) Copyright 2004,2005,2006 Fluendo\n\n");
     ta.appendText("Built on " + configure.buildDate + "\n");
     ta.appendText("Built in " + configure.buildType + " mode.\n");
-    ta.appendText("Built from SVN revision " + getRevision() + "\n");
+    ta.appendText("Built from SVN branch " + configure.branch + ", revision " +
+        configure.revision + "\n");
     ta.appendText("Running on Java VM " + System.getProperty("java.version")
                   + " from " + System.getProperty("java.vendor") + "\n");
 

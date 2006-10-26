@@ -1,0 +1,14 @@
+#!/bin/bash
+
+scriptsdir=`dirname $0`
+topsrcdir=`cd $scriptsdir/.. && pwd`
+REVISION=`svn info $topsrcdir/ChangeLog | grep Revision | sed 's/Revision: //g'`
+
+# we also want to check if there are local modifications
+DIFF=`svn st $topsrcdir | grep -v ?`
+if test "x$DIFF" != "x"
+then
+  REVISION="$REVISION (modified)"
+fi
+
+echo $REVISION

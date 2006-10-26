@@ -332,6 +332,10 @@ public class CortadoPipeline extends Pipeline implements PadListener, CapsListen
 
   private boolean build()
   {
+    Configure configure = new Configure();
+    String userAgent;
+    String vendor = System.getProperty("java.vendor");
+
     httpsrc = ElementFactory.makeByName("httpsrc", "httpsrc");
     if (httpsrc == null) {
       noSuchElement ("httpsrc");
@@ -341,6 +345,16 @@ public class CortadoPipeline extends Pipeline implements PadListener, CapsListen
     httpsrc.setProperty("url", url);
     httpsrc.setProperty("userId", userId);
     httpsrc.setProperty("password", password);
+    
+    userAgent = "Cortado/" + configure.buildVersion + " " +
+        vendor.substring(0, vendor.indexOf(" ")) + "/" + 
+        System.getProperty("java.version") +
+        " (" + System.getProperty("os.name")  + " " + 
+        System.getProperty("os.version") + ")";
+
+    Debug.log(Debug.INFO, "setting User-Agent " + userAgent);
+
+    httpsrc.setProperty("userAgent", userAgent);
     httpsrc.setProperty("documentBase", documentBase);
     add(httpsrc);
 
