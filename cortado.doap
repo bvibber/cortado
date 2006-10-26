@@ -108,4 +108,20 @@ It contains:
   </Version>
  </release>
 
+ <release>
+  <Version>
+   <revision>0.2.2</revision>
+   <branch>0.2</branch>
+   <name>Really Tested Verily Exceptionally</name>
+   <created>2006-10-26</created>
+   <file-release rdf:resource="http://www.flumotion.net/src/cortado/cortado-0.2.2.tar.gz" />
+   <file-release rdf:resource="http://www.flumotion.net/jar/cortado/cortado-mmjs-stripped-0.2.2.jar" />
+   <file-release rdf:resource="http://www.flumotion.net/jar/cortado/cortado-ov-stripped-0.2.2.jar" />
+   <file-release rdf:resource="http://www.flumotion.net/jar/cortado/cortado-ovt-stripped-0.2.2.jar" />
+   <file-release rdf:resource="http://www.flumotion.net/jar/cortado/cortado-mmjs-stripped-0.2.2.jar" />
+   <file-release rdf:resource="http://www.flumotion.net/jar/cortado/cortado-ov-debug-0.2.2.jar" />
+   <file-release rdf:resource="http://www.flumotion.net/jar/cortado/cortado-ovt-debug-0.2.2.jar" />
+  </Version>
+ </release>
+
 </Project>
