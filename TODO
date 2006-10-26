@@ -26,5 +26,7 @@ TODO for cortado
 - generate cortado.spec
 - ant release generates "stripped" jars that are bigger than debug jars
 
+- generate Dist.java during build only when it is not already there
+
 
 wim
