@@ -1,5 +1,11 @@
 2006-10-26  Thomas Vander Stichele  <thomas at apestaart dot org>
 
+	* src/com/fluendo/player/CortadoPipeline.java:
+	(CortadoPipeline.build):
+	  Microsoft VM does not allow accessing http.agent, so try/catch
+
+2006-10-26  Thomas Vander Stichele  <thomas at apestaart dot org>
+
 	* build.xml:
 	  make sure building the player depends on distinfo target
 	* src/com/fluendo/player/CortadoPipeline.java:
