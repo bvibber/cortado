@@ -631,6 +631,7 @@ com/fluendo/plugin/Vorbis*
         <include name="TODO" />
         <include name="NEWS" />
         <include name="cortado.spec" />
+        <include name="cortado.doap" />
       </tarfileset>
       <tarfileset dir="${basedir}"
          prefix="cortado-${product.version}" mode="755">

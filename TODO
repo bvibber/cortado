@@ -23,5 +23,7 @@ TODO for cortado
 	at sun.applet.AppletPanel.run(Unknown Source)
   to tell the user his stream and his applet need to be on the same server
 
+- generate cortado.spec
+
 
 wim

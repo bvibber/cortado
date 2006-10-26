@@ -1,5 +1,13 @@
 2006-10-26  Thomas Vander Stichele  <thomas at apestaart dot org>
 
+	* TODO:
+	* build.xml:
+	* cortado.doap:
+	* cortado.spec:
+	  add doap file
+
+2006-10-26  Thomas Vander Stichele  <thomas at apestaart dot org>
+
 	* src/com/fluendo/player/CortadoPipeline.java:
 	(CortadoPipeline.build):
 	  wrap completely in try block and use extra var

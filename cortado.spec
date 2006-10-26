@@ -1,5 +1,5 @@
 Name:           cortado
-Version:        0.2.0.1
+Version:        0.2.1.1
 Release:        0.20060831.1
 Summary:        Cortado - a Java media framework
 
@@ -39,8 +39,11 @@ rm -rf $RPM_BUILD_ROOT
 
 %files
 %defattr(-,root,root,-)
-%doc LICENSE.* HACKING README NEWS RELEASE TODO
+%doc LICENSE.* HACKING README NEWS RELEASE TODO cortado.doap
 %{_libdir}/cortado
 %{_datadir}/cortado
 
 %changelog
+* Thu Oct 26 2006 Thomas Vander Stichele <thomas at apestaart dot org>
+- add doap file
+
