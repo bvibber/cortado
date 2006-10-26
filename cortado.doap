@@ -65,6 +65,7 @@ It contains:
   </Version>
  </release>
 
+ <release>
   <Version>
    <revision>0.1.2</revision>
    <branch>0.1</branch>

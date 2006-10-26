@@ -1,3 +1,15 @@
+2006-10-26  Thomas Vander Stichele  <thomas at apestaart dot org>
+
+	* HACKING:
+	* TODO:
+	  add some notes
+	* build.properties:
+	* build.xml:
+	* cortado.spec:
+	  back to TRUNK
+	* cortado.doap:
+	  fix
+
 === release 0.2.2 ===
 
 2006-10-26  Thomas Vander Stichele  <thomas at apestaart dot org>

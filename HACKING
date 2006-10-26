@@ -63,3 +63,10 @@ HISTORY
     - 0.1.2.1, 2005-04-29: 179327 bytes
     - 0.1.2.1, 2006-01-17: 191901 bytes (after JST implementation)
     - 0.2.0,   2006-05-19: 189596 bytes
+    - 0.2.2,   2006-10-26: 198094 bytes
+
+RELEASING
+---------
+moap doap -v 0.2.2 mail -f thomas@fluendo.com thomas@apestaart.org
+moap doap -v 0.2.2 mail -f thomas@apestaart.org theora@xiph.org
+

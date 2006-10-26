@@ -1,5 +1,5 @@
 Name:           cortado
-Version:        0.2.1.1
+Version:        0.2.2.1
 Release:        0.20060831.1
 Summary:        Cortado - a Java media framework
 
