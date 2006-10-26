@@ -1,6 +1,20 @@
 2006-10-26  Thomas Vander Stichele  <thomas at apestaart dot org>
 
 	* build.xml:
+	  separate dist-time variables in to separate class, since it
+	  should be decided at dist time and not build time
+	* scripts/get-branch:
+	* scripts/get-revision:
+	  make scripts work in the absence of .svn dirs, returning (unknown)
+	* src/com/fluendo/player/Cortado.java:
+	(Cortado.AboutFrame.AboutFrame):
+	* src/com/fluendo/player/CortadoPipeline.java:
+	(CortadoPipeline.build):
+	  Try to get the User-Agent to include http.agent if available
+
+2006-10-26  Thomas Vander Stichele  <thomas at apestaart dot org>
+
+	* build.xml:
 	* scripts/get-branch:
 	* scripts/get-revision:
 	  two scripts to help identify branch and revision/modification

@@ -79,10 +79,13 @@ Cortado ANT build file
     <tstamp>
       <format property="DATE" timezone="GMT" pattern="yyyy-MM-dd HH:mm:ss" />
    </tstamp>
-   <exec executable="${src}/../scripts/get-revision" outputproperty="REVISION" />
-   <exec executable="${src}/../scripts/get-branch" outputproperty="BRANCH" />
-
-    <echo file="${src}/com/fluendo/player/Configure.java" append="false"
+   <exec executable="sh" outputproperty="REVISION">
+     <arg line="${src}/../scripts/get-revision" />
+   </exec>
+   <exec executable="sh" outputproperty="BRANCH">
+     <arg line="${src}/../scripts/get-branch" />
+   </exec>
+   <echo file="${src}/com/fluendo/player/Configure.java" append="false"
 >
 package com.fluendo.player;
 
@@ -102,6 +105,31 @@ class Configure
     </echo>
     <echo
 >Built on ${DATE} (version ${product.version}) in ${build.type} mode.</echo>
+  </target>
+
+<!-- generate Dist-time options class as src/com/fluendo/player/Dist.java -->
+  <target name="distinfo">
+   <exec executable="sh" outputproperty="REVISION">
+     <arg line="${src}/../scripts/get-revision" />
+   </exec>
+   <exec executable="sh" outputproperty="BRANCH">
+     <arg line="${src}/../scripts/get-branch" />
+   </exec>
+   <echo file="${src}/com/fluendo/player/Dist.java" append="false"
+>
+package com.fluendo.player;
+
+class Dist
+{
+  public String revision = "${REVISION}";
+  public String branch = "${BRANCH}";
+
+  public Dist() {
+  }
+}
+    </echo>
+    <echo
+>Disted from SVN branch ${BRANCH} revision ${REVISION}.</echo>
   </target>
 
 <!-- prepare plugin.*.true variables by parsing the exclude property-->
@@ -574,7 +602,7 @@ com/fluendo/plugin/Vorbis*
     <delete dir="${out}/distcheck" />
   </target>
 
-  <target name="dist" depends="init"
+  <target name="dist" depends="init,distinfo"
           description="create a source distribution package">
     <property name="tar"
               value="${out.dist}/src/cortado-${product.version}.tar" />
@@ -602,6 +630,10 @@ com/fluendo/plugin/Vorbis*
         <include name="TODO" />
         <include name="NEWS" />
         <include name="cortado.spec" />
+      </tarfileset>
+      <tarfileset dir="${basedir}"
+         prefix="cortado-${product.version}" mode="755">
+        <include name="scripts/*" />
       </tarfileset>
     </tar>
     <gzip zipfile="${tar}.gz"
