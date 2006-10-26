@@ -350,7 +350,7 @@ public class CortadoPipeline extends Pipeline implements PadListener, CapsListen
         vendor.substring(0, vendor.indexOf(" ")) + "/" + 
         System.getProperty("java.version");
     if (System.getProperty("http.agent") != null) {
-      userAgent += System.getProperty("http.agent");
+      userAgent += " " + System.getProperty("http.agent");
     } else {
       userAgent += 
           " (" + System.getProperty("os.name")  + " " + 

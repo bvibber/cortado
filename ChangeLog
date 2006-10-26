@@ -1,6 +1,14 @@
 2006-10-26  Thomas Vander Stichele  <thomas at apestaart dot org>
 
 	* build.xml:
+	  make sure building the player depends on distinfo target
+	* src/com/fluendo/player/CortadoPipeline.java:
+	(CortadoPipeline.build):
+	  add a space
+
+2006-10-26  Thomas Vander Stichele  <thomas at apestaart dot org>
+
+	* build.xml:
 	  separate dist-time variables in to separate class, since it
 	  should be decided at dist time and not build time
 	* scripts/get-branch:

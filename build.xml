@@ -382,7 +382,7 @@ com/fluendo/plugin/Vorbis*
 
   <target name="compile-player"
           description="compile com.fluendo.player source"
-          depends="init,configure,compile-plugin,includes"
+          depends="init,configure,compile-plugin,includes,distinfo"
    >
     <javac 
            destdir="${out.buildtyped}" 
@@ -594,6 +594,7 @@ com/fluendo/plugin/Vorbis*
     <delete dir="${out.build}"/>
     <delete dir="${out.dist}/${build.type}"/>
     <delete file="${src}/com/fluendo/player/Configure.java"/>
+    <delete file="${src}/com/fluendo/player/Dist.java"/>
   </target>
 
   <target name="distclean" depends="clean"
