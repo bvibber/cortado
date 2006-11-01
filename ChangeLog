@@ -1,5 +1,13 @@
 2006-11-01  Wim Taymans  <wim@fluendo.com>
 
+	* src/com/fluendo/player/Cortado.java: (Cortado..getParam),
+	(Cortado..getBoolParam), (Cortado.), (Cortado..getDoubleParam),
+	(Cortado..getIntParam), (Cortado..shutDown), (Cortado..init):
+	Print parameter values and how they are parsed.
+	Accept 1 as true for boolean parameters.
+
+2006-11-01  Wim Taymans  <wim@fluendo.com>
+
 	* src/com/fluendo/plugin/AudioSink.java: (AudioSink.RingBuffer),
 	(AudioSink.RingBuffer.setAutoStart):
 	Fix potential deadly embrace.

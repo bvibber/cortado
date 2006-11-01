@@ -136,13 +136,52 @@ public class Cortado extends Applet implements Runnable, MouseMotionListener,
         }
         return result;
     }
-    public int getEnum(String name, String[] vals, String def) {
+
+    public int getEnumParam(String name, String[] vals, String def) {
+      int res = -1;
+
       String val = getParam (name, def);
       for (int i=0; i<vals.length;i++) {
-	 if (vals[i].equals (val))
-           return i;
+	 if (vals[i].equals (val)) {
+           res = i;
+	   break;
+	 }
       }
-      return 0;
+      if (res != -1) 
+        System.out.println("param \""+name+"\" has enum value \""+res+"\" ("+vals[res]+")");
+      else
+        System.out.println("param \""+name+"\" has invalid enum value");
+      return res;
+    }
+    public String getStringParam(String name, String def) {
+      String res = getParam(name, def);
+      System.out.println("param \""+name+"\" has string value \""+res+"\"");
+      return res;
+    }
+    public boolean getBoolParam(String name, boolean def) {
+      boolean res;
+      String defStr = def ? "true" : "false";
+      String paramVal;
+
+      paramVal = String.valueOf(getParam(name, defStr));
+
+      res = paramVal.equals("true");
+      res |= paramVal.equals("1");
+
+      System.out.println("param \""+name+"\" has boolean value \""+res+"\"");
+      return res;
+    }
+    public double getDoubleParam(String name, double def) {
+      double res;
+      res = Double.valueOf(getParam(name, ""+def)).doubleValue();
+      System.out.println("param \""+name+"\" has double value \""+res+"\"");
+      return res;
+    }
+    public int getIntParam(String name, int def) {
+      int res;
+      res = Integer.valueOf(getParam(name, ""+def)).intValue();
+      System.out.println("param \""+name+"\" has int value \""+res+"\"");
+      return res;
     }
 
     public static void shutDown(Throwable error) {
@@ -162,22 +201,22 @@ public class Cortado extends Applet implements Runnable, MouseMotionListener,
         pipeline = new CortadoPipeline();
         configure = new Configure();
 
-        urlString = getParam("url", null);
-        seekable = String.valueOf(getParam("seekable", "false")).equals("true");
-        duration = Double.valueOf(getParam("duration", "-1.0")).doubleValue();
-        audio = String.valueOf(getParam("audio", "true")).equals("true");
-        video = String.valueOf(getParam("video", "true")).equals("true");
-        statusHeight = Integer.valueOf(getParam("statusHeight", "12")).intValue();
-        autoPlay = String.valueOf(getParam("autoPlay", "true")).equals( "true");
-        showStatus = getEnum("showStatus", showStatusVals, "auto");
-        hideTimeout = Integer.valueOf(getParam("hideTimeout", "0")).intValue();
-        keepAspect = String.valueOf(getParam("keepAspect", "true")).equals("true");
-        bufferSize = Integer.valueOf(getParam("bufferSize", "200")).intValue();
-        bufferLow = Integer.valueOf(getParam("bufferLow", "10")).intValue();
-        bufferHigh = Integer.valueOf(getParam("bufferHigh", "70")).intValue();
-        debug = Integer.valueOf(getParam("debug", "3")).intValue();
-        userId = getParam("userId", null);
-        password = getParam("password", null);
+        urlString = getStringParam("url", null);
+        seekable = getBoolParam("seekable", false);
+        duration = getDoubleParam("duration", -1.0);
+        audio = getBoolParam("audio", true);
+        video = getBoolParam("video", true);
+        statusHeight = getIntParam("statusHeight", 12);
+        autoPlay = getBoolParam("autoPlay", true);
+        showStatus = getEnumParam("showStatus", showStatusVals, "auto");
+        hideTimeout = getIntParam("hideTimeout", 0);
+        keepAspect = getBoolParam("keepAspect", true);
+        bufferSize = getIntParam("bufferSize", 200);
+        bufferLow = getIntParam("bufferLow", 10);
+        bufferHigh = getIntParam("bufferHigh", 70);
+        debug = getIntParam("debug", 3);
+        userId = getStringParam("userId", null);
+        password = getStringParam("password", null);
 
 	/* FIXME, HTTP Range returns 206, which HTTPConnection on MS JVM thinks
 	 * is a fatal error. Disable seeking for now. */
