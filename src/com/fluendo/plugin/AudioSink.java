@@ -152,7 +152,7 @@ public abstract class AudioSink extends Sink implements ClockProvider
 
     protected void startWriteThread ()
     {
-      thread = new Thread(this);
+      thread = new Thread(this, "cortado-audiosink-ringbuffer");
       thread.start();
       try {
         wait();
@@ -364,15 +364,15 @@ public abstract class AudioSink extends Sink implements ClockProvider
       autoStart = start;
     }
     public boolean play () {
+      audioClock.setStarted(true);
       synchronized (this) {
         if (flushing)
           return false;
 
         state = PLAY;
         notifyAll();
-        audioClock.setStarted(true);
-        Debug.log(Debug.DEBUG, this+" playing");
       }
+      Debug.log(Debug.DEBUG, this+" playing");
       return true;
     }
     public boolean pause () {

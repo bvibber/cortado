@@ -1,5 +1,11 @@
 2006-11-01  Wim Taymans  <wim@fluendo.com>
 
+	* src/com/fluendo/plugin/AudioSink.java: (AudioSink.RingBuffer),
+	(AudioSink.RingBuffer.setAutoStart):
+	Fix potential deadly embrace.
+
+2006-11-01  Wim Taymans  <wim@fluendo.com>
+
 	* src/com/fluendo/player/CortadoPipeline.java:
 	(CortadoPipeline.doSendEvent):
 	Wait for preroll befre setting the state to PLAYING after a seek.
