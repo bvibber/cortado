@@ -42,9 +42,8 @@ public abstract class Sink extends Element
         int res = OK;
 	Sink sink = (Sink) parent;
 
-	if (isFlushing()) {
+	if (isFlushing())
 	  return WRONG_STATE;
-	}
 
         if (needPreroll) {
 
@@ -83,6 +82,20 @@ public abstract class Sink extends Element
 	        havePreroll = false;
 	        needPreroll = false;
 	        return WRONG_STATE;
+	      case NONE:
+                switch (current) {
+                  case PLAY:
+                    needPreroll = false;
+                    break;
+                  case PAUSE:
+                    needPreroll = true;
+                    break;
+                  default:
+	            havePreroll = false;
+	            needPreroll = false;
+                    return WRONG_STATE;
+                }
+		break;
 	    }
 	    if (pending != NONE) {
 	      currentState = pending;

@@ -1,5 +1,12 @@
 2006-11-01  Wim Taymans  <wim@fluendo.com>
 
+	* src/com/fluendo/jst/Sink.java: (Sink.Pad):
+	Backport race fix in the sink where the state change function could have
+	updated the state variables before the streaming thread did, resulting
+	in an inconsistent state.
+
+2006-11-01  Wim Taymans  <wim@fluendo.com>
+
 	* src/com/fluendo/jst/Sink.java: (Sink), (Sink.Pad), (Sink.query),
 	(Sink.changeState):
 	Make position reporting much more accurate.
