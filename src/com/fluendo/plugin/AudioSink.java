@@ -30,7 +30,7 @@ public abstract class AudioSink extends Sink implements ClockProvider
     private long diff = -1;
     private boolean started = false;
 
-    public synchronized void setStarted(boolean s) {
+    public void setStarted(boolean s) {
       started = s;
       if (started) {
         diff = -1;
@@ -38,35 +38,37 @@ public abstract class AudioSink extends Sink implements ClockProvider
       }
     }
 
-    protected synchronized long getInternalTime() {
+    protected long getInternalTime() {
       long samples;
       long result;
       long timePos;
       long now;
       
-      if (ringBuffer == null || ringBuffer.rate == 0)
-        return 0;
+      synchronized (ringBuffer) {
+        if (ringBuffer == null || ringBuffer.rate == 0)
+          return 0;
       
-      samples = ringBuffer.samplesPlayed();
-      timePos = samples * Clock.SECOND / ringBuffer.rate;
+        samples = ringBuffer.samplesPlayed();
+        timePos = samples * Clock.SECOND / ringBuffer.rate;
 
-      if (started) {
-        /* interpolate as the position can jump a lot */
-        now = System.currentTimeMillis() * Clock.MSECOND;
-        if (diff == -1) {
-          diff = now;
-        }
+        if (started) {
+          /* interpolate as the position can jump a lot */
+          now = System.currentTimeMillis() * Clock.MSECOND;
+          if (diff == -1) {
+            diff = now;
+          }
 
-        if (timePos != lastTime) {
-          lastTime = timePos;
-          diff = now - timePos;
+          if (timePos != lastTime) {
+            lastTime = timePos;
+            diff = now - timePos;
+          }
+          result = now - diff;
+          //System.out.println("time: "+result+", now: "+now+", diff: "+diff+", timePos: "+timePos);
         }
-        result = now - diff;
-        //System.out.println("time: "+result+", now: "+now+", diff: "+diff+", timePos: "+timePos);
-      }
-      else {
-        result = timePos;
-        //System.out.println("time: "+result);
+        else {
+          result = timePos;
+          //System.out.println("time: "+result);
+        }
       }
       //System.out.println("time: "+result+" samples: "+samples+" sampletime: "+timePos);
 
@@ -313,7 +315,7 @@ public abstract class AudioSink extends Sink implements ClockProvider
       return len;
     }
 
-    public synchronized long samplesPlayed () {
+    public long samplesPlayed () {
       long delay, samples;
       long seg;
 
@@ -355,21 +357,18 @@ public abstract class AudioSink extends Sink implements ClockProvider
       nextSample = sample;
 
       clearAll();
-      synchronized (audioClock) {
-        audioClock.notifyAll();
-      }
     }
 
     public synchronized void setAutoStart (boolean start) {
       autoStart = start;
     }
     public boolean play () {
-      audioClock.setStarted(true);
       synchronized (this) {
         if (flushing)
           return false;
 
         state = PLAY;
+        audioClock.setStarted(true);
         notifyAll();
       }
       Debug.log(Debug.DEBUG, this+" playing");
@@ -377,8 +376,9 @@ public abstract class AudioSink extends Sink implements ClockProvider
     }
     public boolean pause () {
       synchronized (this) {
-        state = PAUSE;
         Debug.log(Debug.DEBUG, this+" pausing");
+        state = PAUSE;
+        audioClock.setStarted(false);
         notifyAll();
         if (thread != null) {
           try {
@@ -388,14 +388,14 @@ public abstract class AudioSink extends Sink implements ClockProvider
           catch (InterruptedException ie) {}
         }
       }
-      audioClock.setStarted(false);
       Debug.log(Debug.DEBUG, this+" paused");
       return true;
     }
     public boolean stop () {
       synchronized (this) {
-        state = STOP;
         Debug.log(Debug.DEBUG, this+" stopping");
+        state = STOP;
+        audioClock.setStarted(false);
         notifyAll();
       }
       if (thread != null) {
@@ -406,7 +406,6 @@ public abstract class AudioSink extends Sink implements ClockProvider
         }
         catch (InterruptedException ie) {}
       }
-      audioClock.setStarted(false);
       Debug.log(Debug.DEBUG, this+" stopped");
       return true;
     }

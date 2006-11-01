@@ -1,5 +1,13 @@
 2006-11-01  Wim Taymans  <wim@fluendo.com>
 
+	* src/com/fluendo/plugin/AudioSink.java: (AudioSink.AudioClock),
+	(AudioSink.AudioClock.setStarted), (AudioSink.RingBuffer.commit),
+	(AudioSink.RingBuffer.setSample), (AudioSink.RingBuffer.pause),
+	(AudioSink.RingBuffer.stop):
+	Remove the lock of the clock to further avoid deadly embraces.
+
+2006-11-01  Wim Taymans  <wim@fluendo.com>
+
 	* src/com/fluendo/player/Cortado.java: (Cortado..getParam),
 	(Cortado..getBoolParam), (Cortado.), (Cortado..getDoubleParam),
 	(Cortado..getIntParam), (Cortado..shutDown), (Cortado..init):
