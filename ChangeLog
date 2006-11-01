@@ -1,5 +1,11 @@
 2006-11-01  Wim Taymans  <wim@fluendo.com>
 
+	* src/com/fluendo/jst/Sink.java: (Sink), (Sink.Pad), (Sink.query),
+	(Sink.changeState):
+	Make position reporting much more accurate.
+
+2006-11-01  Wim Taymans  <wim@fluendo.com>
+
 	* src/com/fluendo/jst/Element.java: (Element.postMessage):
 	cleanup
 

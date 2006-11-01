@@ -32,6 +32,8 @@ public abstract class Sink extends Element
   protected long segStart;
   protected long segStop;
   protected long segPosition;
+  protected long pauseTime;
+  protected long lastTime;
   
   protected Pad sinkpad = new Pad(Pad.SINK, "sink") {
     private int finishPreroll(Buffer buf)
@@ -146,6 +148,7 @@ public abstract class Sink extends Element
         case Event.FLUSH_STOP:
 	  synchronized (sink) {
 	    sink.flushing = false;
+	    pauseTime = 0;
 	  }
 	  break;
         case Event.NEWSEGMENT:
@@ -154,6 +157,7 @@ public abstract class Sink extends Element
 	    segStart = event.parseNewsegmentStart();
 	    segStop = event.parseNewsegmentStop();
 	    segPosition = event.parseNewsegmentPosition();
+	    lastTime = segPosition;
 	  }
 	  break;
         case Event.EOS:
@@ -180,11 +184,18 @@ public abstract class Sink extends Element
         discont = true;
 
       time = buf.timestamp;
+
       /* clip to segment */
-      if (time != -1 && time < segStart) {
-	buf.free();
-        return OK;
+      if (time != -1) {
+	if (time < segStart) {
+	  buf.free();
+          return OK;
+	}
+	else {
+          lastTime = time - segStart + segPosition;
+	}
       }
+
       buf.setFlag (com.fluendo.jst.Buffer.FLAG_DISCONT, discont);
       discont = false;
 
@@ -311,7 +322,7 @@ public abstract class Sink extends Element
 	      }
 	    }
 	    else {
-	      position = segPosition;
+	      position = pauseTime + segPosition;
 	    }
 	  }
 	  query.setPosition(Format.TIME, position);
@@ -349,6 +360,11 @@ public abstract class Sink extends Element
 	  else {
             needPreroll = false;
 	  }
+	}
+        break;
+      case PLAY_PAUSE:
+        synchronized (this) {
+	  pauseTime = clock.getTime() - baseTime;
 	}
         break;
       default:
