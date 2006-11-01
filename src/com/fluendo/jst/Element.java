@@ -167,10 +167,8 @@ public abstract class Element extends com.fluendo.jst.Object
       myBus = bus;
     }
 
-    if (myBus != null) {
-      
+    if (myBus != null)
       myBus.post (message);
-    }
   }
 
   public synchronized int getState(int[] resState, int[] resPending, long timeout) {

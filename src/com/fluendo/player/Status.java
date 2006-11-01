@@ -279,20 +279,32 @@ public class Status extends Component implements MouseListener,
     }
 
     public void setBufferPercent(boolean buffering, int bp) {
-        this.buffering = buffering;
-        this.bufferPercent = bp;
-        component.repaint();
+	boolean changed;
+
+	changed = this.buffering != buffering;
+	changed |= this.bufferPercent != bufferPercent;
+
+	if (changed) {
+          this.buffering = buffering;
+          this.bufferPercent = bp;
+          component.repaint();
+	}
     }
 
     public void setTime(double seconds) {
         if (clicked == NONE) {
+            double newPosition;
+	    
             if (seconds < duration)
                 time = (long) seconds;
             else
                 time = (long) duration;
 
-            position = ((double) time) / duration;
-            component.repaint();
+            newPosition = ((double) time) / duration;
+	    if (newPosition != position) {
+	      position = newPosition;
+              component.repaint();
+	    }
         }
     }
 
@@ -322,8 +334,10 @@ public class Status extends Component implements MouseListener,
     }
 
     public void setState(int aState) {
-        state = aState;
-        component.repaint();
+	if (state != aState) {
+          state = aState;
+          component.repaint();
+	}
     }
 
     private boolean intersectButton1(MouseEvent e) {
@@ -374,6 +388,13 @@ public class Status extends Component implements MouseListener,
             return SEEKBAR;
         else
             return NONE;
+    }
+
+    public void cancelMouseOperation() {
+      button1Color = Color.black;
+      button2Color = Color.black;
+      seekColor = Color.black;
+      clicked = NONE;
     }
 
     public void mouseClicked(MouseEvent e) {
@@ -445,42 +466,66 @@ public class Status extends Component implements MouseListener,
             if (clicked == SEEKER) {
                 int end = r.width - SEEK_END - (r.height * 2);
                 double pos = (e.getX() - (r.height*2 + 5)) / (double) (end);
+		double newPosition;
 
                 if (pos < 0.0)
-                    position = 0.0;
+                    newPosition = 0.0;
                 else if (pos > 1.0)
-                    position = 1.0;
+                    newPosition = 1.0;
                 else
-                    position = pos;
+                    newPosition = pos;
 
-                time = (long) (duration * position);
-
-                component.repaint();
+		if (newPosition != position) {
+	          position = newPosition;
+                  time = (long) (duration * position);
+                  component.repaint();
+		}
             }
         }
     }
 
     public void mouseMoved(MouseEvent e) {
         if (seekable) {
+	    boolean needRepaint = false;
+
             e.translatePoint(-1, -1);
 
             if (intersectButton1(e)) {
-                button1Color = Color.gray;
+		if (button1Color != Color.gray) {
+                    button1Color = Color.gray;
+		    needRepaint = true;
+		}
             } else {
-                button1Color = Color.black;
-
-                if (intersectButton2(e)) {
+		if (button1Color != Color.black) {
+                    button1Color = Color.black;
+		    needRepaint = true;
+	        }
+	    }
+            if (intersectButton2(e)) {
+	        if (button2Color != Color.gray) {
                     button2Color = Color.gray;
-                } else {
+		    needRepaint = true;
+		}
+            } else {
+	        if (button2Color != Color.black) {
                     button2Color = Color.black;
+	            needRepaint = true;
+	        }
+	    }
 
-                    if (intersectSeeker(e)) {
-                        seekColor = Color.gray;
-                    } else
-                        seekColor = Color.black;
+            if (intersectSeeker(e)) {
+                if (seekColor != Color.gray) {
+                    seekColor = Color.gray;
+                    needRepaint = true;
+		}
+            } else {
+                if (seekColor != Color.black) {
+                    seekColor = Color.black;
+                    needRepaint = true;
                 }
             }
-            component.repaint();
+	    if (needRepaint)
+              component.repaint();
         }
     }
 }

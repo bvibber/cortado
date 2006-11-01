@@ -1,3 +1,25 @@
+2006-11-01  Wim Taymans  <wim@fluendo.com>
+
+	* src/com/fluendo/jst/Element.java: (Element.postMessage):
+	cleanup
+
+	* src/com/fluendo/jst/SystemClock.java: (SystemClock.waitFunc):
+	When we are right on time, we return OK.
+
+	* src/com/fluendo/player/Cortado.java: (Cortado..realRun),
+	(Cortado..paint), (Cortado.), (Cortado..mousePressed),
+	(Cortado..mouseReleased), (Cortado..start), (Cortado..stop):
+	Try to limit the number of repaints.
+	Cancel any pending mouse operations in the status bar when we release
+	the mouse button outside of it.
+
+	* src/com/fluendo/player/Status.java: (Status.paint),
+	(Status.setHaveAudio), (Status), (Status.setHavePercent),
+	(Status.setSeekable), (Status.intersectSeekbar),
+	(Status.findComponent), (Status.mouseReleased),
+	(Status.mouseDragged):
+	Try to limit the number of repaints.
+
 2006-10-26  Thomas Vander Stichele  <thomas at apestaart dot org>
 
 	* HACKING:

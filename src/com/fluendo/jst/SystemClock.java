@@ -18,6 +18,8 @@
 
 package com.fluendo.jst;
 
+import com.fluendo.utils.*;
+
 public class SystemClock extends Clock {
   protected long getInternalTime()
   {
@@ -31,6 +33,8 @@ public class SystemClock extends Clock {
     long entryt = id.time;
     long now = adjust (real);
     long diff = entryt - now;
+
+    //Debug.log(Debug.DEBUG, "now: "+now+", entry: "+entryt+", diff: "+diff);
 
     if (diff > 0) {
       long millis;
@@ -50,6 +54,9 @@ public class SystemClock extends Clock {
         catch (InterruptedException e) {}
       }
       res = id.status;
+    }
+    else if (diff == 0) {
+      res = OK;
     }
     else {
       res = EARLY;

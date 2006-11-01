@@ -277,7 +277,9 @@ public class Cortado extends Applet implements Runnable, MouseMotionListener,
         Debug.log(Debug.INFO, "entering status thread");
         while (statusRunning) {
             try {
-		long now = pipeline.getPosition() / Clock.SECOND;
+		long now;
+		
+		now = pipeline.getPosition() / Clock.SECOND;
                 status.setTime(now);
 
                 Thread.sleep(1000);
@@ -290,8 +292,10 @@ public class Cortado extends Applet implements Runnable, MouseMotionListener,
 		  }
 		}
             } catch (Exception e) {
-                if (statusRunning)
+                if (statusRunning) {
+                    Debug.log(Debug.ERROR, "Exception in status thread:");
                     e.printStackTrace();
+		}
             }
         }
         Debug.log(Debug.INFO, "exit status thread");
@@ -304,6 +308,7 @@ public class Cortado extends Applet implements Runnable, MouseMotionListener,
         /* sometimes dimension is wrong */
         if (dwidth <= 0 || dheight <= statusHeight) {
 	  appletDimension = null;
+	  Debug.log (Debug.WARNING, "paint aborted: appletDimension wrong");
 	  return;
 	}
 	
@@ -315,33 +320,44 @@ public class Cortado extends Applet implements Runnable, MouseMotionListener,
 
     private void setStatusVisible(boolean b, boolean force) {
         /* no change, do nothing */
-        if (status.isVisible() == b)
+        if (status.isVisible() == b) {
             return;
+	}
 
 	/* refuse to hide when hideTimeout did not expire */
-	if (!b && !mayHide)
+	if (!b && !mayHide) {
             return;
+	}
 
 	if (!force) {
-	  if (showStatus == STATUS_SHOW && !b)
+	  if (showStatus == STATUS_SHOW && !b) {
               return;
-	  if (showStatus == STATUS_HIDE && b)
+	  }
+	  if (showStatus == STATUS_HIDE && b) {
               return;
+	  }
 	}
 	/* never hide when we are in error */
-	if (isError && !b)
+	if (isError && !b) {
             return;
+	}
           
         /* don't make invisible when the mouse pointer is inside status area */
-        if (inStatus && !b)
+        if (inStatus && !b) {
             return;
+	}
 
+	Debug.log (Debug.INFO, "Status: "+ (b ? "Show" : "Hide"));
         status.setVisible(b);
         repaint();
     }
 
     private boolean intersectStatus(MouseEvent e) {
-        inStatus = e.getY() > getSize().height - statusHeight;
+	int y = e.getY();
+	int max = getSize().height;
+	int top = max - statusHeight;
+
+        inStatus = y > top && y < max;
         return inStatus;
     }
 
@@ -373,6 +389,9 @@ public class Cortado extends Applet implements Runnable, MouseMotionListener,
             e.translatePoint(0, -y);
             ((MouseListener) status).mouseReleased(e);
         }
+	else {
+            status.cancelMouseOperation();
+	}
     }
 
     public void mouseDragged(MouseEvent e) {
@@ -582,11 +601,8 @@ public class Cortado extends Applet implements Runnable, MouseMotionListener,
 	statusRunning = false;
         desiredState = Element.STOP;
 	if (pipeline != null) {
-	  System.out.println("pipeline stop");
           pipeline.setState(desiredState);
-	  System.out.println("pipeline shutdown");
           pipeline.shutDown();
-	  System.out.println("pipeline stopped");
 	  pipeline = null;
 	}
         if (statusThread != null) {
@@ -600,6 +616,7 @@ public class Cortado extends Applet implements Runnable, MouseMotionListener,
           }
           statusThread = null;
 	}
+	System.out.println("stoped");
     }
 }
 
