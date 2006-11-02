@@ -249,29 +249,19 @@ public class Status extends Component implements MouseListener,
         g2.setFont(font);
 
         paintBox(g2);
-        if (seekable) {
-            paintPlayPause(g2);
-            paintStop(g2);
-            if (buffering) {
-                paintPercent(g2);
-                paintBuffering(g2, r.height*2 + 3);
-	    }
-            else if (state == STATE_STOPPED) {
-                paintMessage(g2, r.height*2 + 3);
-            } else {
-                paintSeekBar(g2);
-                paintTime(g2);
-            }
-        } else {
-            if (buffering) {
-                paintBuffering(g2, 2);
-                paintPercent(g2);
-	    }
-	    else {
-                paintMessage(g2, 2);
-                paintTime(g2);
-	    }
-        }
+        paintPlayPause(g2);
+        paintStop(g2);
+        if (buffering) {
+            paintPercent(g2);
+            paintBuffering(g2, r.height*2 + 3);
+	}
+        else if (state == STATE_STOPPED || !seekable) {
+            paintMessage(g2, r.height*2 + 3);
+	}
+	else if (seekable) {
+            paintSeekBar(g2);
+	}
+        paintTime(g2);
         paintSpeaker(g2);
 
         g.drawImage(img, r.x, r.y, null);
@@ -382,9 +372,9 @@ public class Status extends Component implements MouseListener,
             return BUTTON1;
         else if (intersectButton2(e))
             return BUTTON2;
-        else if (intersectSeeker(e))
+        else if (seekable && intersectSeeker(e))
             return SEEKER;
-        else if (intersectSeekbar(e))
+        else if (seekable && intersectSeekbar(e))
             return SEEKBAR;
         else
             return NONE;
@@ -407,57 +397,53 @@ public class Status extends Component implements MouseListener,
     }
 
     public void mousePressed(MouseEvent e) {
-        if (seekable) {
-            e.translatePoint(-1, -1);
-            clicked = findComponent(e);
-	    if (clicked == SEEKBAR && state != STATE_STOPPED) {
-	      clicked = SEEKER;
-              seekColor = Color.gray;
-	      mouseDragged (e);
-	    }
+        e.translatePoint(-1, -1);
+        clicked = findComponent(e);
+        if (clicked == SEEKBAR && state != STATE_STOPPED) {
+          clicked = SEEKER;
+          seekColor = Color.gray;
+	  mouseDragged (e);
         }
     }
 
     public void mouseReleased(MouseEvent e) {
-        if (seekable) {
-            int comp;
+        int comp;
 
-            e.translatePoint(-1, -1);
+        e.translatePoint(-1, -1);
 
-            comp = findComponent(e);
-            if (clicked != comp) {
-                if (clicked == SEEKER)
-                    comp = clicked;
-                else
-                    return;
-            }
-
-            switch (comp) {
-            case BUTTON1:
-                if (state == STATE_PLAYING) {
-                    state = STATE_PAUSED;
-                    notifyNewState(state);
-                } else {
-                    state = STATE_PLAYING;
-                    notifyNewState(state);
-                }
-                break;
-            case BUTTON2:
-                state = STATE_STOPPED;
-                notifyNewState(state);
-                break;
-            case SEEKER:
-		if (state != STATE_STOPPED)
-                  notifySeek(position);
-                break;
-            case SEEKBAR:
-                break;
-            case NONE:
-                break;
-            }
-            clicked = NONE;
-            component.repaint();
+        comp = findComponent(e);
+        if (clicked != comp) {
+            if (clicked == SEEKER)
+                comp = clicked;
+            else
+                return;
         }
+
+        switch (comp) {
+        case BUTTON1:
+            if (state == STATE_PLAYING) {
+                state = STATE_PAUSED;
+                notifyNewState(state);
+            } else {
+                state = STATE_PLAYING;
+                notifyNewState(state);
+            }
+            break;
+        case BUTTON2:
+            state = STATE_STOPPED;
+            notifyNewState(state);
+            break;
+        case SEEKER:
+            if (state != STATE_STOPPED)
+              notifySeek(position);
+            break;
+        case SEEKBAR:
+            break;
+        case NONE:
+            break;
+        }
+        clicked = NONE;
+        component.repaint();
     }
 
     public void mouseDragged(MouseEvent e) {
@@ -485,34 +471,34 @@ public class Status extends Component implements MouseListener,
     }
 
     public void mouseMoved(MouseEvent e) {
+        boolean needRepaint = false;
+
+        e.translatePoint(-1, -1);
+
+        if (intersectButton1(e)) {
+	    if (button1Color != Color.gray) {
+                button1Color = Color.gray;
+	        needRepaint = true;
+            }
+        } else {
+	    if (button1Color != Color.black) {
+                button1Color = Color.black;
+	        needRepaint = true;
+	    }
+	}
+        if (intersectButton2(e)) {
+            if (button2Color != Color.gray) {
+                button2Color = Color.gray;
+                needRepaint = true;
+            }
+        } else {
+	    if (button2Color != Color.black) {
+                button2Color = Color.black;
+	        needRepaint = true;
+	    }
+	}
+
         if (seekable) {
-	    boolean needRepaint = false;
-
-            e.translatePoint(-1, -1);
-
-            if (intersectButton1(e)) {
-		if (button1Color != Color.gray) {
-                    button1Color = Color.gray;
-		    needRepaint = true;
-		}
-            } else {
-		if (button1Color != Color.black) {
-                    button1Color = Color.black;
-		    needRepaint = true;
-	        }
-	    }
-            if (intersectButton2(e)) {
-	        if (button2Color != Color.gray) {
-                    button2Color = Color.gray;
-		    needRepaint = true;
-		}
-            } else {
-	        if (button2Color != Color.black) {
-                    button2Color = Color.black;
-	            needRepaint = true;
-	        }
-	    }
-
             if (intersectSeeker(e)) {
                 if (seekColor != Color.gray) {
                     seekColor = Color.gray;
@@ -524,8 +510,8 @@ public class Status extends Component implements MouseListener,
                     needRepaint = true;
                 }
             }
-	    if (needRepaint)
-              component.repaint();
         }
+	if (needRepaint)
+          component.repaint();
     }
 }
