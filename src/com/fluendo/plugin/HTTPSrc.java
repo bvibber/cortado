@@ -31,10 +31,12 @@ public class HTTPSrc extends Element
   private String urlString;
   private InputStream input;
   private long contentLength;
+  private long offset;
   private String mime;
   private Caps outCaps;
   private boolean discont;
   private URL documentBase;
+  private boolean microSoft = false;
 
   private static final int DEFAULT_READSIZE = 4096;
 
@@ -104,19 +106,48 @@ public class HTTPSrc extends Element
     protected void taskFunc()
     {
       int ret;
+      int toRead;
+      long left;
+
+      /* don't read the last byte in microsoft VM, it screws up the socket
+       * completely. */
+      if (microSoft) {
+	if (contentLength == 0)
+	  left = 0;
+        else 
+          left = (contentLength - 1) - offset;
+      }
+      else
+        left = contentLength - offset;
+
+      if (left < readSize)
+	toRead = (int) left;
+      else
+	toRead = readSize;
 
       Buffer data = Buffer.create();
-      data.ensureSize (readSize);
+      data.ensureSize (toRead);
       data.offset = 0;
       try {
-        data.length = input.read (data.data, 0, readSize);
+        if (toRead > 0) {
+          data.length = input.read (data.data, 0, toRead);
+	}
+	else {
+          data.length = -1;
+	}
       }
       catch (Exception e) {
-	e.printStackTrace();
+        e.printStackTrace();
         data.length = 0;
       }
       if (data.length <= 0) {
 	/* EOS */
+        try {
+	  input.close();
+	}
+        catch (Exception e) {
+          e.printStackTrace();
+	}
 	data.free();
         Debug.log(Debug.INFO, this+" reached EOS");
 	pushEvent (Event.newEOS());
@@ -124,6 +155,7 @@ public class HTTPSrc extends Element
 	pauseTask();
       }
       else {
+	offset += data.length;
         if (srcpad.getCaps() == null) {
 	  String typeMime;
 
@@ -205,7 +237,7 @@ public class HTTPSrc extends Element
       range = "bytes=" + offset+"-"+(contentLength-1);
     else if (offset != 0)
       range = "bytes=" + offset+"-";
-    else 
+    else
       range = null;
     if (range != null) {
       Debug.log(Debug.INFO, "doing range: "+range);
@@ -225,6 +257,7 @@ public class HTTPSrc extends Element
 
     contentLength = uc.getHeaderFieldInt ("Content-Length", 0) + offset;
     mime = uc.getContentType();
+    this.offset = offset;
 
     return dis;
   }
@@ -341,6 +374,10 @@ public class HTTPSrc extends Element
 
   public HTTPSrc () {
     super ();
+    if (System.getProperty("java.vendor").toUpperCase().startsWith ("MICROSOFT", 0)) {
+      Debug.log (Debug.WARNING, "Found MS JVM, work around inputStream EOS bugs.");
+      microSoft = true;
+    }
     addPad (srcpad);
   }
 

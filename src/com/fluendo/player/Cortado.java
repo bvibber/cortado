@@ -218,15 +218,16 @@ public class Cortado extends Applet implements Runnable, MouseMotionListener,
         userId = getStringParam("userId", null);
         password = getStringParam("password", null);
 
-	/* FIXME, HTTP Range returns 206, which HTTPConnection on MS JVM thinks
-	 * is a fatal error. Disable seeking for now. */
-	if (System.getProperty("java.vendor").toUpperCase().startsWith ("MICROSOFT", 0)){
-          seekable = false;
-	}
-
         Debug.level = debug;
         Debug.log(Debug.INFO, "build info: " + configure.buildInfo);
         Debug.log(Debug.INFO, "revision: " + getRevision());
+
+	/* FIXME, HTTP Range returns 206, which HTTPConnection on MS JVM thinks
+	 * is a fatal error. Disable seeking for now. */
+	if (System.getProperty("java.vendor").toUpperCase().startsWith ("MICROSOFT", 0)){
+	  Debug.log (Debug.WARNING, "Found MS JVM, disable seeking.");
+          seekable = false;
+	}
 
         pipeline.setUrl(urlString);
         pipeline.setUserId(userId);

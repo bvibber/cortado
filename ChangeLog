@@ -1,3 +1,16 @@
+2006-11-02  Wim Taymans  <wim@fluendo.com>
+
+	* src/com/fluendo/player/Cortado.java: (Cortado..init):
+	Some more debug.
+
+	* src/com/fluendo/plugin/HTTPSrc.java: (HTTPSrc), (HTTPSrc.Pad),
+	(HTTPSrc.openWithConnection), (HTTPSrc.getInputStream),
+	(HTTPSrc.getFactoryName):
+	Keep track of offset, Don't rely on the server sending EOS.
+	close connection on EOS.
+	Work around EOS bug in MS JVM with twisted by not reading the last
+	byte.
+
 2006-11-01  Wim Taymans  <wim@fluendo.com>
 
 	* src/com/fluendo/plugin/AudioSink.java: (AudioSink.AudioClock),
