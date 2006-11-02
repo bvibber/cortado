@@ -641,18 +641,26 @@ public class Cortado extends Applet implements Runnable, MouseMotionListener,
 	statusRunning = false;
         desiredState = Element.STOP;
 	if (pipeline != null) {
-          pipeline.setState(desiredState);
-          pipeline.shutDown();
+          try {
+            pipeline.setState(desiredState);
+	  }
+          catch (Throwable e) {
+	  }
+          try {
+            pipeline.shutDown();
+	  }
+          catch (Throwable e) {
+	  }
 	  pipeline = null;
 	}
         if (statusThread != null) {
           try {
             statusThread.interrupt();
-          } catch (Exception e) {
+          } catch (Throwable e) {
           }
           try {
             statusThread.join();
-          } catch (Exception e) {
+          } catch (Throwable e) {
           }
           statusThread = null;
 	}
