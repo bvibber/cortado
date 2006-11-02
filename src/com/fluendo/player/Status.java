@@ -249,7 +249,9 @@ public class Status extends Component implements MouseListener,
         g2.setFont(font);
 
         paintBox(g2);
-        paintPlayPause(g2);
+	if (!buffering) {
+            paintPlayPause(g2);
+	}
         paintStop(g2);
         if (buffering) {
             paintPercent(g2);
@@ -369,7 +371,7 @@ public class Status extends Component implements MouseListener,
     }
 
     private int findComponent(MouseEvent e) {
-        if (intersectButton1(e))
+        if (!buffering && intersectButton1(e))
             return BUTTON1;
         else if (intersectButton2(e))
             return BUTTON2;
@@ -476,15 +478,17 @@ public class Status extends Component implements MouseListener,
 
         e.translatePoint(-1, -1);
 
-        if (intersectButton1(e)) {
-	    if (button1Color != Color.gray) {
-                button1Color = Color.gray;
-	        needRepaint = true;
-            }
-        } else {
-	    if (button1Color != Color.black) {
-                button1Color = Color.black;
-	        needRepaint = true;
+	if (!buffering) {
+            if (intersectButton1(e)) {
+	        if (button1Color != Color.gray) {
+                    button1Color = Color.gray;
+	            needRepaint = true;
+                }
+            } else {
+	        if (button1Color != Color.black) {
+                    button1Color = Color.black;
+	            needRepaint = true;
+	        }
 	    }
 	}
         if (intersectButton2(e)) {

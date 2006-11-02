@@ -1,5 +1,11 @@
 2006-11-02  Wim Taymans  <wim@fluendo.com>
 
+	* src/com/fluendo/player/Status.java: (Status.paint),
+	(Status.intersectSeekbar), (Status.mouseMoved):
+	Don't allow the user to press play/pause when we are buffering.
+
+2006-11-02  Wim Taymans  <wim@fluendo.com>
+
 	* src/com/fluendo/player/Status.java: (Status.paint):
 	Don't paint the time if the applet is buffering.
 
