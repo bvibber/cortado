@@ -275,7 +275,7 @@ public class Status extends Component implements MouseListener,
 	boolean changed;
 
 	changed = this.buffering != buffering;
-	changed |= this.bufferPercent != bufferPercent;
+	changed |= this.bufferPercent != bp;
 
 	if (changed) {
           this.buffering = buffering;
