@@ -257,11 +257,12 @@ public class Status extends Component implements MouseListener,
 	}
         else if (state == STATE_STOPPED || !seekable) {
             paintMessage(g2, r.height*2 + 3);
+            paintTime(g2);
 	}
 	else if (seekable) {
             paintSeekBar(g2);
+            paintTime(g2);
 	}
-        paintTime(g2);
         paintSpeaker(g2);
 
         g.drawImage(img, r.x, r.y, null);
