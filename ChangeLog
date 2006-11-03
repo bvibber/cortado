@@ -1,5 +1,11 @@
 2006-11-03  Thomas Vander Stichele  <thomas at apestaart dot org>
 
+	* build.xml:
+	* scripts/update-source-info:
+	  ready for automated building
+
+2006-11-03  Thomas Vander Stichele  <thomas at apestaart dot org>
+
 	* cortado.spec:
 	  delete
 	* cortado.spec.in:

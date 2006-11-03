@@ -587,16 +587,17 @@ com/fluendo/plugin/Vorbis*
   </target>
 
   <target name="clean" depends="type"
-        description="clean up build dir" >
+        description="clean up build dir">
     <!-- Delete the ${out.build} directory tree and generated source -->
     <delete dir="${out.build}"/>
-    <delete dir="${out.dist}/${build.type}"/>
-    <delete file="${src}/com/fluendo/player/Configure.java"/>
-    <delete file="${src}/com/fluendo/jst/SourceInfo.java"/>
+    <delete dir="${out.dist}/${build.type}" />
+    <delete file="${src}/com/fluendo/player/Configure.java" />
+    <delete file="${src}/com/fluendo/jst/SourceInfo.java" />
+    <delete file="${src}/cortado.spec" />
   </target>
 
   <target name="distclean" depends="clean"
-        description="clean up dist dir" >
+        description="clean up dist dir">
     <delete dir="${out.dist}" />
     <delete dir="${out}/distcheck" />
   </target>

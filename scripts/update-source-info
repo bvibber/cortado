@@ -27,13 +27,8 @@ then
   exit
 fi
 
-# if the target exists and is newer than .svn, leave it alone
-if test -e $targetfile && test $topsrcdir/.svn -ot $targetfile
-then
-  echo "SourceInfo file is up-to-date, leaving file alone."
-  exit
-fi
-
+# don't compare with .svn dir; local modifications should also trigger
+# a revision update
 
 echo "Updating SourceInfo file, branch $branch, revision $revision"
 # write the file
