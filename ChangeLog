@@ -1,3 +1,16 @@
+2006-11-03  Thomas Vander Stichele  <thomas at apestaart dot org>
+
+	* scripts/update-source-info:
+	  add a script to generate src/com/fluendo/jst/SourceInfo.java
+	  This file describes the repository version of the source code.
+	* build.xml:
+	  use the new script to generate SourceInfo.java
+	* src/com/fluendo/player/Cortado.java:
+	(Cortado.AboutFrame.AboutFrame):
+	  Get the source info and display it
+	This makes sure that a cortado built from a dist still has this
+	revision information
+
 2006-11-03  Wim Taymans  <wim@fluendo.com>
 
 	* src/com/fluendo/plugin/HTTPSrc.java: (HTTPSrc.Pad),

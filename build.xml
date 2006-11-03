@@ -108,29 +108,18 @@ class Configure
   </target>
 
 <!-- generate Dist-time options class as src/com/fluendo/player/Dist.java -->
-  <target name="distinfo">
-   <exec executable="sh" outputproperty="REVISION">
-     <arg line="${src}/../scripts/get-revision" />
+  <target name="source-info">
+   <exec executable="sh" outputproperty="OUTPUT">
+     <arg line="${src}/../scripts/update-source-info" />
    </exec>
-   <exec executable="sh" outputproperty="BRANCH">
-     <arg line="${src}/../scripts/get-branch" />
-   </exec>
-   <echo file="${src}/com/fluendo/player/Dist.java" append="false"
->
-package com.fluendo.player;
-
-class Dist
-{
-  public String revision = "${REVISION}";
-  public String branch = "${BRANCH}";
-
-  public Dist() {
-  }
-}
-    </echo>
-    <echo
->Disted from SVN branch ${BRANCH} revision ${REVISION}.</echo>
+   <echo>${OUTPUT}</echo>
   </target>
+
+<!-- delete distinfo any time .svn directory changes -->
+<dependset>
+  <srcfileset file="${src}/../.svn" />
+  <targetfileset file="${src}/com/fluendo/player/Dist.java" />
+</dependset>
 
 <!-- prepare plugin.*.true variables by parsing the exclude property-->
   <target name="plugins">
@@ -382,7 +371,7 @@ com/fluendo/plugin/Vorbis*
 
   <target name="compile-player"
           description="compile com.fluendo.player source"
-          depends="init,configure,compile-plugin,includes,distinfo"
+          depends="init,configure,compile-plugin,includes,source-info"
    >
     <javac 
            destdir="${out.buildtyped}" 
@@ -594,7 +583,7 @@ com/fluendo/plugin/Vorbis*
     <delete dir="${out.build}"/>
     <delete dir="${out.dist}/${build.type}"/>
     <delete file="${src}/com/fluendo/player/Configure.java"/>
-    <delete file="${src}/com/fluendo/player/Dist.java"/>
+    <delete file="${src}/com/fluendo/jst/SourceInfo.java"/>
   </target>
 
   <target name="distclean" depends="clean"
@@ -603,7 +592,7 @@ com/fluendo/plugin/Vorbis*
     <delete dir="${out}/distcheck" />
   </target>
 
-  <target name="dist" depends="init,distinfo"
+  <target name="dist" depends="init,source-info"
           description="create a source distribution package">
     <property name="tar"
               value="${out.dist}/src/cortado-${product.version}.tar" />
