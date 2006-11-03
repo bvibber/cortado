@@ -121,6 +121,15 @@ class Configure
   <targetfileset file="${src}/com/fluendo/player/Dist.java" />
 </dependset>
 
+<!-- generate spec file -->
+  <target name="spec">
+   <exec executable="sh" outputproperty="SPECOUTPUT">
+     <arg line="${src}/../scripts/update-spec-file ${product.version}" />
+   </exec>
+   <echo>${SPECOUTPUT}</echo>
+  </target>
+
+
 <!-- prepare plugin.*.true variables by parsing the exclude property-->
   <target name="plugins">
     <condition property="plugin.JPEG.false">
@@ -592,7 +601,7 @@ com/fluendo/plugin/Vorbis*
     <delete dir="${out}/distcheck" />
   </target>
 
-  <target name="dist" depends="init,source-info"
+  <target name="dist" depends="init,source-info,spec"
           description="create a source distribution package">
     <property name="tar"
               value="${out.dist}/src/cortado-${product.version}.tar" />
@@ -620,6 +629,7 @@ com/fluendo/plugin/Vorbis*
         <include name="TODO" />
         <include name="NEWS" />
         <include name="cortado.spec" />
+        <include name="cortado.spec.in" />
         <include name="cortado.doap" />
       </tarfileset>
       <tarfileset dir="${basedir}"

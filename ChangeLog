@@ -1,5 +1,19 @@
 2006-11-03  Thomas Vander Stichele  <thomas at apestaart dot org>
 
+	* cortado.spec:
+	  delete
+	* cortado.spec.in:
+	  template for cortado.spec
+	* scripts/update-spec-file:
+	  add a script to generate cortado.spec from template, filling
+	  in Version and Release information
+	  Use Release tag to keep track of svn revision, branch and status
+	  if the nano is set
+	* build.xml:
+	  add a spec target
+
+2006-11-03  Thomas Vander Stichele  <thomas at apestaart dot org>
+
 	* scripts/update-source-info:
 	  add a script to generate src/com/fluendo/jst/SourceInfo.java
 	  This file describes the repository version of the source code.
