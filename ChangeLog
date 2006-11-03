@@ -1,3 +1,10 @@
+2006-11-03  Wim Taymans  <wim@fluendo.com>
+
+	* src/com/fluendo/plugin/HTTPSrc.java: (HTTPSrc.Pad),
+	(HTTPSrc.openWithConnection), (HTTPSrc.openWithSocket):
+	Set default contentLength to -1 and take care we don't use invalid
+	contentLength.
+
 2006-11-02  Wim Taymans  <wim@fluendo.com>
 
 	* src/com/fluendo/player/Status.java: (Status.setBufferPercent):

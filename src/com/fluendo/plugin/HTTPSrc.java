@@ -109,18 +109,22 @@ public class HTTPSrc extends Element
       int toRead;
       long left;
 
-      /* don't read the last byte in microsoft VM, it screws up the socket
-       * completely. */
-      if (microSoft) {
-	if (contentLength == 0)
-	  left = 0;
-        else 
-          left = (contentLength - 1) - offset;
+      if (contentLength != -1) {
+        if (microSoft) {
+          /* don't read the last byte in microsoft VM, it screws up the socket
+           * completely. */
+	  if (contentLength == 0)
+	    left = 0;
+          else 
+            left = (contentLength - 1) - offset;
+        }
+        else
+          left = contentLength - offset;
       }
       else
-        left = contentLength - offset;
+	left = -1;
 
-      if (left < readSize)
+      if (left != -1 && left < readSize)
 	toRead = (int) left;
       else
 	toRead = readSize;
@@ -255,7 +259,7 @@ public class HTTPSrc extends Element
     /* This will send the request. */
     dis = uc.getInputStream();
 
-    contentLength = uc.getHeaderFieldInt ("Content-Length", 0) + offset;
+    contentLength = uc.getHeaderFieldInt ("Content-Length", -1) + offset;
     mime = uc.getContentType();
     this.offset = offset;
 
@@ -306,7 +310,6 @@ public class HTTPSrc extends Element
     /* read response */
     dis = socket.getInputStream();
 
-    contentLength = 10000000;
     mime = "application/ogg";
     /*
     contentLength = uc.getHeaderFieldInt ("Content-Length", 0) + offset;
