@@ -34,8 +34,6 @@ public class Cortado extends Applet implements Runnable, MouseMotionListener,
     private static CortadoPipeline pipeline;
 
     private String urlString;
-    private boolean seekable;
-    private boolean live;
     private boolean audio;
     private boolean video;
     private boolean keepAspect;
@@ -58,6 +56,13 @@ public class Cortado extends Applet implements Runnable, MouseMotionListener,
 
     private boolean isEOS;
     private boolean isError;
+
+    private static final String[] autoBoolVals = { "auto", "true", "false" };
+    private static final int BOOL_AUTO = 0;
+    private static final int BOOL_TRUE = 1;
+    private static final int BOOL_FALSE = 2;
+    private int seekable;
+    private int live;
 
     private int showStatus;
     private static final String[] showStatusVals = { "auto", "show", "hide" };
@@ -86,10 +91,10 @@ public class Cortado extends Applet implements Runnable, MouseMotionListener,
     public String[][] getParameterInfo() {
         String[][] info = {
                 { "url", "URL", "The media file to play" },
-                { "seekable", "boolean",
-                        "Can you seek in this file (default false)" },
-                { "live", "boolean",
-                        "Is this a live stream (disables PAUSE) (default false)" },
+                { "seekable", "enum",
+                        "Can you seek in this file (auto|true|false) (default auto)" },
+                { "live", "enum",
+                        "Is this a live stream (disabled PAUSE) (auto|true|false) (default auto)" },
                 { "duration", "float",
                         "Total duration of the file in seconds (default unknown)" },
                 { "audio", "boolean", "Enable audio playback (default true)" },
@@ -205,8 +210,8 @@ public class Cortado extends Applet implements Runnable, MouseMotionListener,
         configure = new Configure();
 
         urlString = getStringParam("url", null);
-        seekable = getBoolParam("seekable", false);
-        live = getBoolParam("live", false);
+        seekable = getEnumParam("seekable", autoBoolVals, "auto");
+        live = getEnumParam("live", autoBoolVals, "auto");
         duration = getDoubleParam("duration", -1.0);
         audio = getBoolParam("audio", true);
         video = getBoolParam("video", true);
@@ -230,7 +235,7 @@ public class Cortado extends Applet implements Runnable, MouseMotionListener,
 	 * is a fatal error. Disable seeking for now. */
 	if (System.getProperty("java.vendor").toUpperCase().startsWith ("MICROSOFT", 0)){
 	  Debug.log (Debug.WARNING, "Found MS JVM, disable seeking.");
-          seekable = false;
+          seekable = BOOL_FALSE;
 	}
 
         pipeline.setUrl(urlString);
@@ -260,8 +265,18 @@ public class Cortado extends Applet implements Runnable, MouseMotionListener,
         status = new Status(this);
         status.setHaveAudio(audio);
         status.setHavePercent(true);
-        status.setLive(live);
-        status.setSeekable(seekable);
+	/* assume live stream unless specified */
+	if (live == BOOL_FALSE)
+          status.setLive(false);
+	else
+          status.setLive(true);
+
+	/* assume non seekable stream unless specified */
+	if (live == BOOL_TRUE)
+          status.setSeekable(true);
+	else
+          status.setSeekable(false);
+
         status.setDuration(duration);
         inStatus = false;
         mayHide = (hideTimeout == 0);
@@ -491,6 +506,20 @@ public class Cortado extends Applet implements Runnable, MouseMotionListener,
 	    if (!isError) {
               status.setMessage(msg.parseResourceString());
               setStatusVisible(true, false);
+	    }
+            break;
+        case Message.DURATION:
+	    long duration;
+
+	    duration = msg.parseDurationValue();
+
+            Debug.log(Debug.DEBUG, "got duration: "+duration);
+	    if (duration != -1) {
+	      /* we got duration, we can enable automatic setting */
+	      if (seekable == BOOL_AUTO)
+                status.setSeekable(true);
+	      if (live == BOOL_AUTO)
+                status.setLive(false);
 	    }
             break;
         case Message.BUFFERING:

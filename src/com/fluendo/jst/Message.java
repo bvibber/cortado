@@ -44,9 +44,11 @@ public class Message {
 
   private com.fluendo.jst.Object src;
   private int type;
-  private boolean bool;
-  private int value;
-  private String string;
+
+  private boolean boolVal;
+  private int intVal;
+  private long longVal;
+  private String stringVal;
   private int old, next, pending;
 
   private Message(com.fluendo.jst.Object src, int type) {
@@ -66,16 +68,16 @@ public class Message {
       case EOS:
         return "[Message]: "+src+" type: EOS";
       case BUFFERING:
-        return "[Message]: "+src+" type: BUFFERING, busy:"+bool+", percent:"+value;
+        return "[Message]: "+src+" type: BUFFERING, busy:"+boolVal+", percent:"+intVal;
       case STATE_CHANGED:
         return "[Message]: "+src+" type: STATE_CHANGED, old:"+old+", next:"+next+", pending:"+pending;
       case STATE_DIRTY:
         return "[Message]: "+src+" type: STATE_DIRTY";
       case STREAM_STATUS:
-        return "[Message]: "+src+" type: STREAM_STATUS, "+(bool?"start":"stop")+", reason: "+
-			Pad.getFlowName(value)+", "+string;
+        return "[Message]: "+src+" type: STREAM_STATUS, "+(boolVal?"start":"stop")+", reason: "+
+			Pad.getFlowName(intVal)+", "+stringVal;
       case ERROR:
-        return "[Message]: "+src+" type: ERROR, "+string;
+        return "[Message]: "+src+" type: ERROR, "+stringVal;
       default:
         return "[Message]: "+src+" type: "+type;
     }
@@ -88,7 +90,7 @@ public class Message {
     Message msg;
 
     msg = new Message(src, ERROR);
-    msg.string = str;
+    msg.stringVal = str;
 
     return msg;
   }
@@ -96,28 +98,28 @@ public class Message {
     Message msg;
 
     msg = new Message(src, WARNING);
-    msg.string = str;
+    msg.stringVal = str;
 
     return msg;
   }
   public String parseErrorString() {
-    return string;
+    return stringVal;
   }
 
   public static Message newBuffering(com.fluendo.jst.Object src, boolean busy, int percent) {
     Message msg;
     
     msg = new Message(src, BUFFERING);
-    msg.bool = busy;
-    msg.value = percent;
+    msg.boolVal = busy;
+    msg.intVal = percent;
 
     return msg;
   }
   public boolean parseBufferingBusy() {
-    return bool;
+    return boolVal;
   }
   public int parseBufferingPercent() {
-    return value;
+    return intVal;
   }
 
   public static Message newStateChanged(com.fluendo.jst.Object src, int old, int next, int pending) {
@@ -143,27 +145,39 @@ public class Message {
 
   public static Message newStreamStatus(com.fluendo.jst.Object src, boolean start, int reason, String aString) {
     Message msg = new Message(src, STREAM_STATUS);
-    msg.string = aString;
-    msg.bool = start;
-    msg.value = reason;
+    msg.stringVal = aString;
+    msg.boolVal = start;
+    msg.intVal = reason;
     return msg;
   }
   public String parseStreamStatusString() {
-    return string;
+    return stringVal;
   }
   public boolean parseStreamStatusStart() {
-    return bool;
+    return boolVal;
   }
   public int parseStreamStatusReason() {
-    return value;
+    return intVal;
   }
 
   public static Message newResource(com.fluendo.jst.Object src, String aString) {
     Message msg = new Message(src, RESOURCE);
-    msg.string = aString;
+    msg.stringVal = aString;
     return msg;
   }
   public String parseResourceString() {
-    return string;
+    return stringVal;
+  }
+  public static Message newDuration(com.fluendo.jst.Object src, int aFmt, long aDur) {
+    Message msg = new Message(src, DURATION);
+    msg.intVal = aFmt;
+    msg.longVal = aDur;
+    return msg;
+  }
+  public int parseDurationFormat() {
+    return intVal;
+  }
+  public long parseDurationValue() {
+    return longVal;
   }
 }

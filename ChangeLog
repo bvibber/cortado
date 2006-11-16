@@ -1,5 +1,25 @@
 2006-11-16  Wim Taymans  <wim@fluendo.com>
 
+	* src/com/fluendo/jst/Message.java: (Message), (Message.toString),
+	(Message.newEOS), (Message.newError), (Message.newWarning),
+	(Message.newStateDirty):
+	Add duration message.
+
+	* README:
+	* src/com/fluendo/player/Cortado.java: (Cortado),
+	(Cortado...getAppletInfo), (Cortado...getRevision),
+	(Cortado...getParameterInfo), (Cortado...init),
+	(Cortado...handleMessage):
+	Make live and seekable enums so that they can be configured
+	automatically on request.
+	When we get a duration message, make the stream seekable and
+	non-live in auto mode.
+
+	* src/com/fluendo/plugin/HTTPSrc.java: (HTTPSrc.getInputStream):
+	Post duration message when the length is known.
+
+2006-11-16  Wim Taymans  <wim@fluendo.com>
+
 	* src/com/fluendo/plugin/OggDemux.java: (OggDemux.....OggStream),
 	(OggDemux.....OggStream.OggStream),
 	(OggDemux.....OggStream.deActivate),

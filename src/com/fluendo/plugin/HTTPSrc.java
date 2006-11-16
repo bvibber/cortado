@@ -351,6 +351,10 @@ public class HTTPSrc extends Element
 
       discont = true;
 
+      if (contentLength != -1) {
+        postMessage(Message.newDuration (this, Format.BYTES, contentLength));
+      }
+
       Debug.log(Debug.INFO, "opened "+url);
       Debug.log(Debug.INFO, "contentLength: "+contentLength);
       Debug.log(Debug.INFO, "server contentType: "+mime);

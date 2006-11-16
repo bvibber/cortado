@@ -118,16 +118,20 @@ parameters:
               url *is required* to be the same as the hostname of the link
               to the page with the applet tag.  This is a Java security limitation.
 
-  seekable:   boolean
+  seekable:   enum (auto|true|false)
               Whether or not you can seek in the file.  For live streams,
               this should be false; for on-demand files, this can be true.
-	      Defaults to false
+	      In automatic mode, the stream becomes seekable when the content
+	      length is discovered.
+	      Defaults to auto
 
-  live        boolean
+  live        enum (auto|true|false)
               Whether or not this file is a live stream.  For live streams,
               this should be true, which will disable the PAUSE button.
 	      For on-demand files, this can be false.
-	      Defaults to false
+	      In automatic mode, the stream becomes non-live when the content
+	      length is discovered.
+	      Defaults to auto
 
   duration:   int
               Length of clip in seconds.  Needed when seekable is true,
