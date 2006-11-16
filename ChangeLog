@@ -1,5 +1,13 @@
 2006-11-16  Wim Taymans  <wim@fluendo.com>
 
+	* src/com/fluendo/plugin/OggDemux.java: (OggDemux.....OggStream),
+	(OggDemux.....OggStream.OggStream),
+	(OggDemux.....OggStream.deActivate),
+	(OggDemux.....OggStream.reStart):
+	Get the time right for streams that don't start with timestamp 0.
+
+2006-11-16  Wim Taymans  <wim@fluendo.com>
+
 	* README:
 	* src/com/fluendo/player/Cortado.java: (Cortado),
 	(Cortado..getParameterInfo), (Cortado..init):

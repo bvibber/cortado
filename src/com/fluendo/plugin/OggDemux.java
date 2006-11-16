@@ -48,6 +48,7 @@ public class OggDemux extends Element
     public int serialno;
     public StreamState os;
     private Vector headers;
+    private long baseTs;
     public boolean haveHeaders;
     public Vector queue;
     public boolean started;
@@ -76,6 +77,7 @@ public class OggDemux extends Element
       discont = true;
       complete = false;
       started = false;
+      baseTs = -1;
       lastRet = OK;
     }
 
@@ -111,15 +113,23 @@ public class OggDemux extends Element
       active = false;
     }
     public void reStart(long firstTs) {
+      com.fluendo.jst.Buffer buf;
+      long time;
+
       if (!active)
         return;
 
-      Debug.log(Debug.DEBUG, this+" pushing segment start "+firstTs);
-      pushEvent (Event.newNewsegment (false, Format.TIME, firstTs, -1, 0));
+      if (baseTs == -1)
+	baseTs = firstTs;
+
+      time = firstTs - baseTs;
+
+      Debug.log(Debug.DEBUG, this+" pushing segment start "+firstTs+", time "+time);
+      pushEvent (Event.newNewsegment (false, Format.TIME, firstTs, -1, time));
 
       if (!sentHeaders) {
         for (int i=0; i<headers.size(); i++) {
-          com.fluendo.jst.Buffer buf = (com.fluendo.jst.Buffer) headers.elementAt(i);
+          buf = (com.fluendo.jst.Buffer) headers.elementAt(i);
           buf.setFlag (com.fluendo.jst.Buffer.FLAG_DISCONT, discont);
 	  discont = false;
 	  push (buf);
@@ -127,9 +137,9 @@ public class OggDemux extends Element
 	sentHeaders = true;
       }
       for (int i=0; i<queue.size(); i++) {
-        com.fluendo.jst.Buffer buf = (com.fluendo.jst.Buffer) queue.elementAt(i);
+        buf = (com.fluendo.jst.Buffer) queue.elementAt(i);
 	if (i == 0)
-          Debug.log(Debug.DEBUG, this+" pushing first data buffer: "+buf.timestamp);
+          Debug.log(Debug.DEBUG, this+" first data buffer: "+buf.timestamp);
         buf.setFlag (com.fluendo.jst.Buffer.FLAG_DISCONT, discont);
 	discont = false;
 	push (buf);
