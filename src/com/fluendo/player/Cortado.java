@@ -35,6 +35,7 @@ public class Cortado extends Applet implements Runnable, MouseMotionListener,
 
     private String urlString;
     private boolean seekable;
+    private boolean live;
     private boolean audio;
     private boolean video;
     private boolean keepAspect;
@@ -87,6 +88,8 @@ public class Cortado extends Applet implements Runnable, MouseMotionListener,
                 { "url", "URL", "The media file to play" },
                 { "seekable", "boolean",
                         "Can you seek in this file (default false)" },
+                { "live", "boolean",
+                        "Is this a live stream (disables PAUSE) (default false)" },
                 { "duration", "float",
                         "Total duration of the file in seconds (default unknown)" },
                 { "audio", "boolean", "Enable audio playback (default true)" },
@@ -203,6 +206,7 @@ public class Cortado extends Applet implements Runnable, MouseMotionListener,
 
         urlString = getStringParam("url", null);
         seekable = getBoolParam("seekable", false);
+        live = getBoolParam("live", false);
         duration = getDoubleParam("duration", -1.0);
         audio = getBoolParam("audio", true);
         video = getBoolParam("video", true);
@@ -256,6 +260,7 @@ public class Cortado extends Applet implements Runnable, MouseMotionListener,
         status = new Status(this);
         status.setHaveAudio(audio);
         status.setHavePercent(true);
+        status.setLive(live);
         status.setSeekable(seekable);
         status.setDuration(duration);
         inStatus = false;

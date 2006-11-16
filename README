@@ -123,6 +123,12 @@ parameters:
               this should be false; for on-demand files, this can be true.
 	      Defaults to false
 
+  live        boolean
+              Whether or not this file is a live stream.  For live streams,
+              this should be true, which will disable the PAUSE button.
+	      For on-demand files, this can be false.
+	      Defaults to false
+
   duration:   int
               Length of clip in seconds.  Needed when seekable is true,
               to allow the seek bar to work.

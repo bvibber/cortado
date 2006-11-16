@@ -41,6 +41,7 @@ public class Status extends Component implements MouseListener,
     private boolean haveAudio;
     private boolean havePercent;
     private boolean seekable;
+    private boolean live;
 
     private static final int NONE = 0;
     private static final int BUTTON1 = 1;
@@ -130,7 +131,7 @@ public class Status extends Component implements MouseListener,
         }
     }
 
-    private void paintPlayPause(Graphics g) {
+    private void paintButton1(Graphics g) {
 	int x,y,w,h;
 
 	x = 1;
@@ -144,8 +145,15 @@ public class Status extends Component implements MouseListener,
 
         if (state == STATE_PLAYING) {
             g.setColor(Color.white);
-            g.fillRect((int)(w * .4), (int)(h * .4), (int)(w * .2), (int)(h * .5));
-            g.fillRect((int)(w * .7), (int)(h * .4), (int)(w * .2), (int)(h * .5));
+            if (live) {
+	      /* STOP */
+              g.fillRect((int)(w * .4), (int)(w * .4), (int)(w * .5), (int)(w * .5));
+	    }
+	    else {
+	      /* PAUSE */
+              g.fillRect((int)(w * .4), (int)(h * .4), (int)(w * .2), (int)(h * .5));
+              g.fillRect((int)(w * .7), (int)(h * .4), (int)(w * .2), (int)(h * .5));
+	    }
         } else {
             int triangleX[] = { (int)(w*.4), (int)(w*.4), (int)(w*.9) };
             int triangleY[] = { (int)(w*.3), (int)(w*.9), (int)(w*.6) };
@@ -154,7 +162,7 @@ public class Status extends Component implements MouseListener,
         }
     }
 
-    private void paintStop(Graphics g) {
+    private void paintButton2(Graphics g) {
 	int x,y,w,h;
 
 	x = r.height + 1;
@@ -235,6 +243,8 @@ public class Status extends Component implements MouseListener,
     }
 
     public void paint(Graphics g) {
+	int pos = 0;
+
         if (!isVisible())
             return;
 
@@ -250,15 +260,21 @@ public class Status extends Component implements MouseListener,
 
         paintBox(g2);
 	if (!buffering) {
-            paintPlayPause(g2);
+            paintButton1(g2);
 	}
-        paintStop(g2);
+	if (!live) {
+          paintButton2(g2);
+	  pos = r.height*2;
+	}
+	else {
+	  pos = r.height;
+	}
         if (buffering) {
             paintPercent(g2);
-            paintBuffering(g2, r.height*2 + 3);
+            paintBuffering(g2, pos + 3);
 	}
         else if (state == STATE_STOPPED || !seekable) {
-            paintMessage(g2, r.height*2 + 3);
+            paintMessage(g2, pos + 3);
             paintTime(g2);
 	}
 	else if (seekable) {
@@ -323,6 +339,11 @@ public class Status extends Component implements MouseListener,
 
     public void setSeekable(boolean s) {
         seekable = s;
+        component.repaint();
+    }
+
+    public void setLive(boolean l) {
+        live = l;
         component.repaint();
     }
 
@@ -425,7 +446,10 @@ public class Status extends Component implements MouseListener,
         switch (comp) {
         case BUTTON1:
             if (state == STATE_PLAYING) {
-                state = STATE_PAUSED;
+		if (live)
+                  state = STATE_STOPPED;
+		else
+                  state = STATE_PAUSED;
                 notifyNewState(state);
             } else {
                 state = STATE_PLAYING;
