@@ -272,7 +272,7 @@ public class Cortado extends Applet implements Runnable, MouseMotionListener,
           status.setLive(true);
 
 	/* assume non seekable stream unless specified */
-	if (live == BOOL_TRUE)
+	if (seekable == BOOL_TRUE)
           status.setSeekable(true);
 	else
           status.setSeekable(false);

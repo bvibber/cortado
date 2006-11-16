@@ -1,3 +1,8 @@
+2006-11-16  Michael Smith  <msmith@fluendo.com>
+
+	* src/com/fluendo/player/Cortado.java: (Cortado...init):
+	  Use seekable parameter instead of live to determine seekability.
+
 2006-11-16  Wim Taymans  <wim@fluendo.com>
 
 	* src/com/fluendo/player/Cortado.java: (Cortado...actionPerformed),
