@@ -1,3 +1,9 @@
+2006-11-16  Wim Taymans  <wim@fluendo.com>
+
+	* src/com/fluendo/plugin/OggDemux.java:
+	(OggDemux.....OggStream.reStart):
+	Stream time starts from 0
+
 2006-11-03  Thomas Vander Stichele  <thomas at apestaart dot org>
 
 	* build.xml:

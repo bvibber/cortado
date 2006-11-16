@@ -115,7 +115,7 @@ public class OggDemux extends Element
         return;
 
       Debug.log(Debug.DEBUG, this+" pushing segment start "+firstTs);
-      pushEvent (Event.newNewsegment (false, Format.TIME, firstTs, -1, firstTs));
+      pushEvent (Event.newNewsegment (false, Format.TIME, firstTs, -1, 0));
 
       if (!sentHeaders) {
         for (int i=0; i<headers.size(); i++) {
