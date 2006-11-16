@@ -1,5 +1,18 @@
 2006-11-16  Wim Taymans  <wim@fluendo.com>
 
+	* src/com/fluendo/player/Cortado.java: (Cortado...actionPerformed),
+	(Cortado...realRun), (Cortado...mouseDragged),
+	(Cortado...mouseMoved), (Cortado...handleMessage),
+	(Cortado...newState), (Cortado...newSeek), (Cortado...start):
+	Handle resize correctly.
+
+	* src/com/fluendo/plugin/VideoSink.java: (VideoSink.setCapsFunc),
+	(VideoSink.render), (VideoSink), (VideoSink.getFactoryName),
+	(VideoSink.setProperty):
+	Fix keep-aspect. Added scale property.
+
+2006-11-16  Wim Taymans  <wim@fluendo.com>
+
 	* src/com/fluendo/jst/Message.java: (Message), (Message.toString),
 	(Message.newEOS), (Message.newError), (Message.newWarning),
 	(Message.newStateDirty):

@@ -27,7 +27,7 @@ import com.fluendo.utils.*;
 import com.fluendo.jst.*;
 
 public class Cortado extends Applet implements Runnable, MouseMotionListener,
-        MouseListener, BusHandler, StatusListener, ActionListener {
+        MouseListener, ComponentListener, BusHandler, StatusListener, ActionListener {
     private static final long serialVersionUID = 1L;
 
     private static Cortado cortado;
@@ -304,14 +304,26 @@ public class Cortado extends Applet implements Runnable, MouseMotionListener,
     }
 
     public Graphics getGraphics() {
+	Dimension dim = getSize();
         Graphics g = super.getGraphics();
 
         if (status != null && status.isVisible()) {
-            g.setClip(0, 0, getSize().width, getSize().height - statusHeight);
+            g.setClip(0, 0, dim.width, dim.height - statusHeight);
         } else {
-            g.setClip(0, 0, getSize().width, getSize().height);
+            g.setClip(0, 0, dim.width, dim.height);
         }
         return g;
+    }
+
+    public void componentHidden(ComponentEvent e) {
+    }
+    public void componentMoved(ComponentEvent e) {
+    }
+    public void componentResized(ComponentEvent e) {
+      /* reset cached dimension */
+      appletDimension = null;
+    }
+    public void componentShown(ComponentEvent e) {
     }
 
     public Dimension getSize() {
@@ -362,8 +374,10 @@ public class Cortado extends Applet implements Runnable, MouseMotionListener,
     }
 
     public void paint(Graphics g) {
-        int dwidth = getSize().width;
-        int dheight = getSize().height;
+	Dimension dim = getSize();
+
+        int dwidth = dim.width;
+        int dheight = dim.height;
 
         /* sometimes dimension is wrong */
         if (dwidth <= 0 || dheight <= statusHeight) {
@@ -479,6 +493,8 @@ public class Cortado extends Applet implements Runnable, MouseMotionListener,
     public void handleMessage(Message msg) {
         switch (msg.getType()) {
         case Message.WARNING:
+            System.out.println(msg.toString());
+            break;
         case Message.ERROR:
             System.out.println(msg.toString());
 	    if (!isError) {
@@ -651,6 +667,7 @@ public class Cortado extends Applet implements Runnable, MouseMotionListener,
 
 	System.out.println("start()");
 
+        addComponentListener(this);
         addMouseListener(this);
         addMouseMotionListener(this);
         status.addStatusListener(this);
@@ -672,6 +689,12 @@ public class Cortado extends Applet implements Runnable, MouseMotionListener,
 
     public synchronized void stop() {
 	System.out.println("stop()");
+
+        status.removeStatusListener(this);
+        removeMouseMotionListener(this);
+        removeMouseListener(this);
+        removeComponentListener(this);
+
 	statusRunning = false;
         desiredState = Element.STOP;
 	if (pipeline != null) {

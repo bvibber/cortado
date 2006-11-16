@@ -20,20 +20,23 @@ package com.fluendo.plugin;
 
 import java.awt.*;
 import java.awt.image.*;
+import com.fluendo.utils.*;
 import com.fluendo.jst.*;
 
 public class VideoSink extends Sink
 {
   private Component component;
   private boolean keepAspect;
+  private boolean scale;
   private Frame frame;
 
   private int width, height;
-  private int aspect_x, aspect_y;
+  private int aspectX, aspectY;
 
   public VideoSink ()
   {
     keepAspect = true;
+    scale = true;
   }
 
   protected boolean setCapsFunc (Caps caps)
@@ -48,22 +51,21 @@ public class VideoSink extends Sink
     if (width == -1 || height == -1)
       return false;
 
-    aspect_x = caps.getFieldInt("aspect_x", 1);
-    aspect_y = caps.getFieldInt("aspect_y", 1);
+    aspectX = caps.getFieldInt("aspect_x", 1);
+    aspectY = caps.getFieldInt("aspect_y", 1);
 
-    if (aspect_y > aspect_x) {
-      height = height * aspect_y / aspect_x;
+    /*
+    Debug.log(Debug.DEBUG, this+" dimension: "+width+"x"+height+", aspect: "+aspectX+"/"+aspectY);
+
+    if (aspectY > aspectX) {
+      height = height * aspectY / aspectX;
     }
     else {
-      width = width * aspect_x / aspect_y;
+      width = width * aspectX / aspectY;
     }
+    Debug.log(Debug.DEBUG, this+" scaled source: "+width+"x"+height);
+    */
 
-    /* in applets, setSize() is not supposed to do anything, you can't resize
-     * the applet. Except in MS JVM, where the size does not change but the
-     * getSize() call returns different results. This screws up our layout.
-     * FIXME, probably do something smarter here so that it still works when we
-     * actually can resize the component. */
-    //component.setSize (width, height);
     component.setVisible(true);
 
     return true;
@@ -97,19 +99,39 @@ public class VideoSink extends Sink
     Graphics graphics = component.getGraphics();
 
     if (keepAspect) {
-      /* FIXME */
-      w = d.width;
-      h = d.height;
-      x = 0;
-      y = 0;
-    }
-    else {
-      w = d.width;
-      h = d.height;
-      x = 0;
-      y = 0;
-    }
+      double src_ratio, dst_ratio;
 
+      src_ratio = (double) width / height;
+      dst_ratio = (double) d.width / d.height;
+
+      if (src_ratio > dst_ratio) {
+        w = d.width;
+        h = (int) (d.width / src_ratio);
+        x = 0;
+        y = (d.height - h) / 2;
+      } else if (src_ratio < dst_ratio) {
+        w = (int) (d.height * src_ratio);
+        h = d.height;
+        x = (d.width - w) / 2;
+        y = 0;
+      } else {
+        x = 0;
+        y = 0;
+        w = d.width;
+        h = d.height;
+      }
+    } else if (!scale) {
+      w = Math.min (width, d.width);
+      h = Math.min (height, d.height);
+      x = (d.width - w) / 2;
+      y = (d.height - h) / 2;
+    } else {
+      /* draw in available area */
+      w = d.width;
+      h = d.height;
+      x = 0;
+      y = 0;
+    }
     graphics.drawImage (image, x, y, w, h, null);
 
     return Pad.OK;
@@ -126,6 +148,9 @@ public class VideoSink extends Sink
     }
     else if (name.equals("keep-aspect")) {
       keepAspect = String.valueOf(value).equals("true");
+    }
+    else if (name.equals("scale")) {
+      scale = String.valueOf(value).equals("true");
     }
     else
       return false;
