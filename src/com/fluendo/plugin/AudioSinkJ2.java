@@ -41,8 +41,62 @@ public class AudioSinkJ2 extends AudioSink
     DataLine.Info info = new DataLine.Info(SourceDataLine.class, format);
 
     try {
-      line = (SourceDataLine) AudioSystem.getLine(info);
-      line.open(format);
+      Mixer.Info[] mixers = AudioSystem.getMixerInfo();
+
+      /* On linux, the default implementation gives terribly inaccurate results
+       * from line.available(), so we can't keep sync. Modern JVMs have an ALSA
+       * implementation that doesn't suck, so use that if available. */
+      for(int i=0; i < mixers.length; i++) {
+        Debug.log(Debug.INFO, "mixer description: " + 
+                mixers[i].getDescription() + ", vendor: " + 
+                mixers[i].getVendor());
+        /* Apparently either description or vendor might contain 'ALSA' - on
+         * my system, it's vendor */
+        String desc = mixers[i].getDescription();
+        String vendor = mixers[i].getVendor();
+        if(desc.indexOf("ALSA") >= 0 || 
+           vendor.indexOf("ALSA") >= 0) 
+        {
+          /* Unfortunately, the alsa devices include useless ones that we have
+           * no sane way of filtering out! Hence this insanity. */
+          if (desc.indexOf("IEC958") >= 0)
+            continue;
+
+          try {
+            Line.Info[] lines = AudioSystem.getMixer(mixers[i]).
+                getSourceLineInfo(info);
+
+            for (int j=0; j < lines.length; j++) {
+              Debug.log(Debug.INFO, "Mixer supports line: " + 
+                  lines[j].toString());
+              AudioFormat[] formats = ((DataLine.Info)lines[j]).getFormats();
+              for(int k=0; k < formats.length; k++)
+                Debug.log(Debug.INFO, "Format: " + formats[k].toString());
+            }
+            Debug.log(Debug.INFO, "Attempting to get a line from ALSA mixer");
+            line = (SourceDataLine) AudioSystem.getMixer(
+                mixers[i]).getLine(info);
+            /* Got one. Excellent. Try it. */
+            line.open(format);
+            break;
+          } catch (Exception e) {
+            if (line != null) {
+              line.close();
+              line = null;
+            }
+            /* Don't care too much; we'll fall through to the default case
+             * later, and do proper error handling there */
+            Debug.log(Debug.INFO, "mixer: " + mixers[i].getDescription() + 
+                " failed: " + e);
+          }
+        }
+      }
+
+      /* If that failed, use the default line. */
+      if (line == null) {
+        line = (SourceDataLine) AudioSystem.getLine(info);
+        line.open(format);
+      }
     }
     catch (javax.sound.sampled.LineUnavailableException e) {
       e.printStackTrace();

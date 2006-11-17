@@ -1,3 +1,9 @@
+2006-11-17  Michael Smith  <msmith@fluendo.com>
+
+	* src/com/fluendo/plugin/AudioSinkJ2.java: (AudioSinkJ2.open):
+	  Attempt to use Real Alsa Devices instead of the software mixer,
+	  which doesn't provide good sync, if possible.
+
 2006-11-16  Michael Smith  <msmith@fluendo.com>
 
 	* src/com/fluendo/player/Cortado.java: (Cortado...init):
