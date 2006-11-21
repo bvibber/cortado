@@ -1,3 +1,9 @@
+2006-11-21  Thomas Vander Stichele  <thomas at apestaart dot org>
+
+	* src/com/fluendo/player/Cortado.java: (Cortado...paint):
+	  Log when appletDimension is wrong.
+	  height == statusHeight should be acceptable.
+
 2006-11-17  Michael Smith  <msmith@fluendo.com>
 
 	* src/com/fluendo/plugin/AudioSinkJ2.java: (AudioSinkJ2.open):

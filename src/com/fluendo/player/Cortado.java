@@ -380,9 +380,11 @@ public class Cortado extends Applet implements Runnable, MouseMotionListener,
         int dheight = dim.height;
 
         /* sometimes dimension is wrong */
-        if (dwidth <= 0 || dheight <= statusHeight) {
+        if (dwidth <= 0 || dheight < statusHeight) {
 	  appletDimension = null;
-	  Debug.log (Debug.WARNING, "paint aborted: appletDimension wrong");
+	  Debug.log (Debug.WARNING,
+               "paint aborted: appletDimension wrong; dwidth " + dwidth
+               + ", dheight " + dheight + ", statusHeight " + statusHeight);
 	  return;
 	}
 	
