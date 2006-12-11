@@ -402,13 +402,20 @@ public class OggDemux extends Element
       /* now check if all streams are Synced */
       if (!synced) {
         boolean check = true;
+	boolean hasMedia = false;
         for (int i=0; i<streams.size(); i++) {
 	  OggStream cstream = (OggStream) streams.elementAt(i);
 
+	  if (cstream.type == TYPE_MEDIA)
+	    hasMedia = true;
 	  if (!(check = cstream.isComplete()))
 	    break;
         }
-	if (check) {
+	/* isComplete check do not work for annodex file right now, cause we don't parse
+	 * the annodex headers properly at this moment. So we shouldn't consider all
+	 * streams are synced unless we have at least one media stream which in turn
+	 * will ensure that all media streams are in sync. */
+	if (check && hasMedia) {
           Debug.log(Debug.DEBUG, "steams synced");
 	  activate();
 	  reStart();

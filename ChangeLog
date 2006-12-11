@@ -1,3 +1,11 @@
+2006-12-11  Wim Taymans  <wim@fluendo.com>
+
+	Patch by: Tahseen Mohammad <tahseen dot mohammad at gmail dot com>
+
+	* src/com/fluendo/plugin/OggDemux.java:
+	(OggDemux.....OggStream.OggChain.pushPage):
+	Ignore annodex streams when discovering streams.
+
 2006-11-21  Thomas Vander Stichele  <thomas at apestaart dot org>
 
 	* src/com/fluendo/player/Cortado.java: (Cortado...paint):
