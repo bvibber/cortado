@@ -106,9 +106,12 @@ public class DCTDecode
     if ( FragmentNumber<(int)pbi.YPlaneFragments ){
       ReconPixelsPerLine = pbi.YStride;
       dequant_coeffs = pbi.dequant_Y_coeffs;
-    }else{
+    }else if(FragmentNumber < pbi.YPlaneFragments + pbi.UVPlaneFragments) {
       ReconPixelsPerLine = pbi.UVStride;
-      dequant_coeffs = pbi.dequant_UV_coeffs;
+      dequant_coeffs = pbi.dequant_U_coeffs;
+    } else {
+      ReconPixelsPerLine = pbi.UVStride;
+      dequant_coeffs = pbi.dequant_V_coeffs;
     }
 
     /* Set up pointer into the quantisation buffer. */
@@ -173,17 +176,25 @@ public class DCTDecode
       if ( codingMode == CodingMode.CODE_INTRA )
         dequant_coeffs = pbi.dequant_Y_coeffs;
       else
-        dequant_coeffs = pbi.dequant_Inter_coeffs;
+        dequant_coeffs = pbi.dequant_Inter_Y_coeffs;
     }else{
       ReconPixelsPerLine = pbi.UVStride;
       MvShift = 2;
       MvModMask = 0x00000003;
 
       /* Select appropriate dequantiser matrix. */
-      if ( codingMode == CodingMode.CODE_INTRA )
-        dequant_coeffs = pbi.dequant_UV_coeffs;
-      else
-        dequant_coeffs = pbi.dequant_Inter_coeffs;
+      
+      if(FragmentNumber < pbi.YPlaneFragments + pbi.UVPlaneFragments) {
+        if ( codingMode == CodingMode.CODE_INTRA )
+          dequant_coeffs = pbi.dequant_U_coeffs;
+        else
+          dequant_coeffs = pbi.dequant_Inter_U_coeffs;
+      } else {
+        if ( codingMode == CodingMode.CODE_INTRA )
+          dequant_coeffs = pbi.dequant_V_coeffs;
+        else
+          dequant_coeffs = pbi.dequant_Inter_V_coeffs;
+      }
     }
 
     /* Set up pointer into the quantisation buffer. */

@@ -55,8 +55,11 @@ public class Info {
   int MaxQMatrixIndex;
   short[] qmats;
   short[] Y_coeffs = new short[64];
-  short[] UV_coeffs = new short[64];
-  short[] Inter_coeffs = new short[64];
+  short[] U_coeffs = new short[64];
+  short[] V_coeffs = new short[64];
+  short[] Inter_Y_coeffs = new short[64];
+  short[] Inter_U_coeffs = new short[64];
+  short[] Inter_V_coeffs = new short[64];
   HuffEntry[] HuffRoot = new HuffEntry[Huffman.NUM_HUFF_TABLES];
   byte[] LoopFilterLimitValues = new byte[Constants.Q_TABLE_SIZE];
 

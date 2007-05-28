@@ -81,7 +81,7 @@ public class Quant
     /* base matricies */
     N = opb.readB(9); N++;
     //System.out.println("  max q matrix index "+N);
-    if(N!=3)return Result.BADHEADER; /* we only support the VP3 config */
+    
     ci.qmats= new short[N*64];
     ci.MaxQMatrixIndex = N;
     for(y=0; y<N; y++) {
@@ -181,9 +181,22 @@ public class Quant
     }
     
     /* ignore the range table and reference the matricies we use */
-    System.arraycopy(ci.qmats,    0, ci.Y_coeffs,     0, 64);
-    System.arraycopy(ci.qmats,   64, ci.UV_coeffs,    0, 64);
-    System.arraycopy(ci.qmats, 2*64, ci.Inter_coeffs, 0, 64);
+    
+    if(N == 3) {
+      System.arraycopy(ci.qmats,    0, ci.Y_coeffs,     0, 64);
+      System.arraycopy(ci.qmats,   64, ci.U_coeffs,    0, 64);
+      System.arraycopy(ci.qmats,   64, ci.V_coeffs,    0, 64);
+      System.arraycopy(ci.qmats, 2*64, ci.Inter_Y_coeffs, 0, 64);
+      System.arraycopy(ci.qmats, 2*64, ci.Inter_U_coeffs, 0, 64);
+      System.arraycopy(ci.qmats, 2*64, ci.Inter_V_coeffs, 0, 64);
+    } else if(N == 6) {
+      System.arraycopy(ci.qmats,    0, ci.Y_coeffs,     0, 64);
+      System.arraycopy(ci.qmats,   64, ci.U_coeffs,    0, 64);
+      System.arraycopy(ci.qmats, 2*64, ci.V_coeffs,    0, 64);
+      System.arraycopy(ci.qmats, 3*64, ci.Inter_Y_coeffs, 0, 64);
+      System.arraycopy(ci.qmats, 4*64, ci.Inter_U_coeffs, 0, 64);
+      System.arraycopy(ci.qmats, 5*64, ci.Inter_V_coeffs, 0, 64);
+    } else return Result.BADHEADER;
   
     return 0;
   }
@@ -203,15 +216,24 @@ public class Quant
                         byte  QIndex ){
     int i, j;
 
-    short[] Inter_coeffs;
+    
     short[] Y_coeffs;
-    short[] UV_coeffs;
+    short[] U_coeffs;
+    short[] V_coeffs;
+    short[] Inter_Y_coeffs;
+    short[] Inter_U_coeffs;
+    short[] Inter_V_coeffs;
     short[] DcScaleFactorTable;
     short[] UVDcScaleFactorTable;
 
-    Inter_coeffs = pbi.Inter_coeffs;
     Y_coeffs = pbi.Y_coeffs;
-    UV_coeffs = pbi.UV_coeffs;
+    U_coeffs = pbi.U_coeffs;
+    V_coeffs = pbi.V_coeffs;
+    Inter_Y_coeffs = pbi.Inter_Y_coeffs;
+    Inter_U_coeffs = pbi.Inter_U_coeffs;
+    Inter_V_coeffs = pbi.Inter_V_coeffs;
+    
+    
     DcScaleFactorTable = pbi.DcScaleFactorTable;
     UVDcScaleFactorTable = pbi.DcScaleFactorTable;
 
@@ -223,9 +245,12 @@ public class Quant
     for ( i = 0; i < Constants.BLOCK_SIZE; i++ ) {
       j = pbi.quant_index[i];
       pbi.dequant_Y_coeffs[j] = Y_coeffs[i];
-      pbi.dequant_Inter_coeffs[j] = Inter_coeffs[i];
-      pbi.dequant_UV_coeffs[j] = UV_coeffs[i];
-      pbi.dequant_InterUV_coeffs[j] = Inter_coeffs[i];
+      pbi.dequant_U_coeffs[j] = U_coeffs[i];
+      pbi.dequant_V_coeffs[j] = V_coeffs[i];
+      pbi.dequant_Inter_Y_coeffs[j] = Inter_Y_coeffs[i];
+      pbi.dequant_Inter_U_coeffs[j] = Inter_U_coeffs[i];
+      pbi.dequant_Inter_V_coeffs[j] = Inter_V_coeffs[i];
+
     }
 
     /* Intra Y */
@@ -236,29 +261,45 @@ public class Quant
     pbi.dequant_Y_coeffs[0] = (short) 
       (pbi.dequant_Y_coeffs[0] << IDCT_SCALE_FACTOR);
 
-    /* Intra UV */
-    pbi.dequant_UV_coeffs[0] = (short)
-      ((UVDcScaleFactorTable[QIndex] * pbi.dequant_UV_coeffs[0])/100);
-    if ( pbi.dequant_UV_coeffs[0] < MIN_DEQUANT_VAL * 2 )
-      pbi.dequant_UV_coeffs[0] = MIN_DEQUANT_VAL * 2;
-    pbi.dequant_UV_coeffs[0] = (short)
-      (pbi.dequant_UV_coeffs[0] << IDCT_SCALE_FACTOR);
+    /* Intra U */
+    pbi.dequant_U_coeffs[0] = (short)
+      ((UVDcScaleFactorTable[QIndex] * pbi.dequant_U_coeffs[0])/100);
+    if ( pbi.dequant_U_coeffs[0] < MIN_DEQUANT_VAL * 2 )
+      pbi.dequant_U_coeffs[0] = MIN_DEQUANT_VAL * 2;
+    pbi.dequant_U_coeffs[0] = (short)
+      (pbi.dequant_U_coeffs[0] << IDCT_SCALE_FACTOR);
+    
+    /* Intra V */
+    pbi.dequant_V_coeffs[0] = (short)
+      ((UVDcScaleFactorTable[QIndex] * pbi.dequant_V_coeffs[0])/100);
+    if ( pbi.dequant_V_coeffs[0] < MIN_DEQUANT_VAL * 2 )
+      pbi.dequant_V_coeffs[0] = MIN_DEQUANT_VAL * 2;
+    pbi.dequant_V_coeffs[0] = (short)
+      (pbi.dequant_V_coeffs[0] << IDCT_SCALE_FACTOR);
 
     /* Inter Y */
-    pbi.dequant_Inter_coeffs[0] = (short)
-      ((DcScaleFactorTable[QIndex] * pbi.dequant_Inter_coeffs[0])/100);
-    if ( pbi.dequant_Inter_coeffs[0] < MIN_DEQUANT_VAL * 4 )
-      pbi.dequant_Inter_coeffs[0] = MIN_DEQUANT_VAL * 4;
-    pbi.dequant_Inter_coeffs[0] = (short)
-      (pbi.dequant_Inter_coeffs[0] << IDCT_SCALE_FACTOR);
+    pbi.dequant_Inter_Y_coeffs[0] = (short)
+      ((DcScaleFactorTable[QIndex] * pbi.dequant_Inter_Y_coeffs[0])/100);
+    if ( pbi.dequant_Inter_Y_coeffs[0] < MIN_DEQUANT_VAL * 4 )
+      pbi.dequant_Inter_Y_coeffs[0] = MIN_DEQUANT_VAL * 4;
+    pbi.dequant_Inter_Y_coeffs[0] = (short)
+      (pbi.dequant_Inter_Y_coeffs[0] << IDCT_SCALE_FACTOR);
 
-    /* Inter UV */
-    pbi.dequant_InterUV_coeffs[0] = (short)
-      ((UVDcScaleFactorTable[QIndex] * pbi.dequant_InterUV_coeffs[0])/100);
-    if ( pbi.dequant_InterUV_coeffs[0] < MIN_DEQUANT_VAL * 4 )
-      pbi.dequant_InterUV_coeffs[0] = MIN_DEQUANT_VAL * 4;
-    pbi.dequant_InterUV_coeffs[0] = (short)
-      (pbi.dequant_InterUV_coeffs[0] << IDCT_SCALE_FACTOR);
+    /* Inter U */
+    pbi.dequant_Inter_U_coeffs[0] = (short)
+      ((UVDcScaleFactorTable[QIndex] * pbi.dequant_Inter_U_coeffs[0])/100);
+    if ( pbi.dequant_Inter_U_coeffs[0] < MIN_DEQUANT_VAL * 4 )
+      pbi.dequant_Inter_U_coeffs[0] = MIN_DEQUANT_VAL * 4;
+    pbi.dequant_Inter_U_coeffs[0] = (short)
+      (pbi.dequant_Inter_U_coeffs[0] << IDCT_SCALE_FACTOR);
+    
+    /* Inter V */
+    pbi.dequant_Inter_V_coeffs[0] = (short)
+      ((UVDcScaleFactorTable[QIndex] * pbi.dequant_Inter_V_coeffs[0])/100);
+    if ( pbi.dequant_Inter_V_coeffs[0] < MIN_DEQUANT_VAL * 4 )
+      pbi.dequant_Inter_V_coeffs[0] = MIN_DEQUANT_VAL * 4;
+    pbi.dequant_Inter_V_coeffs[0] = (short)
+      (pbi.dequant_Inter_V_coeffs[0] << IDCT_SCALE_FACTOR);
   
     for ( i = 1; i < 64; i++ ){
       /* now scale coefficients by required compression factor */
@@ -269,26 +310,42 @@ public class Quant
       pbi.dequant_Y_coeffs[i] = (short)
         (pbi.dequant_Y_coeffs[i] << IDCT_SCALE_FACTOR);
   
-      pbi.dequant_UV_coeffs[i] = (short)
-        (( scale_factor * pbi.dequant_UV_coeffs[i] ) / 100);
-      if ( pbi.dequant_UV_coeffs[i] < MIN_DEQUANT_VAL )
-        pbi.dequant_UV_coeffs[i] = MIN_DEQUANT_VAL;
-      pbi.dequant_UV_coeffs[i] = (short)
-        (pbi.dequant_UV_coeffs[i] << IDCT_SCALE_FACTOR);
+      pbi.dequant_U_coeffs[i] = (short)
+        (( scale_factor * pbi.dequant_U_coeffs[i] ) / 100);
+      if ( pbi.dequant_U_coeffs[i] < MIN_DEQUANT_VAL )
+        pbi.dequant_U_coeffs[i] = MIN_DEQUANT_VAL;
+      pbi.dequant_U_coeffs[i] = (short)
+        (pbi.dequant_U_coeffs[i] << IDCT_SCALE_FACTOR);
+      
+      pbi.dequant_V_coeffs[i] = (short)
+        (( scale_factor * pbi.dequant_V_coeffs[i] ) / 100);
+      if ( pbi.dequant_V_coeffs[i] < MIN_DEQUANT_VAL )
+        pbi.dequant_V_coeffs[i] = MIN_DEQUANT_VAL;
+      pbi.dequant_V_coeffs[i] = (short)
+        (pbi.dequant_V_coeffs[i] << IDCT_SCALE_FACTOR);
 
-      pbi.dequant_Inter_coeffs[i] = (short)
-        (( scale_factor * pbi.dequant_Inter_coeffs[i] ) / 100);
-      if ( pbi.dequant_Inter_coeffs[i] < (MIN_DEQUANT_VAL * 2) )
-        pbi.dequant_Inter_coeffs[i] = MIN_DEQUANT_VAL * 2;
-      pbi.dequant_Inter_coeffs[i] = (short)
-        (pbi.dequant_Inter_coeffs[i] << IDCT_SCALE_FACTOR);
+      pbi.dequant_Inter_Y_coeffs[i] = (short)
+        (( scale_factor * pbi.dequant_Inter_Y_coeffs[i] ) / 100);
+      if ( pbi.dequant_Inter_Y_coeffs[i] < (MIN_DEQUANT_VAL * 2) )
+        pbi.dequant_Inter_Y_coeffs[i] = MIN_DEQUANT_VAL * 2;
+      pbi.dequant_Inter_Y_coeffs[i] = (short)
+        (pbi.dequant_Inter_Y_coeffs[i] << IDCT_SCALE_FACTOR);
 
-      pbi.dequant_InterUV_coeffs[i] = (short)
-        (( scale_factor * pbi.dequant_InterUV_coeffs[i] ) / 100);
-      if ( pbi.dequant_InterUV_coeffs[i] < (MIN_DEQUANT_VAL * 2) )
-        pbi.dequant_InterUV_coeffs[i] = MIN_DEQUANT_VAL * 2;
-      pbi.dequant_InterUV_coeffs[i] = (short)
-        (pbi.dequant_InterUV_coeffs[i] << IDCT_SCALE_FACTOR);
+      pbi.dequant_Inter_U_coeffs[i] = (short)
+        (( scale_factor * pbi.dequant_Inter_U_coeffs[i] ) / 100);
+      if ( pbi.dequant_Inter_U_coeffs[i] < (MIN_DEQUANT_VAL * 2) )
+        pbi.dequant_Inter_U_coeffs[i] = MIN_DEQUANT_VAL * 2;
+      pbi.dequant_Inter_U_coeffs[i] = (short)
+        (pbi.dequant_Inter_U_coeffs[i] << IDCT_SCALE_FACTOR);
+
+      pbi.dequant_Inter_V_coeffs[i] = (short)
+        (( scale_factor * pbi.dequant_Inter_V_coeffs[i] ) / 100);
+      if ( pbi.dequant_Inter_V_coeffs[i] < (MIN_DEQUANT_VAL * 2) )
+        pbi.dequant_Inter_V_coeffs[i] = MIN_DEQUANT_VAL * 2;
+      pbi.dequant_Inter_V_coeffs[i] = (short)
+        (pbi.dequant_Inter_V_coeffs[i] << IDCT_SCALE_FACTOR);
+
+
     }
   }
 

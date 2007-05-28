@@ -151,8 +151,11 @@ public class Playback
   int[] 	QThreshTable = new int[Constants.Q_TABLE_SIZE];
   short[] 	DcScaleFactorTable = new short[Constants.Q_TABLE_SIZE];
   short[] 	Y_coeffs = new short[64];
-  short[] 	UV_coeffs = new short[64];
-  short[] 	Inter_coeffs = new short[64];
+  short[] 	U_coeffs = new short[64];
+  short[] 	V_coeffs = new short[64];
+  short[] 	Inter_Y_coeffs = new short[64];
+  short[] 	Inter_U_coeffs = new short[64];
+  short[] 	Inter_V_coeffs = new short[64];
 
   /* Dequantiser and rounding tables */
   short[] 	dequant_InterUV_coeffs;
@@ -167,16 +170,21 @@ public class Playback
 
   /* Quantiser and rounding tables */
   short[]	dequant_Y_coeffs;
-  short[] 	dequant_UV_coeffs;
-  short[] 	dequant_Inter_coeffs;
+  short[] 	dequant_U_coeffs;
+  short[] 	dequant_V_coeffs;
+  short[] 	dequant_Inter_Y_coeffs;
+  short[] 	dequant_Inter_U_coeffs;
+  short[] 	dequant_Inter_V_coeffs;
   short[] 	dequant_coeffs;
 
   public void clearTmpBuffers()
   {
     dequant_Y_coeffs = null;
-    dequant_UV_coeffs = null;
-    dequant_InterUV_coeffs = null;
-    dequant_Inter_coeffs = null;
+    dequant_U_coeffs = null;
+    dequant_V_coeffs = null;
+    dequant_Inter_Y_coeffs = null;
+    dequant_Inter_U_coeffs = null;
+    dequant_Inter_V_coeffs = null;
   }
 
   private void initTmpBuffers()
@@ -187,9 +195,11 @@ public class Playback
 
     /* Adjust the position of all of our temporary */
     dequant_Y_coeffs     = new short[64];
-    dequant_UV_coeffs    = new short[64];
-    dequant_Inter_coeffs = new short[64];
-    dequant_InterUV_coeffs = new short[64];
+    dequant_U_coeffs    = new short[64];
+    dequant_V_coeffs    = new short[64];
+    dequant_Inter_Y_coeffs = new short[64];
+    dequant_Inter_U_coeffs = new short[64];
+    dequant_Inter_V_coeffs = new short[64];
   }
 
   public void clear()
@@ -301,7 +311,10 @@ public class Playback
     System.arraycopy(ci.DcScaleFactorTable, 0, DcScaleFactorTable,
                    0, Constants.Q_TABLE_SIZE);
     System.arraycopy(ci.Y_coeffs, 0, Y_coeffs, 0, 64);
-    System.arraycopy(ci.UV_coeffs, 0, UV_coeffs, 0, 64);
-    System.arraycopy(ci.Inter_coeffs, 0, Inter_coeffs, 0, 64);
+    System.arraycopy(ci.U_coeffs, 0, U_coeffs, 0, 64);
+    System.arraycopy(ci.V_coeffs, 0, V_coeffs, 0, 64);
+    System.arraycopy(ci.Inter_Y_coeffs, 0, Inter_Y_coeffs, 0, 64);
+    System.arraycopy(ci.Inter_U_coeffs, 0, Inter_U_coeffs, 0, 64);
+    System.arraycopy(ci.Inter_V_coeffs, 0, Inter_V_coeffs, 0, 64);
   }
 }

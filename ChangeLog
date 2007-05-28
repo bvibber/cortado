@@ -1,3 +1,15 @@
+2007-05-28  Wim Taymans  <wim@fluendo.com>
+
+	* src/com/fluendo/jheora/DCTDecode.java:
+	(DCTDecode.....ExpandKFBlock), (DCTDecode.....ExpandBlock):
+	* src/com/fluendo/jheora/Info.java: (Info):
+	* src/com/fluendo/jheora/Playback.java: (Playback),
+	(Playback.clearTmpBuffers), (Playback.initTmpBuffers),
+	(Playback.initHuffmanTrees), (Playback.copyQTables):
+	* src/com/fluendo/jheora/Quant.java: (Quant.readQTables), (Quant),
+	(Quant.BuildQuantIndex_Generic), (Quant.init_dequantizer):
+	Add support for 6 matrices in the decoder. Fixes #611.
+
 2006-12-11  Wim Taymans  <wim@fluendo.com>
 
 	Patch by: Tahseen Mohammad <tahseen dot mohammad at gmail dot com>
