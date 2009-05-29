@@ -20,14 +20,14 @@ then
   fi
 fi
 
-# if the file is not newer than the .svn directory, leave it alone
+# if the file is not newer than the .git directory, leave it alone
 if test ! -d $topsrcdir/.git
 then
-  echo "No top-level .svn directory, leaving file alone."
+  echo "No top-level .git directory, leaving file alone."
   exit
 fi
 
-# don't compare with .svn dir; local modifications should also trigger
+# don't compare with .git dir; local modifications should also trigger
 # a revision update
 
 echo "Updating SourceInfo file, branch $branch, revision $revision"

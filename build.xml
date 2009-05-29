@@ -81,7 +81,6 @@ Cortado ANT build file
       />
   </target>
 
-<!-- generate Configure-time options class as src/com/fluendo/player/Configure.java -->
   <target name="configure" depends="scripts">
     <tstamp>
       <format property="DATE" timezone="GMT" pattern="yyyy-MM-dd HH:mm:ss" />
@@ -92,10 +91,9 @@ Cortado ANT build file
    <exec executable="sh" outputproperty="BRANCH">
      <arg line="${src}/../scripts/get-branch" />
    </exec>
-    <condition property="real_version" value="wm_${REVISION}" else="${product.version}">
-      <equals arg1="${product.version}" arg2="WM_REV"/>
-    </condition>
-
+   <condition property="real_version" value="wm_${REVISION}" else="${product.version}">
+    <equals arg1="${product.version}" arg2="WM_REV"/>
+   </condition>
     <echo file="${src}/com/fluendo/player/Configure.java" append="false"
 >
 package com.fluendo.player;
@@ -121,9 +119,10 @@ class Configure
 
 <!-- generate Dist-time options class as src/com/fluendo/player/Dist.java -->
   <target name="source-info" depends="scripts">
-    <java classname="GetSourceInfo" classpath="{$src}/../scripts" failonerror="true">
-      <arg value="update"/>
-    </java>
+    <exec executable="sh" outputproperty="OUTPUT">
+     <arg line="${src}/../scripts/update-source-info" />
+    </exec>
+    <echo>${OUTPUT}</echo>
   </target>
 
 <!-- delete distinfo any time .git directory changes -->
