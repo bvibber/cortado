@@ -86,23 +86,12 @@ Cortado ANT build file
     <tstamp>
       <format property="DATE" timezone="GMT" pattern="yyyy-MM-dd HH:mm:ss" />
     </tstamp>
-    <java 
-      classname="GetSourceInfo" 
-      classpath="${src}/../scripts" 
-      outputproperty="REVISION"
-      failonerror="true"
-      >
-      <arg value="revision"/>
-    </java>
-
-    <java 
-      classname="GetSourceInfo" 
-      classpath="${src}/../scripts" 
-      outputproperty="BRANCH"
-      failonerror="true"
-      >
-      <arg value="branch"/>
-    </java>
+   <exec executable="sh" outputproperty="REVISION">
+     <arg line="${src}/../scripts/get-revision" />
+   </exec>
+   <exec executable="sh" outputproperty="BRANCH">
+     <arg line="${src}/../scripts/get-branch" />
+   </exec>
     <condition property="real_version" value="wm_${REVISION}" else="${product.version}">
       <equals arg1="${product.version}" arg2="WM_REV"/>
     </condition>
@@ -137,9 +126,9 @@ class Configure
     </java>
   </target>
 
-<!-- delete distinfo any time .svn directory changes -->
+<!-- delete distinfo any time .git directory changes -->
 <dependset>
-  <srcfileset file="${src}/../.svn" />
+  <srcfileset file="${src}/../.git" />
   <targetfileset file="${src}/com/fluendo/player/Dist.java" />
 </dependset>
 
