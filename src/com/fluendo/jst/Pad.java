@@ -19,6 +19,7 @@
 package com.fluendo.jst;
 
 import java.util.*;
+import com.fluendo.utils.*;
 
 public class Pad extends com.fluendo.jst.Object implements Runnable
 {
@@ -107,8 +108,10 @@ public class Pad extends com.fluendo.jst.Object implements Runnable
     if (thisName == null)
       thisName="";
 
-    return "Pad: "+parentName+":"+thisName+" ["+super.toString()+"]";
+    //return "Pad: "+parentName+":"+thisName+" ["+super.toString()+"]";
+    return "Pad: "+parentName+":"+thisName;
   }
+
   public synchronized void addCapsListener(CapsListener listener)
   {
     capsListeners.addElement (listener);
@@ -182,6 +185,8 @@ public class Pad extends com.fluendo.jst.Object implements Runnable
 
   public final boolean sendEvent (Event event) {
     boolean result;
+
+    Debug.debug(this + " got event " + event);
 
     switch (event.getType()) {
       case Event.FLUSH_START:
@@ -289,6 +294,8 @@ public class Pad extends com.fluendo.jst.Object implements Runnable
   {
     boolean res;
 
+    Debug.debug(this + " activate mode = " + ( newMode == MODE_NONE ? "none" : "push" ));
+
     if (mode == newMode)
       return true;
 
@@ -319,6 +326,7 @@ public class Pad extends com.fluendo.jst.Object implements Runnable
     synchronized (streamLock) {
       while (taskState != T_STOP) {
         while (taskState == T_PAUSE) {
+	  Debug.debug(parent.getName() + ":" + this.getName() + " paused, waiting...");
 	  try {
 	    streamLock.wait();
 	  }

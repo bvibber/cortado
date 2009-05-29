@@ -36,9 +36,35 @@ public class AudioSinkJ2 extends AudioSink
 
   protected boolean open (RingBuffer ring) {
     channels = ring.channels;
+    line = openLine(ring.channels, ring.rate);
+    if (line == null) {
+      postMessage (Message.newError (this, "Could not open audio device."));
+      return false;
+    }
 
-    AudioFormat format = new AudioFormat(ring.rate, 16, ring.channels, true, true);
+    Debug.log(Debug.INFO, "line info: available: "+ line.available());
+    Debug.log(Debug.INFO, "line info: buffer: "+ line.getBufferSize());
+    Debug.log(Debug.INFO, "line info: framePosition: "+ line.getFramePosition());
+
+    ring.segSize = SEGSIZE;
+    ring.segTotal = line.getBufferSize() / ring.segSize;
+    while (ring.segTotal < 4) {
+      ring.segSize >>= 1;
+      ring.segTotal = line.getBufferSize() / ring.segSize;
+    }
+
+    ring.emptySeg = new byte[ring.segSize];
+    samplesWritten = 0;
+
+    line.start();
+
+    return true;
+  }
+
+  protected SourceDataLine openLine(int channels, int rate) {
+    AudioFormat format = new AudioFormat(rate, 16, channels, true, true);
     DataLine.Info info = new DataLine.Info(SourceDataLine.class, format);
+    SourceDataLine line = null;
 
     try {
       Mixer.Info[] mixers = AudioSystem.getMixerInfo();
@@ -99,32 +125,24 @@ public class AudioSinkJ2 extends AudioSink
       }
     }
     catch (javax.sound.sampled.LineUnavailableException e) {
-      e.printStackTrace();
-      postMessage (Message.newError (this, "Could not open audio device."));
-      return false;
+      Debug.error(e.toString());
+      return null;
     }
     catch (Exception e) {
-      e.printStackTrace();
-      postMessage (Message.newError (this, "Unknown problem opening audio device"));
+      Debug.error(e.toString());
+      return null;
+    }
+
+    return line;
+  }
+
+  public boolean test() {
+    SourceDataLine line;
+    line = openLine(2, 44000);
+    if (line == null) {
       return false;
     }
-
-    Debug.log(Debug.INFO, "line info: available: "+ line.available());
-    Debug.log(Debug.INFO, "line info: buffer: "+ line.getBufferSize());
-    Debug.log(Debug.INFO, "line info: framePosition: "+ line.getFramePosition());
-
-    ring.segSize = SEGSIZE;
-    ring.segTotal = line.getBufferSize() / ring.segSize;
-    while (ring.segTotal < 4) {
-      ring.segSize >>= 1;
-      ring.segTotal = line.getBufferSize() / ring.segSize;
-    }
-
-    ring.emptySeg = new byte[ring.segSize];
-    samplesWritten = 0;
-
-    line.start();
-
+    line.close();
     return true;
   }
 
@@ -137,11 +155,43 @@ public class AudioSinkJ2 extends AudioSink
   }
 
   protected int write (byte[] data, int offset, int length) {
-    int written;
+    int written = 0;
+    
+    if ( offset < 0 || offset >= data.length || offset + length > data.length || length <= 0 ) {
+      // This happens on stop for some reason
+      Debug.debug( "Invalid audio write offset=" + offset + ", length=" + length + ", data.length=" + data.length );
+      return length;
+    }
 
-    written = line.write (data, offset, length);
+
+    // Need to avoid blocking due to lock contention in line.getFramePosition() in Java 6.
+    while ( true ) {
+      int available = line.available();
+      if ( length > available ) {
+	if ( available > 0 ) {
+	  Debug.debug( "Doing partial audio write of " + available + " bytes" );
+	  written += line.write( data, offset, available );
+	  offset += available;
+	  length -= available;
+	}
+	if ( length > 0 ) {
+	  try {
+	    // Sleep for a quarter of the buffer time before we fill it up again
+	    AudioFormat format = line.getFormat();
+	    long sleepTime = (long)(line.getBufferSize() * 1000 
+	      / format.getSampleRate() / format.getSampleSizeInBits() * 8 / 4);
+	    Debug.debug( "Sleeping for " + sleepTime + "ms" );
+	    Thread.sleep(sleepTime);
+	  } catch ( InterruptedException e ) {}
+	  continue;
+	}
+      } else {
+	Debug.debug( "Doing complete audio write of " + length + " bytes" );
+	written += line.write( data, offset, length );
+      }
+      break;
+    }
     samplesWritten += written / (2 * channels);
-
     return written;
   }
 
@@ -149,16 +199,8 @@ public class AudioSinkJ2 extends AudioSink
     int frame; 
     long delay;
 
-    //size = line.getBufferSize();
-    //avail = line.available();
     frame = line.getFramePosition();
-    //time = line.getMicrosecondPosition();
-
     delay = samplesWritten - frame;
-
-    //System.out.println("size: "+size+" avail: "+avail+" frame: "+frame+" time: "+time+" delay: "+delay);
-
-    //return (size - avail) / (2 * channels);
     return delay;
   }
 

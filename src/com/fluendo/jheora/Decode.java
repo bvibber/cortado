@@ -2,6 +2,9 @@
  * Copyright (C) 2004 Fluendo S.L.
  *  
  * Written by: 2004 Wim Taymans <wim@fluendo.com>
+ * 
+ * Parts ported from the new Theora C reference encoder, which was mostly
+ * written by Timothy B. Terriberry
  *   
  * Many thanks to 
  *   The Xiph.Org Foundation http://www.xiph.org/
@@ -125,7 +128,125 @@ public final class Decode {
     FragCoeffs = new byte[pbi.UnitFragments];
     this.pbi = pbi;
   }
+  
+  private int longRunBitStringDecode() {
+    /* lifted from new C Theora reference decoder */
+    int bits;
+    int ret;
+    Buffer opb = pbi.opb;
+    /*Coding scheme:
+         Codeword            Run Length
+       0                       1
+       10x                     2-3
+       110x                    4-5
+       1110xx                  6-9
+       11110xxx                10-17
+       111110xxxx              18-33
+       111111xxxxxxxxxxxx      34-4129*/
 
+    bits = opb.readB(1);
+    if(bits==0)return 1;
+    bits = opb.readB(2);
+    if((bits&2)==0)return 2+(int)bits;
+    else if((bits&1)==0){
+      bits = opb.readB(1);
+      return 4+(int)bits;
+    }
+    bits = opb.readB(3);
+    if((bits&4)==0)return 6+(int)bits;
+    else if((bits&2)==0){
+      ret=10+((bits&1)<<2);
+      bits = opb.readB(2);
+      return ret+(int)bits;
+    }
+    else if((bits&1)==0){
+      bits = opb.readB(4);
+      return 18+(int)bits;
+    }
+    bits = opb.readB(12);
+    return 34+(int)bits;
+  }
+
+  private void decodeBlockLevelQi() {
+    /* lifted from new C Theora reference decoder */
+
+    /* pbi.CodedBlockIndex holds the number of coded blocks despite the
+       suboptimal variable name */
+    int ncoded_frags = pbi.CodedBlockIndex;
+
+    if(ncoded_frags <= 0) return;
+    if(pbi.frameNQIS == 1) {
+      /*If this frame has only a single qi value, then just set it in all coded
+         fragments.*/
+      for(int coded_frag = 0; coded_frag < ncoded_frags; ++coded_frag) {
+          pbi.FragQs[pbi.CodedBlockList[coded_frag]] = 0;
+      }
+    } else{
+      Buffer opb = pbi.opb;
+      int val;
+      int  flag;
+      int  nqi0;
+      int  run_count;
+      /*Otherwise, we decode a qi index for each fragment, using two passes of
+        the same binary RLE scheme used for super-block coded bits.
+       The first pass marks each fragment as having a qii of 0 or greater than
+        0, and the second pass (if necessary), distinguishes between a qii of
+        1 and 2.
+       We store the qii of the fragment. */
+      val = opb.readB(1);
+      flag = val;
+      run_count = nqi0 = 0;
+      int coded_frag = 0;
+      while(coded_frag < ncoded_frags){
+        boolean full_run;
+        run_count = longRunBitStringDecode();
+        full_run = (run_count >= 4129);
+        do {
+          pbi.FragQs[pbi.CodedBlockList[coded_frag++]] = (byte)flag;
+          if(flag < 1) ++nqi0;
+        } while(--run_count > 0 && coded_frag < ncoded_frags);
+      
+        if(full_run && coded_frag < ncoded_frags){
+          val = opb.readB(1);
+          flag=(int)val;
+        } else {
+          //flag=!flag;
+          flag = (flag != 0) ? 0 : 1;
+        }
+      }
+      /*TODO: run_count should be 0 here.
+        If it's not, we should issue a warning of some kind.*/
+      /*If we have 3 different qi's for this frame, and there was at least one
+         fragment with a non-zero qi, make the second pass.*/
+      if(pbi.frameNQIS==3 && nqi0 < ncoded_frags){
+        coded_frag = 0;
+        /*Skip qii==0 fragments.*/
+        for(coded_frag = 0; coded_frag < ncoded_frags && pbi.FragQs[pbi.CodedBlockList[coded_frag]] == 0; ++coded_frag){}
+        val = opb.readB(1);
+        flag = val;
+        while(coded_frag < ncoded_frags){
+          boolean full_run;
+          run_count = longRunBitStringDecode();
+          full_run = run_count >= 4129;
+          for(; coded_frag < ncoded_frags; ++coded_frag){
+            if(pbi.FragQs[pbi.CodedBlockList[coded_frag]] == 0) continue;
+            if(run_count-- <= 0) break;
+            pbi.FragQs[pbi.CodedBlockList[coded_frag]] += flag;
+          }
+          if(full_run && coded_frag < ncoded_frags){
+            val = opb.readB(1);
+            flag = val;
+          } else {
+            //flag=!flag;
+            flag = (flag != 0) ? 0 : 1;
+          }
+        }
+        /*TODO: run_count should be 0 here.
+          If it's not, we should issue a warning of some kind.*/
+      }
+    }
+  }  
+  
   private int loadFrame()
   {
     int  DctQMask;
@@ -136,10 +257,22 @@ public final class Decode {
 
     /* Quality (Q) index */
     DctQMask = (int) opb.readB(6);
+    pbi.frameQIS[0] = DctQMask;
+    pbi.frameNQIS = 1;
 
-    /* spare bit for possible additional Q indicies - should be 0 */
-    opb.readB(1);
-
+    /* look if there are additional frame quality indices */
+    int moreQs = opb.readB(1);
+    if(moreQs > 0) {
+      pbi.frameQIS[1] = (int) opb.readB(6);
+      pbi.frameNQIS = 2;
+        
+      moreQs = opb.readB(1);
+      if(moreQs > 0) {
+        pbi.frameQIS[2] = (int) opb.readB(6);
+        pbi.frameNQIS = 3;
+      }
+    }
+    
     if ( (pbi.FrameType == Constants.BASE_FRAME) ){
       /* Read the type / coding method for the key frame. */
       pbi.KeyFrameType = (byte)opb.readB(1);
@@ -147,7 +280,7 @@ public final class Decode {
     }
 
     /* Set this frame quality value from Q Index */
-    pbi.ThisFrameQualityValue = pbi.QThreshTable[DctQMask];
+    //pbi.ThisFrameQualityValue = pbi.QThreshTable[pbi.frameQ];
 
     /* Read in the updated block map */
     pbi.frArray.quadDecodeDisplayFragments( pbi );
@@ -349,15 +482,51 @@ public final class Decode {
 			   MVect5.y = MVC.extract(opb);
               }
 	      else if ( CodingMethod == CodingMode.CODE_INTER_FOURMV ){
+                  
+                /* Update last MV and prior last mv */
+                PriorLastInterMV.x = LastInterMV.x;
+                PriorLastInterMV.y = LastInterMV.y;
+                
                 /* Extrac the 4 Y MVs */
-                x  = MVect0.x = MVC.extract(opb);
-                y  = MVect0.y = MVC.extract(opb);
-                x += MVect1.x = MVC.extract(opb);
-                y += MVect1.y = MVC.extract(opb);
-                x += MVect2.x = MVC.extract(opb);
-                y += MVect2.y = MVC.extract(opb);
-                x += MVect3.x = MVC.extract(opb);
-                y += MVect3.y = MVC.extract(opb);
+                if(pbi.display_fragments[FragIndex] != 0) {
+                  x  = MVect0.x = MVC.extract(opb);
+                  y  = MVect0.y = MVC.extract(opb);
+                  LastInterMV.x = MVect0.x;
+                  LastInterMV.y = MVect0.y;
+                } else {
+                  x = MVect0.x = 0;
+                  y = MVect0.y = 0;
+                }
+                
+                if(pbi.display_fragments[FragIndex + 1] != 0) {
+                  x += MVect1.x = MVC.extract(opb);
+                  y += MVect1.y = MVC.extract(opb);
+                  LastInterMV.x = MVect1.x;
+                  LastInterMV.y = MVect1.y;
+                } else {
+                  x += MVect1.x = 0;
+                  y += MVect1.y = 0;
+                }
+                
+                if(pbi.display_fragments[FragIndex + pbi.HFragments] != 0) {
+                  x += MVect2.x = MVC.extract(opb);
+                  y += MVect2.y = MVC.extract(opb);
+                  LastInterMV.x = MVect2.x;
+                  LastInterMV.y = MVect2.y;
+                } else {
+                  x += MVect2.x = 0;
+                  y += MVect2.y = 0;
+                }
+                
+                if(pbi.display_fragments[FragIndex + pbi.HFragments + 1] != 0) {
+                  x += MVect3.x = MVC.extract(opb);
+                  y += MVect3.y = MVC.extract(opb);
+                  LastInterMV.x = MVect3.x;
+                  LastInterMV.y = MVect3.y;
+                } else {
+                  x += MVect3.x = 0;
+                  y += MVect3.y = 0;
+                }
                 /* Calculate the U and V plane MVs as the average of the
                    Y plane MVs. */
                 /* First .x component */
@@ -371,11 +540,6 @@ public final class Decode {
                 MVect4.y = y;
                 MVect5.y = y;
 
-                /* Update last MV and prior last mv */
-                PriorLastInterMV.x = LastInterMV.x;
-                PriorLastInterMV.y = LastInterMV.y;
-                LastInterMV.x = MVect3.x;
-                LastInterMV.y = MVect3.y;
               }
 	      else if ( CodingMethod == CodingMode.CODE_INTER_LAST_MV ){
                 /* Use the last coded Inter motion vector. */
@@ -622,13 +786,7 @@ public final class Decode {
   
     if (loadFrameOK != 0){
     //System.out.println("Load: "+loadFrameOK+" "+pbi.ThisFrameQualityValue+" "+pbi.LastFrameQualityValue);
-
-      if ( (pbi.ThisFrameQualityValue != pbi.LastFrameQualityValue) ){
-        /* Initialise DCT tables. */
-        Quant.UpdateQ( pbi, pbi.ThisFrameQualityValue );
-        pbi.LastFrameQualityValue = pbi.ThisFrameQualityValue;
-      }
-  
+ 
       /* Decode the data into the fragment buffer. */
       /* Bail out immediately if a decode error has already been reported. */
       if (pbi.DecoderErrorCode != 0) 
@@ -645,7 +803,10 @@ public final class Decode {
 
       /* Unpack and decode the motion vectors. */
       decodeMVectors (pbi.YSBRows, pbi.YSBCols);
-
+      
+      /* Unpack per-block quantizer information */
+      decodeBlockLevelQi();
+      
       /* Unpack and decode the actual video data. */
       unPackVideo();
 

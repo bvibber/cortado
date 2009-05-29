@@ -47,7 +47,7 @@ public class Queue extends Element
       return size >= maxSize;
     }
     else {
-      return queue.size() > maxBuffers;
+      return queue.size() >= maxBuffers;
     }
   }
   private boolean isEmpty() {
@@ -70,7 +70,10 @@ public class Queue extends Element
     if (!isBuffer || srcResult != Pad.OK)
       return;
     if (isEOS) {
-      isBuffering = false;
+      if (isBuffering) {
+	isBuffering = false;
+	postMessage(Message.newBuffering(this, false, 0));
+      }
       return;
     }
 
@@ -128,7 +131,13 @@ public class Queue extends Element
 
 	size -= buf.length;
 
+	Debug.log( Debug.DEBUG, parent.getName() + " >>> " + buf );
         res = push(buf);
+	if ( maxSize == -1 ) {
+	  Debug.log( Debug.DEBUG, parent.getName() + " count = " + queue.size() + "/" + maxBuffers );
+	} else {
+	  Debug.log( Debug.DEBUG, parent.getName() + " size = " + size + "/" + maxSize );
+	}
       }
       synchronized (queue) {
         if (res != OK) {
@@ -153,6 +162,11 @@ public class Queue extends Element
 	    clearQueue();
 	    srcResult = WRONG_STATE;
 	    queue.notifyAll();
+	  }
+	  // Cancel buffering status
+	  if (isBuffer && isBuffering) {
+	    isBuffering = false;
+	    postMessage(Message.newBuffering(this, false, 0));
 	  }
 	  postMessage (Message.newStreamStatus (this, false, Pad.WRONG_STATE, "stopping"));
           res = stopTask();
@@ -254,6 +268,7 @@ public class Queue extends Element
 
 	while (isFilled()) {
           try {
+	    Debug.debug(parent.getName() + " full, waiting...");
             queue.wait();
 	    if (srcResult != OK) {
 	      buf.free();
@@ -269,7 +284,13 @@ public class Queue extends Element
 	size += buf.length;
 	updateBuffering();
 
+	Debug.log( Debug.DEBUG, parent.getName() + " <<< " + buf );
         queue.insertElementAt(buf, 0);
+	if ( maxSize == -1 ) {
+	  Debug.log( Debug.DEBUG, parent.getName() + " count = " + queue.size() + "/" + maxBuffers );
+	} else {
+	  Debug.log( Debug.DEBUG, parent.getName() + " size = " + size + "/" + maxSize );
+	}
         queue.notifyAll();
       }
       return OK;

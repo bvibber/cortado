@@ -42,6 +42,7 @@ public class Status extends Component implements MouseListener,
     private boolean havePercent;
     private boolean seekable;
     private boolean live;
+    private boolean showSpeaker;
 
     private static final int NONE = 0;
     private static final int BUTTON1 = 1;
@@ -54,7 +55,11 @@ public class Status extends Component implements MouseListener,
     private Color button2Color;
     private Color seekColor;
 
-    private static final int SEEK_END = 60;
+    private static final int SPEAKER_WIDTH = 12;
+    private static final int SPEAKER_HEIGHT = 10;
+    private static final int TIME_WIDTH = 38;
+    private static final int SEEK_TIME_GAP = 10;
+    private static final int THUMB_WIDTH = 9;
 
     public static final int STATE_STOPPED = 0;
     public static final int STATE_PAUSED = 1;
@@ -65,6 +70,8 @@ public class Status extends Component implements MouseListener,
     private double position = 0;
     private long time;
     private double duration;
+    private long byteDuration;
+    private long bytePosition;
 
     private String speaker = "\0\0\0\0\0\357\0\0\357U\27"
             + "\36\0\0\0\0\357\357\0\0" + "\0\357U\30\0\0\0\357\0\357"
@@ -75,19 +82,21 @@ public class Status extends Component implements MouseListener,
             + "\357\0\0\0\357\\\0\0\0" + "\0\0\0\357\0\0\357\\\0\0";
 
     private Image speakerImg;
+    private int speakerWidth; // width of the speaker icon or zero if hidden
+
 
     private Vector listeners = new Vector();
 
     public Status(Component comp) {
-        int[] pixels = new int[12 * 10];
+        int[] pixels = new int[SPEAKER_WIDTH * SPEAKER_HEIGHT];
         component = comp;
 
-        for (int i = 0; i < 120; i++) {
+        for (int i = 0; i < SPEAKER_WIDTH * SPEAKER_HEIGHT; i++) {
             pixels[i] = 0xff000000 | (speaker.charAt(i) << 16)
                     | (speaker.charAt(i) << 8) | (speaker.charAt(i));
         }
         speakerImg = comp.getToolkit().createImage(
-                new MemoryImageSource(12, 10, pixels, 0, 12));
+                new MemoryImageSource(SPEAKER_WIDTH, SPEAKER_HEIGHT, pixels, 0, SPEAKER_WIDTH));
         button1Color = Color.black;
         button2Color = Color.black;
         seekColor = Color.black;
@@ -127,7 +136,7 @@ public class Status extends Component implements MouseListener,
     private void paintPercent(Graphics g) {
         if (havePercent) {
             g.setColor(Color.white);
-            g.drawString("" + bufferPercent + "%", r.width - 38, r.height - 2);
+            g.drawString("" + bufferPercent + "%", r.width - 26 - speakerWidth, r.height - 2);
         }
     }
 
@@ -190,29 +199,47 @@ public class Status extends Component implements MouseListener,
         g.drawString("Buffering", pos, r.height - 2);
     }
 
+    /*
+     * Get the inclusive bounding rectangle of the seek bar
+     */
+    private Rectangle getSeekBarRect() {
+      return new Rectangle(r.height*2 + 1, 2,
+	  r.width - SEEK_TIME_GAP - TIME_WIDTH - speakerWidth - (r.height * 2), 
+	  r.height - 4);
+    }
+
+    /*
+     * Get the inclusive bounding rectangle of the seek bar thumb
+     */
+    private Rectangle getThumbRect() {
+      Rectangle seekRect = getSeekBarRect();
+      int availableWidth = seekRect.width - THUMB_WIDTH;
+      int pos = (int)(availableWidth * position);
+      return new Rectangle(pos + seekRect.x, 1, THUMB_WIDTH, r.height - 2);
+    }
+
     private void paintSeekBar(Graphics g) {
-        int pos, end, base;
+        Rectangle sr = getSeekBarRect();
+        Rectangle tr = getThumbRect();
 
-        end = r.width - SEEK_END - (r.height * 2);
-
-	base = r.height*2 + 1;
-
+        // Bounding rectangle
         g.setColor(Color.darkGray);
-        g.drawRect(base, 2, end, r.height-4);
+        g.drawRect(sr.x, sr.y, sr.width, sr.height);
 
-        pos = (int) (end * position);
-
+        // Progress bar
         g.setColor(Color.gray);
-        g.fillRect(base + 2, 5, pos, r.height-9);
-
+        g.fillRect(sr.x + 2, sr.y + 3, tr.x - (sr.x + 2), sr.height - 6);
+        
+        // Thumb
         g.setColor(Color.white);
-        g.drawLine(pos + base + 1, 1,  pos + base + 7, 1);
-        g.drawLine(pos + base + 1, r.height-1, pos + base + 7, r.height-1);
-        g.drawLine(pos + base,     2,  pos + base    , r.height-2);
-        g.drawLine(pos + base + 8, 2,  pos + base + 8, r.height-2);
+        g.drawLine(tr.x + 1,        tr.y,             tr.x + tr.width - 1, tr.y);                 // Top
+        g.drawLine(tr.x + 1,        tr.y + tr.height, tr.x + tr.width - 1, tr.y + tr.height);     // Bottom
+        g.drawLine(tr.x,            tr.y + 1,         tr.x,                tr.y + tr.height - 1); // Left
+        g.drawLine(tr.x + tr.width, tr.y + 1,         tr.x + tr.width,     tr.y + tr.height - 1); // Right
 
+        // Thumb interior
         g.setColor(seekColor);
-        g.fillRect(pos + base + 1, 2, 7, r.height-3);
+        g.fillRect(tr.x + 1, tr.y + 1, tr.width - 1, tr.height - 1);
     }
 
     private void paintTime(Graphics g) {
@@ -229,7 +256,7 @@ public class Status extends Component implements MouseListener,
 
         r = getBounds();
 
-        end = r.width - 50;
+        end = r.width - speakerWidth - TIME_WIDTH;
 
         g.setColor(Color.white);
         g.drawString("" + hour + ":" + (min < 10 ? "0" + min : "" + min) + ":"
@@ -238,7 +265,7 @@ public class Status extends Component implements MouseListener,
 
     private void paintSpeaker(Graphics g) {
         if (haveAudio) {
-            g.drawImage(speakerImg, r.width - 12, r.height - 11, null);
+            g.drawImage(speakerImg, r.width - SPEAKER_WIDTH, r.height - SPEAKER_HEIGHT - 1, null);
         }
     }
 
@@ -281,7 +308,9 @@ public class Status extends Component implements MouseListener,
             paintSeekBar(g2);
             paintTime(g2);
 	}
-        paintSpeaker(g2);
+        if (showSpeaker) {
+            paintSpeaker(g2);
+        }
 
         g.drawImage(img, r.x, r.y, null);
         img.flush();
@@ -304,22 +333,44 @@ public class Status extends Component implements MouseListener,
         if (clicked == NONE) {
             double newPosition;
 	    
-            if (seconds < duration)
+            if (seconds < duration || seekable)
                 time = (long) seconds;
             else
                 time = (long) duration;
 
-            newPosition = ((double) time) / duration;
-	    if (newPosition != position) {
-	      position = newPosition;
-              component.repaint();
-	    }
+            if(duration > -1) {
+                newPosition = ((double) time) / duration;
+                if (newPosition != position) {
+                    position = newPosition;
+                    component.repaint();
+                }
+            } else {
+                newPosition = ((double)bytePosition) / (double)byteDuration;
+                position = newPosition;
+                component.repaint();
+            }
         }
     }
 
     public void setDuration(double seconds) {
         duration = seconds;
         component.repaint();
+    }
+    
+    public void setByteDuration(long bytes) {
+        this.byteDuration = bytes;
+        if(duration == -1) {
+            position = ((double)bytePosition) / (double)byteDuration;
+            component.repaint();
+        }
+    }
+    
+    public void setBytePosition(long bytes) {
+        this.bytePosition = bytes;
+        if(duration == -1) {
+            position = ((double)bytePosition) / (double)byteDuration;
+            component.repaint();
+        }
     }
 
     public void setMessage(String m) {
@@ -344,6 +395,12 @@ public class Status extends Component implements MouseListener,
 
     public void setLive(boolean l) {
         live = l;
+        component.repaint();
+    }
+
+    public void setShowSpeaker(boolean s) {
+        showSpeaker = s;
+        speakerWidth = s ? SPEAKER_WIDTH : 0;
         component.repaint();
     }
 
@@ -372,23 +429,16 @@ public class Status extends Component implements MouseListener,
         int end;
 
         r = getBounds();
-
-        end = r.width - SEEK_END - (r.height * 2);
-        int pos = (int) (end * position) + r.height*2+1;
-
-        return (e.getX() >= pos && e.getX() <= pos + 9 && e.getY() > 0 && e
-                .getY() <= r.height-2);
+	Rectangle tr = getThumbRect();
+	return tr.contains(e.getPoint());
     }
 
     private boolean intersectSeekbar(MouseEvent e) {
         int end;
 
         r = getBounds();
-
-        end = r.width - SEEK_END;
-
-        return (e.getX() >= r.height*2 && e.getX() <= end && e.getY() > 0 && e
-                .getY() <= r.height-2);
+	Rectangle sr = getSeekBarRect();
+	return sr.contains(e.getPoint());
     }
 
     private int findComponent(MouseEvent e) {
@@ -477,16 +527,17 @@ public class Status extends Component implements MouseListener,
         if (seekable) {
             e.translatePoint(-1, -1);
             if (clicked == SEEKER) {
-                int end = r.width - SEEK_END - (r.height * 2);
-                double pos = (e.getX() - (r.height*2 + 5)) / (double) (end);
-		double newPosition;
+	        Rectangle sr = getSeekBarRect();
+		int availableWidth = sr.width - THUMB_WIDTH;
+		// If the midpoint of the thumb is at the cursor, where would the left of the thumb be?
+		// (relative to sr.x)
+		int thumbLeft = e.getX() - sr.x - THUMB_WIDTH / 2;
+		double newPosition = thumbLeft / (double)availableWidth;
 
-                if (pos < 0.0)
+                if (newPosition < 0.0)
                     newPosition = 0.0;
-                else if (pos > 1.0)
+                else if (newPosition > 1.0)
                     newPosition = 1.0;
-                else
-                    newPosition = pos;
 
 		if (newPosition != position) {
 	          position = newPosition;

@@ -18,6 +18,7 @@
 
 package com.fluendo.player;
 
+import java.util.*;
 import java.awt.*;
 import java.net.URL;
 
@@ -31,11 +32,14 @@ public class CortadoPipeline extends Pipeline implements PadListener, CapsListen
   private String password;
   private boolean enableAudio;
   private boolean enableVideo;
+  private boolean ignoreAspect;
+  private int enableKate;
   private Component component;
   private int bufferSize = -1;
   private int bufferLow = -1;
   private int bufferHigh = -1;
   private URL documentBase = null;
+  private Cortado application;
 	
   private Element httpsrc;
   private Element buffer;
@@ -45,8 +49,12 @@ public class CortadoPipeline extends Pipeline implements PadListener, CapsListen
   private Element videosink;
   private Element audiosink;
   private Element v_queue, a_queue;
-  private Pad asinkpad, vsinkpad;
+  private Element overlay;
+  private Pad asinkpad, ovsinkpad, oksinkpad;
   private Pad apad, vpad;
+  private Vector katedec = new Vector();
+  private Vector k_queue = new Vector();
+  private Element kselector = null;
 
   public boolean usingJavaX = false;
 
@@ -104,7 +112,7 @@ public class CortadoPipeline extends Pipeline implements PadListener, CapsListen
       v_queue = ElementFactory.makeByName("queue", "v_queue");
       if (v_queue == null) {
         noSuchElement ("queue");
-	return;
+	    return;
       }
 
       if (!setupVideoDec ("theoradec"))
@@ -114,7 +122,7 @@ public class CortadoPipeline extends Pipeline implements PadListener, CapsListen
 
       pad.link(v_queue.getPad("sink"));
       v_queue.getPad("src").link(videodec.getPad("sink"));
-      if (!videodec.getPad("src").link(vsinkpad)) {
+      if (!videodec.getPad("src").link(ovsinkpad)) {
         postMessage (Message.newError (this, "videosink already linked"));
         return;
       }
@@ -131,7 +139,7 @@ public class CortadoPipeline extends Pipeline implements PadListener, CapsListen
       videodec.setProperty ("component", component);
       
       pad.link(videodec.getPad("sink"));
-      if (!videodec.getPad("src").link(vsinkpad)) {
+      if (!videodec.getPad("src").link(ovsinkpad)) {
         postMessage (Message.newError (this, "videosink already linked"));
         return;
       }
@@ -145,7 +153,7 @@ public class CortadoPipeline extends Pipeline implements PadListener, CapsListen
       videodec.setProperty ("component", component);
       
       pad.link(videodec.getPad("sink"));
-      if (!videodec.getPad("src").link(vsinkpad)) {
+      if (!videodec.getPad("src").link(ovsinkpad)) {
         postMessage (Message.newError (this, "videosink already linked"));
         return;
       }
@@ -153,13 +161,104 @@ public class CortadoPipeline extends Pipeline implements PadListener, CapsListen
 
       videodec.setState (PAUSE);
     }
+    else if (enableVideo && mime.equals("application/x-kate")) {
+      Element tmp_k_queue, tmp_katedec, tmp_katesink;
+      Pad tmp_kpad, tmp_ksinkpad;
+      int kate_index = katedec.size();
+
+      Debug.debug("Found Kate stream, setting up pipeline branch");
+
+      /* dynamically create a queue/decoder/overlay pipeline */
+      tmp_k_queue = ElementFactory.makeByName("queue", "k_queue"+kate_index);
+      if (tmp_k_queue == null) {
+        noSuchElement ("queue");
+        return;
+      }
+
+      tmp_katedec = ElementFactory.makeByName("katedec", "katedec"+kate_index);
+      if (tmp_katedec == null) {
+        noSuchElement ("katedec");
+        return;
+      }
+
+      /* The selector is created when the first Kate stream is encountered */
+      if (kselector == null) {
+        Debug.debug("No Kate selector yet, creating one");
+
+        /* insert an overlay before the video sink */
+        ovsinkpad.unlink();
+        videodec.getPad("src").unlink();
+        overlay = ElementFactory.makeByName("kateoverlay", "overlay");
+        if (overlay == null) {
+          noSuchElement ("overlay");
+          return;
+        }
+        ovsinkpad = overlay.getPad("videosink");
+        oksinkpad = overlay.getPad("katesink");
+        if (!videodec.getPad("src").link(ovsinkpad)) {
+          postMessage (Message.newError (this, "Failed linking video decoder to overlay"));
+          return;
+        }
+        add(overlay);
+        overlay.setProperty ("component", component);
+        overlay.getPad("videosrc").link(videosink.getPad("sink"));
+
+        kselector = ElementFactory.makeByName("selector", "selector");
+        if (kselector == null) {
+          noSuchElement ("selector");
+          return;
+        }
+        add(kselector);
+        if (!kselector.getPad("src").link(oksinkpad)) {
+          postMessage (Message.newError (this, "Failed linking Kate selector to overlay"));
+          return;
+        }
+        kselector.setState (PAUSE);
+      }
+      tmp_katesink = kselector;
+
+      add(tmp_k_queue);
+      add(tmp_katedec);
+
+      tmp_kpad = pad;
+      tmp_ksinkpad = tmp_katesink.getPad("sink");
+
+      /* link new elements together */
+      if (!pad.link(tmp_k_queue.getPad("sink"))) {
+        postMessage (Message.newError (this, "Failed to link new Kate stream to queue"));
+        return;
+      }
+      if (!tmp_k_queue.getPad("src").link(tmp_katedec.getPad("sink"))) {
+        postMessage (Message.newError (this, "Failed to link new Kate queue to decoder"));
+        return;
+      }
+
+      Pad new_selector_pad = kselector.requestSinkPad(tmp_katedec.getPad("src"));
+      if (!tmp_katedec.getPad("src").link(new_selector_pad)) {
+        postMessage (Message.newError (this, "kate sink already linked"));
+        return;
+      }
+
+      tmp_katedec.setState (PAUSE);
+      tmp_k_queue.setState (PAUSE);
+
+      /* add to the lists */
+      katedec.addElement(tmp_katedec);
+      k_queue.addElement(tmp_k_queue);
+
+      /* if we have just added the one that was selected, link it now */
+      if (enableKate == katedec.size()-1) {
+        doEnableKateIndex(enableKate);
+      }
+    }
   }
   
   public void padRemoved(Pad pad) {
     pad.unlink();
     if (pad == vpad) {
       Debug.log(Debug.INFO, "video pad removed "+pad);
-      vsinkpad.unlink();
+      ovsinkpad.unlink();
+      //oksinkpad.unlink(); // needed ????
       vpad = null;
     }
     else if (pad == apad) {
@@ -171,6 +270,7 @@ public class CortadoPipeline extends Pipeline implements PadListener, CapsListen
 
   public void noMorePads() {
     boolean changed = false;
+    Element el;
 
     Debug.log(Debug.INFO, "all streams detected");
 
@@ -184,19 +284,41 @@ public class CortadoPipeline extends Pipeline implements PadListener, CapsListen
     if (vpad == null && enableVideo) {
       Debug.log(Debug.INFO, "file has no video, remove videosink");
       videosink.setState(STOP);
+      if (overlay != null) {
+        overlay.setState(STOP);
+      }
+      for (int n=0; n<katedec.size(); ++n) {
+        el = (Element)katedec.get(n);
+        el.setState(STOP);
+        remove(el);
+        el = (Element)k_queue.get(n);
+        el.setState(STOP);
+        remove(el);
+      }
+      if (kselector != null) {
+        kselector.setState(STOP);
+        remove(kselector);
+        kselector = null;
+      }
       remove (videosink);
+      remove (overlay);
+      katedec.clear();
+      k_queue.clear();
       videosink = null;
+      overlay = null;
       changed = true;
     }
     if (changed)
       scheduleReCalcState();
   }
 
-  public CortadoPipeline ()
+  public CortadoPipeline (Cortado cortado)
   {
     super("pipeline");
     enableAudio = true;
     enableVideo = true;
+    application = cortado;
+    enableKate = -1; /* none by default */
   }
 
   public void setUrl(String anUrl) {
@@ -207,6 +329,9 @@ public class CortadoPipeline extends Pipeline implements PadListener, CapsListen
   }
   public void setUserId(String aUserId) {
     userId = aUserId;
+  }
+  public void setIgnoreAspect(boolean ignore) {
+    ignoreAspect = ignore;
   }
   public void setPassword(String aPassword) {
     password = aPassword;
@@ -224,6 +349,40 @@ public class CortadoPipeline extends Pipeline implements PadListener, CapsListen
   }
   public boolean isVideoEnabled() {
     return enableVideo;
+  }
+
+  /**
+   * Selects the Kate stream index (if any) to enable.
+   * The first Kate stream has index 0, the second has index 1, etc.
+   * A negative index will enable none.
+   */
+  public void enableKateIndex(int idx) {
+    if (idx == enableKate) return;
+    doEnableKateIndex(idx);
+  }
+
+  /**
+   * Enables the given Kate stream, by index.
+   * A negative index will enable none.
+   */
+  private void doEnableKateIndex(int idx)
+  {
+    if (kselector != null) {
+      Debug.info("Switching Kate streams from "+enableKate+" to "+idx);
+      kselector.setProperty("selected", new Integer(idx));
+    }
+    else {
+      Debug.warning("Switching Kate stream request, but no Kate selector exists");
+    }
+
+    enableKate = idx;
+  }
+
+  /**
+   * Returns the index of the currently enabled Kate stream (negative if none)
+   */
+  public int getEnabledKateIndex() {
+    return enableKate;
   }
 
   public void setComponent(Component c) {
@@ -261,6 +420,20 @@ public class CortadoPipeline extends Pipeline implements PadListener, CapsListen
     return bufferHigh;
   }
 
+  public void resize(Dimension d) {
+    if (videosink == null || d == null) {
+      return;
+    }
+    Rectangle bounds = new Rectangle(d);
+    if (application.getShowStatus() == Cortado.STATUS_SHOW) {
+      bounds.height -= application.getStatusHeight();
+    }
+    if (bounds.height < 0) {
+      bounds.height = 0;
+    }
+    videosink.setProperty("bounds", bounds);
+  }
+
   public boolean buildOgg()
   {
     demux = ElementFactory.makeByName("oggdemux", "demux");
@@ -281,7 +454,7 @@ public class CortadoPipeline extends Pipeline implements PadListener, CapsListen
     if (bufferLow != -1)
       buffer.setProperty("lowPercent", new Integer (bufferLow));
     if (bufferHigh != -1)
-      buffer.setProperty("highercent", new Integer (bufferHigh));
+      buffer.setProperty("highPercent", new Integer (bufferHigh));
 
     add(demux);
     add(buffer);
@@ -373,22 +546,16 @@ public class CortadoPipeline extends Pipeline implements PadListener, CapsListen
     httpsrc.getPad("src").addCapsListener (this);
 
     if (enableAudio) {
-      try {
-        Class.forName("javax.sound.sampled.AudioSystem");
-        usingJavaX = true;
-        audiosink = ElementFactory.makeByName("audiosinkj2", "audiosink");
-	Debug.log(Debug.INFO, "using high quality javax.sound backend");
-      }
-      catch (ClassNotFoundException e) {
-        audiosink = ElementFactory.makeByName("audiosinksa", "audiosink");
-	Debug.log(Debug.INFO, "using low quality sun.audio backend");
-      }
+      audiosink = newAudioSink();
       if (audiosink == null) {
-        noSuchElement ("audiosink");
-        return false;
+	enableAudio = false; // to suppress creation of audio decoder pads
+	((Cortado)component).status.setHaveAudio(false);
+	component.repaint();
+	// Don't stop unless video is disabled too
+      } else {
+	asinkpad = audiosink.getPad("sink");
+	add(audiosink);
       }
-      asinkpad = audiosink.getPad("sink");
-      add(audiosink);
     }
     if (enableVideo) {
       videosink = ElementFactory.makeByName("videosink", "videosink");
@@ -396,15 +563,50 @@ public class CortadoPipeline extends Pipeline implements PadListener, CapsListen
         noSuchElement ("videosink");
         return false;
       }
+
+      videosink.setProperty("ignore-aspect", ignoreAspect ? "true" : "false");
+
       videosink.setProperty ("component", component);
-      vsinkpad = videosink.getPad("sink");
+      resize(component.getSize());
+
+      videosink.setProperty ("max-lateness", Long.toString(Clock.MSECOND * 20));
       add(videosink);
+
+      ovsinkpad = videosink.getPad("sink");
+    }
+    if (audiosink == null && videosink == null) {
+      postMessage(Message.newError(this, "Both audio and video are disabled, can't play anything"));
+      return false;
     }
 
     return true;
   }
 
+  protected Element newAudioSink() {
+    com.fluendo.plugin.AudioSink s;
+    try {
+      Class.forName("javax.sound.sampled.AudioSystem");
+      usingJavaX = true;
+      s = (com.fluendo.plugin.AudioSink)ElementFactory.makeByName("audiosinkj2", "audiosink");
+      Debug.log(Debug.INFO, "using high quality javax.sound backend");
+    }
+    catch (ClassNotFoundException e) {
+      s = (com.fluendo.plugin.AudioSink)ElementFactory.makeByName("audiosinksa", "audiosink");
+      Debug.log(Debug.INFO, "using low quality sun.audio backend");
+    }
+    if (s == null) {
+      noSuchElement ("audiosink");
+      return null;
+    }
+    if (!s.test()) {
+      return null;
+    } else {
+      return s;
+    }
+  }
+
   private boolean cleanup() {
+    int n;
     Debug.log(Debug.INFO, "cleanup");
     if (httpsrc != null) {
       remove (httpsrc);
@@ -418,7 +620,12 @@ public class CortadoPipeline extends Pipeline implements PadListener, CapsListen
     if (videosink != null) {
       remove (videosink);
       videosink = null;
-      vsinkpad = null;
+    }
+    if (overlay != null) {
+      remove (overlay);
+      overlay = null;
+      ovsinkpad = null;
+      oksinkpad = null;
     }
     if (buffer != null) {
       remove (buffer);
@@ -445,6 +652,23 @@ public class CortadoPipeline extends Pipeline implements PadListener, CapsListen
       remove(audiodec);
       audiodec = null;
     }
+
+    for (n=0; n<katedec.size(); ++n) {
+      if (k_queue.get(n) != null) {
+        remove ((Element)k_queue.get(n));
+      }
+      if (katedec.get(n) != null) {
+        remove((Element)katedec.get(n));
+      }
+    }
+    k_queue.clear();
+    katedec.clear();
+
+    if (kselector != null) {
+      remove(kselector);
+      kselector = null;
+    }
+
     return true;
   }
 

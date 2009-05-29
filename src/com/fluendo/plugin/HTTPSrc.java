@@ -20,6 +20,8 @@ package com.fluendo.plugin;
 
 import java.io.*;
 import java.net.*;
+import java.text.MessageFormat;
+import java.util.Locale;
 import com.fluendo.jst.*;
 import com.fluendo.utils.*;
 
@@ -32,6 +34,8 @@ public class HTTPSrc extends Element
   private InputStream input;
   private long contentLength;
   private long offset;
+  private long offsetLastMessage = 0;
+  private long skipBytes = 0;
   private String mime;
   private Caps outCaps;
   private boolean discont;
@@ -109,6 +113,20 @@ public class HTTPSrc extends Element
       int toRead;
       long left;
 
+      // Skip to the target offset if required
+      if (skipBytes > 0) {
+	Debug.info("Skipping " + skipBytes + " input bytes");
+	try {
+	 offset += input.skip(skipBytes);
+	} catch (IOException e) {
+	  Debug.error("input.skip error: " + e);
+	  postMessage(Message.newError(this, "File read error"));
+	  return;
+	}
+	skipBytes = 0;
+      }
+
+      // Calculate the read size
       if (contentLength != -1) {
         if (microSoft) {
           /* don't read the last byte in microsoft VM, it screws up the socket
@@ -129,6 +147,7 @@ public class HTTPSrc extends Element
       else
 	toRead = readSize;
 
+      // Perform the read
       Buffer data = Buffer.create();
       data.ensureSize (toRead);
       data.offset = 0;
@@ -146,6 +165,10 @@ public class HTTPSrc extends Element
       }
       if (data.length <= 0) {
 	/* EOS */
+          
+        postMessage (Message.newBytePosition(this, offset));
+        offsetLastMessage = offset;
+          
         try {
 	  input.close();
 	}
@@ -157,39 +180,51 @@ public class HTTPSrc extends Element
 	pushEvent (Event.newEOS());
 	postMessage (Message.newStreamStatus (this, false, Pad.UNEXPECTED, "reached EOS"));
 	pauseTask();
+	return;
       }
-      else {
-	offset += data.length;
-        if (srcpad.getCaps() == null) {
-	  String typeMime;
 
-	  typeMime = ElementFactory.typeFindMime (data.data, data.offset, data.length);
-	  if (typeMime != null) {
-	    if (!typeMime.equals (mime)) {
-              Debug.log(Debug.WARNING, "server contentType: "+mime+" disagrees with our typeFind: "
-	                 +typeMime);
-	    }
-            Debug.log(Debug.INFO, "using typefind contentType: "+typeMime);
-	    mime = typeMime;
-	  }
-	  else {
-            Debug.log(Debug.INFO, "typefind failed, using server contentType: "+mime);
-	  }
+      offset += data.length;
+      if(offsetLastMessage > offset) {
+          offsetLastMessage = 0;
+      }
+      if(offset - offsetLastMessage > contentLength / 100) {
+          postMessage (Message.newBytePosition(this, offset));
+          offsetLastMessage = offset;
+      }
 
-          outCaps = new Caps (mime);
-          srcpad.setCaps (outCaps);
-        }
-        data.caps = outCaps;
-	data.setFlag (com.fluendo.jst.Buffer.FLAG_DISCONT, discont);
-	discont = false;
-        if ((ret = push(data)) != OK) {
-	  if (isFlowFatal(ret) || ret == Pad.NOT_LINKED) {
-	    postMessage (Message.newError (this, "error: "+getFlowName (ret)));
-	    pushEvent (Event.newEOS());
+      // Negotiate capabilities
+      if (srcpad.getCaps() == null) {
+	String typeMime;
+
+	typeMime = ElementFactory.typeFindMime (data.data, data.offset, data.length);
+	if (typeMime != null) {
+	  if (!typeMime.equals (mime)) {
+	    Debug.log(Debug.WARNING, "server contentType: "+mime+" disagrees with our typeFind: "
+		       +typeMime);
 	  }
-	  postMessage (Message.newStreamStatus (this, false, ret, "reason: "+getFlowName (ret)));
-	  pauseTask();
-        }
+	  Debug.log(Debug.INFO, "using typefind contentType: "+typeMime);
+	  mime = typeMime;
+	}
+	else {
+	  Debug.log(Debug.INFO, "typefind failed, using server contentType: "+mime);
+	}
+
+	outCaps = new Caps (mime);
+	srcpad.setCaps (outCaps);
+      }
+
+      data.caps = outCaps;
+      data.setFlag (com.fluendo.jst.Buffer.FLAG_DISCONT, discont);
+      discont = false;
+
+      // Push the data to the peer
+      if ((ret = push(data)) != OK) {
+	if (isFlowFatal(ret) || ret == Pad.NOT_LINKED) {
+	  postMessage (Message.newError (this, "error: "+getFlowName (ret)));
+	  pushEvent (Event.newEOS());
+	}
+	postMessage (Message.newStreamStatus (this, false, ret, "reason: "+getFlowName (ret)));
+	pauseTask();
       }
     }
     
@@ -244,7 +279,7 @@ public class HTTPSrc extends Element
     else
       range = null;
     if (range != null) {
-      Debug.log(Debug.INFO, "doing range: "+range);
+      Debug.info("doing range: "+range);
       uc.setRequestProperty ("Range", range);
     }
 
@@ -259,62 +294,35 @@ public class HTTPSrc extends Element
     /* This will send the request. */
     dis = uc.getInputStream();
 
-    contentLength = uc.getHeaderFieldInt ("Content-Length", -1) + offset;
-    mime = uc.getContentType();
-    this.offset = offset;
-
-    return dis;
-  }
-
-  private InputStream openWithSocket(URL url, long offset) throws IOException
-  {
-    InputStream dis = null;
-
-    String hostname = url.getHost();
-    int port = url.getPort();
-    if (port == -1)
-      port = url.getDefaultPort();
-    InetAddress addr = InetAddress.getByName(hostname);
-    Socket socket = new Socket(addr, port);
-    
-    String file = url.getFile();
-    OutputStream os = socket.getOutputStream();
-
-    StringBuffer sb = new StringBuffer();
-    sb.append("GET ").append(file).append(" HTTP/1.0\r\n");
-    sb.append("Content-Type: application/octet-stream\r\n");
-    sb.append("Connection: Keep-Alive\r\n");
-    String range;
-    if (offset != 0 && contentLength != -1)
-      range = "bytes=" + offset+"-"+(contentLength-1);
-    else if (offset != 0)
-      range = "bytes=" + offset+"-";
-    else 
-      range = null;
-    if (range != null) {
-      Debug.log(Debug.INFO, "doing range: "+range);
-      sb.append("Range: ").append(range).append("\r\n");
+    String responseRange = uc.getHeaderField("Content-Range");
+    long responseOffset;
+    if (responseRange == null) {
+      Debug.info("Response contained no Content-Range field, assuming offset=0");
+      responseOffset = 0;
+    } else {
+      try {
+	MessageFormat format = new MessageFormat("bytes {0,number}-{1,number}", Locale.US);
+	java.lang.Object parts[] = format.parse(responseRange);
+	responseOffset = ((Number)parts[0]).longValue();
+	if (responseOffset < 0) {
+	  responseOffset = 0;
+	}
+	Debug.debug("Stream successfully with offset " + responseOffset);
+      } catch (Exception e) {
+	Debug.info("Error parsing Content-Range header");
+	responseOffset = 0;
+      }
     }
-    sb.append ("User-Agent: Cortado\r\n");
-    if (userId != null && password != null) {
-      String userPassword = userId + ":" + password;
-      String encoding = Base64Converter.encode (userPassword.getBytes());
-      sb.append ("Authorization: Basic ").append(encoding).append("\r\n");
-    }
-    sb.append("\r\n\r\n");
 
-    /* send the request. */
-    os.write(sb.toString().getBytes());
-    os.flush();
-
-    /* read response */
-    dis = socket.getInputStream();
-
-    mime = "application/ogg";
-    /*
-    contentLength = uc.getHeaderFieldInt ("Content-Length", 0) + offset;
+    contentLength = uc.getHeaderFieldInt ("Content-Length", -1) + responseOffset;
     mime = uc.getContentType();
-    */
+    this.offset = responseOffset;
+
+    if (responseOffset < offset) {
+      this.skipBytes = offset - responseOffset;
+    } else {
+      this.skipBytes = 0;
+    }
 
     return dis;
   }
@@ -340,14 +348,13 @@ public class HTTPSrc extends Element
         url = new URL(documentBase, urlString);
       }
       else {
-        Debug.log(Debug.INFO, "parsing as abslute URL");
+        Debug.log(Debug.INFO, "parsing as absolute URL");
         url = new URL(urlString);
       }
 
       Debug.log(Debug.INFO, "trying to open "+url+" at offset "+offset);
 
       dis = openWithConnection(url, offset);
-      //dis = openWithSocket(url, offset);
 
       discont = true;
 
@@ -398,13 +405,13 @@ public class HTTPSrc extends Element
       documentBase = (URL)value;
     }
     else if (name.equals("userId")) {
-      userId = String.valueOf(value);
+      userId = (value == null) ? null : String.valueOf(value);
     }
     else if (name.equals("userAgent")) {
       userAgent = String.valueOf(value);
     }
     else if (name.equals("password")) {
-      password = String.valueOf(value);
+      password = (value == null) ? null : String.valueOf(value);
     }
     else if (name.equals("readSize")) {
       readSize = Integer.parseInt((String)value);

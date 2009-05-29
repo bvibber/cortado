@@ -19,6 +19,7 @@
 package com.fluendo.jst;
 
 import java.util.*;
+import com.fluendo.utils.*;
 
 public abstract class Element extends com.fluendo.jst.Object
 {
@@ -39,6 +40,13 @@ public abstract class Element extends com.fluendo.jst.Object
   public static final int PAUSE = 2;
   public static final int PLAY = 3;
 
+  protected static String stateNames[] = {
+    "none",
+    "stop",
+    "pause",
+    "play"
+  };
+
   private static final int SHIFT = 4;
   private static final int MASK = 0xf;
   /* transition */
@@ -53,11 +61,26 @@ public abstract class Element extends com.fluendo.jst.Object
   public static final int ASYNC = 2;
   public static final int NO_PREROLL = 3;
 
+  public static String stateReturnNames[] = {
+    "FAILURE",
+    "SUCCESS",
+    "ASYNC",
+    "NO_PREROLL"
+  };
+
   /* current state, next and pending state */
   protected int currentState;
   protected int nextState;
   protected int pendingState;
   protected int lastReturn;
+
+  public static String getStateName(int state) {
+    return stateNames[state];
+  }
+
+  public static String getStateReturnName(int ret) {
+    return stateReturnNames[ret];
+  }
 
   public String getMime ()
   {
@@ -87,6 +110,7 @@ public abstract class Element extends com.fluendo.jst.Object
   }
 
   public synchronized void setClock (Clock newClock) {
+    Debug.debug(this + ".setClock(" + newClock + ")");
     clock = newClock;
   }
   public synchronized Clock getClock () {
@@ -439,5 +463,9 @@ public abstract class Element extends com.fluendo.jst.Object
   }
   public boolean query (Query query) {
     return false;
+  }
+
+  public Pad requestSinkPad(Pad peer) {
+    return null;
   }
 }

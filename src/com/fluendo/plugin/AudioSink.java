@@ -200,6 +200,9 @@ public abstract class AudioSink extends Sink implements ClockProvider
 
       return res;
     }
+    public synchronized boolean isAcquired() {
+      return opened;
+    }
     public boolean release() {
       stop();
 
@@ -414,9 +417,15 @@ public abstract class AudioSink extends Sink implements ClockProvider
     }
   }
 
-  protected int doSync (long time)
+  // Test whether the audio sink is likely to work.
+  // Called before the ring buffer is acquired
+  public boolean test() {
+    return true;
+  }
+
+  protected WaitStatus doSync (long time)
   {
-    return Clock.OK;
+    return WaitStatus.newOK();
   }
   protected boolean doEvent (Event event)
   {
@@ -430,6 +439,8 @@ public abstract class AudioSink extends Sink implements ClockProvider
       case Event.NEWSEGMENT:
         break;
       case Event.EOS:
+	// wait for completion, perform blocking drain of buffers
+	drain();
         break;
     }
     return true;
@@ -496,6 +507,36 @@ public abstract class AudioSink extends Sink implements ClockProvider
     }
 
     return result;
+  }
+
+  /*
+   * Block until audio playback is finished
+   */
+  protected void drain() {
+    if (ringBuffer.rate <= 0) {
+      return;
+    }
+
+    /* need to start playback before we can drain, but only when
+     * we have successfully negotiated a format and thus acquired the
+     * ringbuffer. */
+    if (!ringBuffer.isAcquired()) {
+      // FIXME make it work like it does in GstBaseAudioSink
+      // ringBuffer.acquire(...);
+      return;
+    }
+
+    if (ringBuffer.getState() != PLAY) {
+      ringBuffer.play();
+    }
+
+    if (ringBuffer.nextSample != -1) {
+      long time = ringBuffer.nextSample * Clock.SECOND / ringBuffer.rate;
+      Clock.ClockID id = audioClock.newSingleShotID(time);
+      Debug.log(Debug.DEBUG, this+" waiting until t=" + ((double)time / Clock.SECOND) + "s for playback to finish");
+      id.waitID();
+      ringBuffer.nextSample = -1;
+    }
   }
 
   protected abstract RingBuffer createRingBuffer();

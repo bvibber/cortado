@@ -74,27 +74,49 @@ Cortado ANT build file
     <mkdir dir="${out.dist}/src" />
   </target>
 
+  <target name="scripts">
+    <javac 
+      srcdir="${src}/../scripts"
+      destdir="${src}/../scripts"
+      />
+  </target>
+
 <!-- generate Configure-time options class as src/com/fluendo/player/Configure.java -->
-  <target name="configure">
+  <target name="configure" depends="scripts">
     <tstamp>
       <format property="DATE" timezone="GMT" pattern="yyyy-MM-dd HH:mm:ss" />
-   </tstamp>
-   <exec executable="sh" outputproperty="REVISION">
-     <arg line="${src}/../scripts/get-revision" />
-   </exec>
-   <exec executable="sh" outputproperty="BRANCH">
-     <arg line="${src}/../scripts/get-branch" />
-   </exec>
-   <echo file="${src}/com/fluendo/player/Configure.java" append="false"
+    </tstamp>
+    <java 
+      classname="GetSourceInfo" 
+      classpath="${src}/../scripts" 
+      outputproperty="REVISION"
+      failonerror="true"
+      >
+      <arg value="revision"/>
+    </java>
+
+    <java 
+      classname="GetSourceInfo" 
+      classpath="${src}/../scripts" 
+      outputproperty="BRANCH"
+      failonerror="true"
+      >
+      <arg value="branch"/>
+    </java>
+    <condition property="real_version" value="wm_${REVISION}" else="${product.version}">
+      <equals arg1="${product.version}" arg2="WM_REV"/>
+    </condition>
+
+    <echo file="${src}/com/fluendo/player/Configure.java" append="false"
 >
 package com.fluendo.player;
 
 class Configure
 {
-  public String buildInfo = "Built on ${DATE} GMT (version ${product.version}) in ${build.type} mode.";
+  public String buildInfo = "Built on ${DATE} GMT (version ${real_version}) in ${build.type} mode.";
 
   public String buildDate = "${DATE} GMT";
-  public String buildVersion = "${product.version}";
+  public String buildVersion = "${real_version}";
   public String buildType = "${build.type}";
   public String revision = "${REVISION}";
   public String branch = "${BRANCH}";
@@ -104,15 +126,15 @@ class Configure
 }
     </echo>
     <echo
->Built on ${DATE} (version ${product.version}) in ${build.type} mode.</echo>
+>Built on ${DATE} (version ${real_version}) in ${build.type} mode.</echo>
+    
   </target>
 
 <!-- generate Dist-time options class as src/com/fluendo/player/Dist.java -->
-  <target name="source-info">
-   <exec executable="sh" outputproperty="OUTPUT">
-     <arg line="${src}/../scripts/update-source-info" />
-   </exec>
-   <echo>${OUTPUT}</echo>
+  <target name="source-info" depends="scripts">
+    <java classname="GetSourceInfo" classpath="{$src}/../scripts" failonerror="true">
+      <arg value="update"/>
+    </java>
   </target>
 
 <!-- delete distinfo any time .svn directory changes -->
@@ -124,7 +146,7 @@ class Configure
 <!-- generate spec file -->
   <target name="spec">
    <exec executable="sh" outputproperty="SPECOUTPUT">
-     <arg line="${src}/../scripts/update-spec-file ${product.version}" />
+     <arg line="${src}/../scripts/update-spec-file ${real_version}" />
    </exec>
    <echo>${SPECOUTPUT}</echo>
   </target>
@@ -153,11 +175,14 @@ class Configure
     <condition property="plugin.Vorbis.false">
       <contains string="${exclude}" substring="Vorbis" casesensitive="false" />
     </condition>
+    <condition property="plugin.Kate.false">
+      <contains string="${exclude}" substring="Kate" casesensitive="false" />
+    </condition>
    </target>
 
 <!-- generate includes and plugins.ini based on contents of exclude -->
   <target name="includes"
-          depends="plugins,includes-delete,include-JPEG,include-Mulaw,include-Multipart,include-Ogg,include-Smoke,include-Theora,include-Vorbis">
+          depends="plugins,includes-delete,include-JPEG,include-Mulaw,include-Multipart,include-Ogg,include-Smoke,include-Theora,include-Vorbis,include-Kate">
     <echo>Generating ${out.buildtyped}/includes</echo>
   </target>
 
@@ -170,8 +195,11 @@ com/fluendo/utils/*
 com/fluendo/jst/*
 com/fluendo/plugin/AudioSink*
 com/fluendo/plugin/VideoSink**
+com/fluendo/plugin/FakeSink*
+com/fluendo/plugin/Overlay*
 com/fluendo/plugin/HTTPSrc*
 com/fluendo/plugin/Queue*
+com/fluendo/plugin/Selector*
 plugins.ini
 </echo>
     <echo file="${out.buildtyped}/plugins.ini"
@@ -180,6 +208,9 @@ com.fluendo.plugin.VideoSink
 com.fluendo.plugin.AudioSinkJ2
 com.fluendo.plugin.AudioSinkSA
 com.fluendo.plugin.Queue
+com.fluendo.plugin.FakeSink
+com.fluendo.plugin.Overlay
+com.fluendo.plugin.Selector
 </echo>
  
   </target>
@@ -258,6 +289,19 @@ com/fluendo/plugin/Vorbis*
 </echo>
   </target>
 
+  <target name="include-Kate" unless="plugin.Kate.false">
+    <echo>Including Kate</echo>
+    <echo file="${out.buildtyped}/includes" append="true"
+>com/fluendo/jkate/*
+com/fluendo/jtiger/*
+com/fluendo/plugin/Kate*
+</echo>
+    <echo file="${out.buildtyped}/plugins.ini" append="true"
+>com.fluendo.plugin.KateDec
+com.fluendo.plugin.KateOverlay
+</echo>
+  </target>
+
 <!-- COMPILATION -->
 
   <!-- FIXME: not used currently -->
@@ -311,11 +355,12 @@ com/fluendo/plugin/Vorbis*
           depends="init"
    >
     <javac 
-           destdir="${out.buildtyped}" 
+	   srcdir="${src}"
+	   destdir="${out.buildtyped}" 
            target="1.1" source="1.3"
            debug="${build.isdebug}" debuglevel="${build.debuglevel}"
     >
-      <src path="${src}/com/fluendo/utils" />
+      <include name="com/fluendo/utils/**"/>
       <compilerarg line="${build.flags}" />
     </javac>
   </target>
@@ -325,11 +370,42 @@ com/fluendo/plugin/Vorbis*
           depends="init,compile-utils,compile-jcraft"
    >
     <javac 
+	   srcdir="${src}"
            destdir="${out.buildtyped}" 
            target="1.1" source="1.3"
            debug="${build.isdebug}" debuglevel="${build.debuglevel}"
     >
-      <src path="${src}/com/fluendo/jheora" />
+      <include name="com/fluendo/jheora/**" />
+      <compilerarg line="${build.flags}" />
+    </javac>
+  </target>
+
+  <target name="compile-jkate"
+          description="compile com.fluendo.jkate source"
+          depends="init,compile-utils,compile-jcraft"
+   >
+    <javac 
+	   srcdir="${src}"
+           destdir="${out.buildtyped}" 
+           target="1.1" source="1.3"
+           debug="${build.isdebug}" debuglevel="${build.debuglevel}"
+    >
+      <include name="com/fluendo/jkate/**" />
+      <compilerarg line="${build.flags}" />
+    </javac>
+  </target>
+
+  <target name="compile-jtiger"
+          description="compile com.fluendo.jtiger source"
+          depends="init,compile-utils,compile-jkate"
+   >
+    <javac 
+	   srcdir="${src}"
+           destdir="${out.buildtyped}" 
+           target="1.1" source="1.3"
+           debug="${build.isdebug}" debuglevel="${build.debuglevel}"
+    >
+      <include name="com/fluendo/jtiger/**" />
       <compilerarg line="${build.flags}" />
     </javac>
   </target>
@@ -339,11 +415,12 @@ com/fluendo/plugin/Vorbis*
           depends="init,compile-utils"
    >
     <javac 
+           srcdir="${src}"
            destdir="${out.buildtyped}" 
            target="1.1" source="1.3"
            debug="${build.isdebug}" debuglevel="${build.debuglevel}"
     >
-      <src path="${src}/com/fluendo/codecs" />
+      <include name="com/fluendo/codecs/**" />
       <compilerarg line="${build.flags}" />
     </javac>
   </target>
@@ -353,11 +430,12 @@ com/fluendo/plugin/Vorbis*
           depends="init,compile-utils"
    >
     <javac 
+           srcdir="${src}"
            destdir="${out.buildtyped}" 
            target="1.1" source="1.3"
            debug="${build.isdebug}" debuglevel="${build.debuglevel}"
     >
-      <src path="${src}/com/fluendo/jst" />
+      <include name="com/fluendo/jst/**" />
       <compilerarg line="${build.flags}" />
     </javac>
   </target>
@@ -369,11 +447,12 @@ com/fluendo/plugin/Vorbis*
    >
     <javac 
            classpath="${stubs}"
+           srcdir="${src}"
            destdir="${out.buildtyped}" 
            target="1.1" source="1.3"
            debug="${build.isdebug}" debuglevel="${build.debuglevel}"
     >
-      <src path="${src}/com/fluendo/plugin" />
+      <include name="com/fluendo/plugin/**" />
       <compilerarg line="${build.flags}" />
     </javac>
   </target>
@@ -383,11 +462,12 @@ com/fluendo/plugin/Vorbis*
           depends="init,configure,compile-plugin,includes,source-info"
    >
     <javac 
+           srcdir="${src}"
            destdir="${out.buildtyped}" 
            target="1.1" source="1.3"
            debug="${build.isdebug}" debuglevel="${build.debuglevel}"
     >
-      <src path="${src}/com/fluendo/player" />
+      <include name="com/fluendo/player/**" />
       <compilerarg line="${build.flags}" />
     </javac>
   </target>
@@ -399,10 +479,11 @@ com/fluendo/plugin/Vorbis*
     <!-- update plugins.ini -->
     <antcall target="includes" />
     <javac 
+           srcdir="${src}"
            destdir="${out.buildtyped}" 
            target="1.1" source="1.3"
     >
-      <src path="${src}/com/fluendo/examples" />
+      <include name="com/fluendo/examples/**" />
       <compilerarg line="${build.flags}" />
     </javac>
   </target>
@@ -410,7 +491,7 @@ com/fluendo/plugin/Vorbis*
  
   <target name="compile"
           description="compile the source"
-          depends="init,compile-stubs,compile-jcraft,compile-jst,compile-jheora,compile-codecs,compile-plugin,compile-player,compile-examples" />
+          depends="init,compile-stubs,compile-jcraft,compile-jst,compile-jheora,compile-jkate,compile-jtiger,compile-codecs,compile-plugin,compile-player,compile-examples" />
 
 <!-- only here for reference -->
    <target name="oldcompile">
@@ -465,6 +546,16 @@ com/fluendo/plugin/Vorbis*
          includes="com/fluendo/jheora/*" />
   </target>
 
+  <target name="jar-jkate" depends="compile-jkate">
+    <jar jarfile="${out.dist}/${build.type}/jkate.jar" basedir="${out.buildtyped}"
+         includes="com/fluendo/jkate/*" />
+  </target>
+
+  <target name="jar-jtiger" depends="compile-jtiger">
+    <jar jarfile="${out.dist}/${build.type}/jtiger.jar" basedir="${out.buildtyped}"
+         includes="com/fluendo/jtiger/*" />
+  </target>
+
   <target name="jar-jst" depends="compile-jst">
     <jar jarfile="${out.dist}/${build.type}/jst.jar" basedir="${out.buildtyped}"
          includes="com/fluendo/jst/*" />
@@ -488,7 +579,7 @@ com/fluendo/plugin/Vorbis*
     <antcall target="includes">
       <param name="exclude" value="Smoke,Jpeg,Multipart,Mulaw" />
     </antcall>
-    <jar jarfile="${out.dist}/applet/cortado-ovt-${build.type}-${product.version}.jar"
+    <jar jarfile="${out.dist}/applet/cortado-ovt-${build.type}-${real_version}.jar"
          includesfile="${out.buildtyped}/includes"
          basedir="${out.buildtyped}">
     </jar>
@@ -497,9 +588,9 @@ com/fluendo/plugin/Vorbis*
   <target name="applet-ov" depends="compile"
           description="generate the Ogg/Vorbis applet">
     <antcall target="includes">
-      <param name="exclude" value="Smoke,Jpeg,Multipart,Mulaw,Theora" />
+      <param name="exclude" value="Smoke,Jpeg,Multipart,Mulaw,Theora,Kate" />
     </antcall>
-    <jar jarfile="${out.dist}/applet/cortado-ov-${build.type}-${product.version}.jar"
+    <jar jarfile="${out.dist}/applet/cortado-ov-${build.type}-${real_version}.jar"
          includesfile="${out.buildtyped}/includes"
          basedir="${out.buildtyped}">
     </jar>
@@ -508,9 +599,9 @@ com/fluendo/plugin/Vorbis*
   <target name="applet-mmjs" depends="compile"
           description="generate the Multipart/Mulaw+Smoke+Jpeg applet">
     <antcall target="includes">
-      <param name="exclude" value="Ogg,Vorbis,Theora" />
+      <param name="exclude" value="Ogg,Vorbis,Theora,Kate" />
     </antcall>
-    <jar jarfile="${out.dist}/applet/cortado-mmjs-${build.type}-${product.version}.jar"
+    <jar jarfile="${out.dist}/applet/cortado-mmjs-${build.type}-${real_version}.jar"
          includesfile="${out.buildtyped}/includes"
          basedir="${out.buildtyped}">
     </jar>
@@ -520,7 +611,7 @@ com/fluendo/plugin/Vorbis*
   <target name="applet" depends="applet-ovt,applet-ov,applet-mmjs"
            description="generate all applets" />
 
-  <target name="jar" depends="jar-jcraft,jar-utils,jar-jheora,jar-jst,jar-codecs,jar-plugin,jar-player"
+  <target name="jar" depends="jar-jcraft,jar-utils,jar-jheora,jar-jkate,jar-jtiger,jar-jst,jar-codecs,jar-plugin,jar-player"
         description="generate all jar files" />
 
   <!-- instead of using depends, which doesn't necessarily preserve order,
@@ -550,7 +641,7 @@ com/fluendo/plugin/Vorbis*
   <target name="install_doc"
           description="install cortado docs">
     <!-- Install documentation -->
-    <copy todir="${datadir}/cortado-${product.version}">
+    <copy todir="${datadir}/cortado-${real_version}">
       <fileset dir=".">
         <include name="LICENSE.*"/>
         <include name="TODO"/>
@@ -581,7 +672,7 @@ com/fluendo/plugin/Vorbis*
     <mkdir dir="${datadir}/cortado"/>
     <copy todir="${datadir}/cortado">
       <fileset dir="${out.dist}/applet">
-        <include name="cortado-*${product.version}*.jar"/>
+        <include name="cortado-*${real_version}*.jar"/>
       </fileset>
     </copy>
   </target>
@@ -605,13 +696,15 @@ com/fluendo/plugin/Vorbis*
   <target name="dist" depends="init,source-info,spec"
           description="create a source distribution package">
     <property name="tar"
-              value="${out.dist}/src/cortado-${product.version}.tar" />
+              value="${out.dist}/src/cortado-${real_version}.tar" />
     <tar destfile="${tar}">
       <tarfileset dir="${basedir}"
-         prefix="cortado-${product.version}">
+         prefix="cortado-${real_version}">
         <include name="src/com/jcraft/jogg/*.java" />
         <include name="src/com/jcraft/jorbis/*.java" />
         <include name="src/com/fluendo/jheora/*.java" />
+        <include name="src/com/fluendo/jkate/*.java" />
+        <include name="src/com/fluendo/jtiger/*.java" />
         <include name="src/com/fluendo/player/*.java" />
         <include name="src/com/fluendo/utils/*.java" />
         <include name="src/com/fluendo/codecs/*.java" />
@@ -634,7 +727,7 @@ com/fluendo/plugin/Vorbis*
         <include name="cortado.doap" />
       </tarfileset>
       <tarfileset dir="${basedir}"
-         prefix="cortado-${product.version}" mode="755">
+         prefix="cortado-${real_version}" mode="755">
         <include name="scripts/*" />
       </tarfileset>
     </tar>
@@ -646,19 +739,19 @@ com/fluendo/plugin/Vorbis*
   <target name="distcheck" depends="dist"
           description="build the source distribution before releasing">
     <property name="tar"
-              value="${out.dist}/src/cortado-${product.version}.tar" />
+              value="${out.dist}/src/cortado-${real_version}.tar" />
     <property name="distcheckdir" value="${out}/distcheck" />
     <delete dir="${distcheckdir}" />
     <untar src="${tar}.gz" dest="${distcheckdir}" compression="gzip" />
-    <echo message="distcheck: trying build of cortado-${product.version} ..."/>
+    <echo message="distcheck: trying build of cortado-${real_version} ..."/>
       <!-- setting inheritAll="false" makes sure that we don't keep this run's
            properties, causing basedir to be set correctly, but derived
            vars set wrong -->
-    <ant dir="${distcheckdir}/cortado-${product.version}"
-         antfile="${distcheckdir}/cortado-${product.version}/build.xml"
+    <ant dir="${distcheckdir}/cortado-${real_version}"
+         antfile="${distcheckdir}/cortado-${real_version}/build.xml"
          inheritAll="false" />
     <delete dir="${distcheckdir}" />
-    <echo message="distcheck: cortado-${product.version} is ready for distribution." />
+    <echo message="distcheck: cortado-${real_version} is ready for distribution." />
   </target>
 
   <target name="release" depends="distcheck"
@@ -667,7 +760,7 @@ com/fluendo/plugin/Vorbis*
       <target name="debug" />
       <target name="stripped" />
     </ant>
-    <checksum file="${out.dist}/src/cortado-${product.version}.tar.gz"
+    <checksum file="${out.dist}/src/cortado-${real_version}.tar.gz"
               algorithm="MD5" fileext=".md5" />
   </target>
 

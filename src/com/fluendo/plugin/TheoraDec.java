@@ -66,6 +66,10 @@ public class TheoraDec extends Element implements OggPayload
   {
     return ts.isKeyframe(op);
   }
+  public boolean isDiscontinuous ()
+  {
+    return false;
+  }
   public long getFirstTs (Vector packets)
   {
     int len = packets.size();
@@ -138,6 +142,8 @@ public class TheoraDec extends Element implements OggPayload
       int result;
       long timestamp;
 
+      Debug.log( Debug.DEBUG, parent.getName() + " <<< " + buf );
+
       op.packet_base = buf.data;
       op.packet = buf.offset;
       op.bytes = buf.length;
@@ -207,10 +213,7 @@ public class TheoraDec extends Element implements OggPayload
 	if (!needKeyframe) {
 	  try{
             if (ts.decodePacketin(op) != 0) {
-              buf.free();
-              Debug.log(Debug.ERROR, "Error Decoding Theora.");
-	      postMessage (Message.newError (this, "Error decoding Theora"));
-              return ERROR;
+              Debug.log(Debug.ERROR, "Bad Theora packet. Most likely not fatal, hoping for better luck next packet.");
             }
             if (ts.decodeYUVout(yuv) != 0) {
               buf.free();
@@ -221,6 +224,7 @@ public class TheoraDec extends Element implements OggPayload
             buf.object = yuv.getObject(ti.offset_x, ti.offset_y, ti.frame_width, ti.frame_height);
 	    buf.caps = caps;
 	    buf.timestamp = timestamp;
+            Debug.log( Debug.DEBUG, parent.getName() + " >>> " + buf );
             result = srcPad.push(buf);
           }
 	  catch (Exception e) {
