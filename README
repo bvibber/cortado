@@ -166,8 +166,24 @@ parameters:
               Use text from the given Kate stream (indexed from zero).
               The first Kate stream found will have index 0, the second will
               have index 1, etc.
+              Selecting a Kate stream by index takes priority over selecting
+              by language and/or category.
               At most one Kate stream may be enabled at a time.
 	      Defaults to -1 (none)
+
+  kateLanguage: string
+              Use text from the Kate stream with the given language (ISO 639-1 tag).
+              Selecting a Kate stream by index takes priority over selecting
+              by language and/or category.
+              At most one Kate stream may be enabled at a time.
+	      Defaults to null (none)
+
+  kateCategory: string
+              Use text from the Kate stream with the given category.
+              Selecting a Kate stream by index takes priority over selecting
+              by language and/or category.
+              At most one Kate stream may be enabled at a time.
+	      Defaults to null (none)
 
   statusHeight: int
               The height of the status area (default 12)

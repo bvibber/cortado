@@ -35,6 +35,8 @@ public class Cortado extends Applet implements Runnable, MouseMotionListener,
     private boolean audio;
     private boolean video;
     private int kateIndex;
+    private String kateLanguage;
+    private String kateCategory;
     private boolean showSpeaker;
     private boolean keepAspect;
     private boolean ignoreAspect;
@@ -103,6 +105,8 @@ public class Cortado extends Applet implements Runnable, MouseMotionListener,
             {"audio", "boolean", "Enable audio playback (default true)"},
             {"video", "boolean", "Enable video playback (default true)"},
             {"kateIndex", "boolean", "Enable playback of a particular Kate stream (default -1 (none))"},
+            {"kateLanguage", "string", "Enable playback of a Kate stream from a language (default empty)"},
+            {"kateCategory", "string", "Enable playback of a Kate stream from a category (default empty)"},
             {"statusHeight", "int", "The height of the status area (default 12)"},
             {"autoPlay", "boolean", "Automatically start playback (default true)"},
             {"showStatus", "enum", "Show status area (auto|show|hide) (default auto)"},
@@ -229,6 +233,8 @@ public class Cortado extends Applet implements Runnable, MouseMotionListener,
         audio = getBoolParam("audio", true);
         video = getBoolParam("video", true);
         kateIndex = getIntParam("kateIndex", -1);
+        kateLanguage = getStringParam("kateLanguage", "");
+        kateCategory = getStringParam("kateCategory", "");
         statusHeight = getIntParam("statusHeight", 12);
         autoPlay = getBoolParam("autoPlay", true);
         showStatus = getEnumParam("showStatus", showStatusVals, "auto");
@@ -265,7 +271,7 @@ public class Cortado extends Applet implements Runnable, MouseMotionListener,
         pipeline.enableAudio(audio);
         pipeline.enableVideo(video);
         pipeline.setIgnoreAspect(ignoreAspect);
-        pipeline.enableKateIndex(kateIndex);
+        pipeline.enableKateStream(kateIndex, kateLanguage, kateCategory);
         pipeline.setBufferSize(bufferSize);
         pipeline.setBufferLow(bufferLow);
         pipeline.setBufferHigh(bufferHigh);
@@ -422,7 +428,11 @@ public class Cortado extends Applet implements Runnable, MouseMotionListener,
                 // we want to be able to change subtitles at runtime without having
                 // to restart the player, and selecting a stream which is already selected
                 // is very cheap, so we update the stream to play periodically.
-                pipeline.enableKateIndex(Integer.valueOf(getParam("kateIndex", "" + -1)).intValue());
+                pipeline.enableKateStream(
+                  Integer.valueOf(getParam("kateIndex", "" + -1)).intValue(),
+                  getParam("kateLanguage", ""),
+                  getParam("kateCategory", "")
+                );
 
             } catch (Exception e) {
                 if (statusRunning) {

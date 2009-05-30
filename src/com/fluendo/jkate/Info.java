@@ -32,8 +32,8 @@ public class Info {
   public int granule_shift;
   public int gps_numerator;
   public int gps_denominator;
-  public byte language[];
-  public byte category[];
+  public String language;
+  public String category;
   public Region regions[];
   public Style styles[];
   public Curve curves[];
@@ -115,15 +115,30 @@ public class Info {
     if (gps_numerator == 0 || gps_denominator == 0)
       return Result.KATE_E_BAD_PACKET;
 
-    language=new byte[16];
-    Bitwise.readbuf(opb, language, 16);
-    if (language[15] != 0)
-      return Result.KATE_E_BAD_PACKET;
+    byte[] buffer16=new byte[16];
+    int buffer_characters;
 
-    category=new byte[16];
-    Bitwise.readbuf(opb, category, 16);
-    if (category[15] != 0)
+    language = "";
+    buffer_characters = 0;
+    Bitwise.readbuf(opb, buffer16, 16);
+    if (buffer16[15] != 0)
       return Result.KATE_E_BAD_PACKET;
+    for (buffer_characters=0; buffer_characters<16; ++buffer_characters) {
+      if (buffer16[buffer_characters] == 0) break;
+    }
+    try { language = new String(buffer16, 0, buffer_characters, "US-ASCII"); }
+    catch (java.io.UnsupportedEncodingException e) { language = ""; }
+
+    category = "";
+    buffer_characters = 0;
+    Bitwise.readbuf(opb, buffer16, 16);
+    if (buffer16[15] != 0)
+      return Result.KATE_E_BAD_PACKET;
+    for (buffer_characters=0; buffer_characters<16; ++buffer_characters) {
+      if (buffer16[buffer_characters] == 0) break;
+    }
+    try { category = new String(buffer16, 0, buffer_characters, "US-ASCII"); }
+    catch (java.io.UnsupportedEncodingException e) { category = ""; }
 
     /* end of packet */
     if (opb.read(1) != -1)

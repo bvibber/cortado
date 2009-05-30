@@ -352,11 +352,38 @@ public class CortadoPipeline extends Pipeline implements PadListener, CapsListen
   }
 
   /**
-   * Selects the Kate stream index (if any) to enable.
-   * The first Kate stream has index 0, the second has index 1, etc.
-   * A negative index will enable none.
+   * Finds a Kate stream from the given language and category names.
+   * Returns a negative index if none is found.
    */
-  public void enableKateIndex(int idx) {
+  private int findKateStream(String language, String category) {
+    int idx = -1;
+
+    boolean has_language = !language.equals("");
+    boolean has_category = !category.equals("");
+    if (has_language || has_category) {
+      for (int n=0; n<katedec.size(); ++n) {
+        Element e = (Element)katedec.get(n);
+        if (e != null) {
+          String e_language = String.valueOf(e.getProperty("language"));
+          String e_category = String.valueOf(e.getProperty("category"));
+          if (language.equalsIgnoreCase(e_language)) {
+            if (!has_category || category.equals(e_category)) {
+              idx = n;
+            }
+          }
+        }
+      }
+    }
+    return idx;
+  }
+
+  /**
+   * Selects the Kate stream to enable, by index (if any), or by language/category.
+   * The first Kate stream has index 0, the second has index 1, etc.
+   * A negative index and empty language/category strings will enable none.
+   */
+  public void enableKateStream(int idx, String language, String category) {
+    if (idx < 0) idx = findKateStream(language, category);
     if (idx == enableKate) return;
     doEnableKateIndex(idx);
   }

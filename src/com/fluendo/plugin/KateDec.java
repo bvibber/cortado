@@ -317,6 +317,18 @@ public class KateDec extends Element implements OggPayload
     return res;
   }
 
+  public java.lang.Object getProperty (String name) {
+    if (name.equals("language")) {
+      return ki.language;
+    }
+    else if (name.equals("category")) {
+      return ki.category;
+    }
+    else {
+      return super.getProperty(name);
+    }
+  }
+
   public String getFactoryName ()
   {
     return "katedec";
