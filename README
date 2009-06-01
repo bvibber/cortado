@@ -32,8 +32,7 @@ This release has support for
 FAQ
 ---
 
-We maintain a FAQ in our trac installation:
-https://core.fluendo.com/flumotion/trac/wiki/FAQ
+For frequently asked questions check our website at http://theora.org/cortado/
 
 If any questions should be added, let us know.
 
@@ -41,9 +40,9 @@ BUGS
 ----
 
 You can file bugs at Fluendo's issue tracker:
-https://core.fluendo.com/tracker
+https://trac.xiph.org/newticket?component=Cortado
 
-Make sure to choose the "cortado" component.
+Make sure to choose the "Cortado" component.
 
 BUILDING
 --------

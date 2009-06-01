@@ -7,7 +7,7 @@
 
  <name>Cortado</name>
  <shortname>cortado</shortname>
- <homepage rdf:resource="http://www.xiph.org/cortado/" />
+ <homepage rdf:resource="http://www.theora.org/cortado/" />
  <created>2004-11-19</created>
  <shortdesc xml:lang="en">
 Cortado is a multimedia framework for Java written by Fluendo.
@@ -32,12 +32,12 @@ It contains:
 
  </description>
  <category></category>
- <bug-database rdf:resource="https://trac.xiph.org/newticket?component=cortado" />
+ <bug-database rdf:resource="https://trac.xiph.org/newticket?component=Cortado" />
  <screenshots></screenshots>
  <mailing-list rdf:resource="http://lists.xiph.org/mailman/listinfo/ogg-dev" />
  <programming-language>Java</programming-language>
  <license rdf:resource="http://usefulinc.com/doap/licenses/gpl" />
- <download-page rdf:resource="http://xiph.org/cortado" />
+ <download-page rdf:resource="http://theora.org/cortado/" />
 
  <repository>
    <GITRepository>
