@@ -33,6 +33,8 @@ public class DCTDecode
   private static final int PUL = 2;
   private static final int PL = 1;
 
+  private short[] dequant_matrix = new short[64];
+
   private static final int[] ModeUsesMC = { 0, 0, 1, 1, 1, 0, 1, 1 };
 
   /* predictor multiplier up-left, up, up-right,left, shift
@@ -110,14 +112,22 @@ public class DCTDecode
       ReconPixelsPerLine = pbi.YStride;
       // intra Y
       dequant_coeffs = pbi.info.dequant_tables[0][0][pbi.frameQIS[qi]];
+      dequant_matrix[0] = pbi.info.dequant_tables[0][0][pbi.frameQIS[0]][0];
     }else if(FragmentNumber < pbi.YPlaneFragments + pbi.UVPlaneFragments) {
       ReconPixelsPerLine = pbi.UVStride;
       // intra U
       dequant_coeffs = pbi.info.dequant_tables[0][1][pbi.frameQIS[qi]];
+      dequant_matrix[0] = pbi.info.dequant_tables[0][1][pbi.frameQIS[0]][0];
     } else {
       ReconPixelsPerLine = pbi.UVStride;
       // intra V
       dequant_coeffs = pbi.info.dequant_tables[0][2][pbi.frameQIS[qi]];
+      dequant_matrix[0] = pbi.info.dequant_tables[0][2][pbi.frameQIS[0]][0];
+    }
+
+    // create copy with DC coefficient of primary frame qi
+    for(int i = 1; i < 64; ++i) {
+        dequant_matrix[i] = dequant_coeffs[i];
     }
 
     /* Set up pointer into the quantisation buffer. */
@@ -126,13 +136,13 @@ public class DCTDecode
     /* Invert quantisation and DCT to get pixel data. */
     switch(pbi.FragCoefEOB[FragmentNumber]){
     case 0:case 1:
-      idct.IDct1(quantized_list, dequant_coeffs, ReconDataBuffer );
+      idct.IDct1(quantized_list, dequant_matrix, ReconDataBuffer );
       break;
     case 2: case 3:case 4:case 5:case 6:case 7:case 8: case 9:case 10:
-      idct.IDct10(quantized_list, dequant_coeffs, ReconDataBuffer );
+      idct.IDct10(quantized_list, dequant_matrix, ReconDataBuffer );
       break;
     default:
-      idct.IDctSlow(quantized_list, dequant_coeffs, ReconDataBuffer );
+      idct.IDctSlow(quantized_list, dequant_matrix, ReconDataBuffer );
     }
     /*
     for (int i=0; i<64; i++) {
@@ -182,49 +192,63 @@ public class DCTDecode
       MvModMask = 0x00000001;
 
       /* Select appropriate dequantiser matrix. */
-      if ( codingMode == CodingMode.CODE_INTRA )
+      if ( codingMode == CodingMode.CODE_INTRA ) {
         // intra Y
         dequant_coeffs = pbi.info.dequant_tables[0][0][pbi.frameQIS[qi]];
-      else
+        dequant_matrix[0] = pbi.info.dequant_tables[0][0][pbi.frameQIS[0]][0];
+      } else {
         // inter Y
         dequant_coeffs = pbi.info.dequant_tables[1][0][pbi.frameQIS[qi]];
+        dequant_matrix[0] = pbi.info.dequant_tables[1][0][pbi.frameQIS[0]][0];
+      }
     }else{
       ReconPixelsPerLine = pbi.UVStride;
       MvShift = 2;
       MvModMask = 0x00000003;
 
       /* Select appropriate dequantiser matrix. */
-      
+
+
       if(FragmentNumber < pbi.YPlaneFragments + pbi.UVPlaneFragments) {
-        if ( codingMode == CodingMode.CODE_INTRA )
+        if ( codingMode == CodingMode.CODE_INTRA ) {
           // intra U
           dequant_coeffs = pbi.info.dequant_tables[0][1][pbi.frameQIS[qi]];
-        else
+          dequant_matrix[0] = pbi.info.dequant_tables[0][1][pbi.frameQIS[0]][0];
+        } else {
           // inter U
           dequant_coeffs = pbi.info.dequant_tables[1][1][pbi.frameQIS[qi]];
+          dequant_matrix[0] = pbi.info.dequant_tables[1][1][pbi.frameQIS[0]][0];
+        }
       } else {
-        if ( codingMode == CodingMode.CODE_INTRA )
+        if ( codingMode == CodingMode.CODE_INTRA ) {
           // intra V
           dequant_coeffs = pbi.info.dequant_tables[0][2][pbi.frameQIS[qi]];
-        else
+          dequant_matrix[0] = pbi.info.dequant_tables[0][2][pbi.frameQIS[0]][0];
+        } else {
           // inter V
           dequant_coeffs = pbi.info.dequant_tables[1][2][pbi.frameQIS[qi]];
+          dequant_matrix[0] = pbi.info.dequant_tables[1][2][pbi.frameQIS[0]][0];
+        }
       }
     }
-
+    // create copy with DC coefficient of primary frame qi
+    for(int i = 1; i < 64; ++i) {
+        dequant_matrix[i] = dequant_coeffs[i];
+    }
+    
     /* Set up pointer into the quantisation buffer. */
     short[] quantized_list = pbi.QFragData[FragmentNumber];
 
     /* Invert quantisation and DCT to get pixel data. */
     switch(pbi.FragCoefEOB[FragmentNumber]){
     case 0:case 1:
-      idct.IDct1(quantized_list, dequant_coeffs, ReconDataBuffer );
+      idct.IDct1(quantized_list, dequant_matrix, ReconDataBuffer );
       break;
     case 2: case 3:case 4:case 5:case 6:case 7:case 8: case 9:case 10:
-      idct.IDct10(quantized_list, dequant_coeffs, ReconDataBuffer );
+      idct.IDct10(quantized_list, dequant_matrix, ReconDataBuffer );
       break;
     default:
-      idct.IDctSlow(quantized_list, dequant_coeffs, ReconDataBuffer );
+      idct.IDctSlow(quantized_list, dequant_matrix, ReconDataBuffer );
     }
     /*
     for (int i=0; i<64; i++) {
