@@ -51,8 +51,6 @@ public class DumpVideo {
     public static final int OK = 0;
     public static final int ERROR = -5;
     private static final byte[] signature = {-128, 0x74, 0x68, 0x65, 0x6f, 0x72, 0x61};
-    private byte[] ybytes;
-    private byte[] uvbytes;
 
     private class TheoraDecoder {
 
@@ -157,6 +155,8 @@ public class DumpVideo {
 
         private OutputStream os;
         private boolean wroteHeader = false;
+        private byte[] ybytes;
+        private byte[] uvbytes;
 
         public YUVWriter(File outfile) {
             try {
@@ -286,13 +286,13 @@ public class DumpVideo {
                             Debug.info("got frame " + ++frames);
 
                             YUVWriter yuvwriter = (YUVWriter) yuvwriters.get(serialno);
-                            if(yuvwriter == null && !outfiles.isEmpty()) {
-                                yuvwriter = new YUVWriter((File)outfiles.get(0));
+                            if (yuvwriter == null && !outfiles.isEmpty()) {
+                                yuvwriter = new YUVWriter((File) outfiles.get(0));
                                 yuvwriters.put(serialno, yuvwriter);
                                 outfiles.remove(0);
                             }
 
-                            if(yuvwriter != null) {
+                            if (yuvwriter != null) {
                                 YUVBuffer yuvbuf = (YUVBuffer) result;
                                 yuvwriter.writeYUVFrame(theoradec.ti, yuvbuf);
                             }
@@ -309,7 +309,7 @@ public class DumpVideo {
 
     public static void main(String[] args) throws IOException {
 
-        if(args.length < 2) {
+        if (args.length < 2) {
             System.err.println("usage: DumpVideo <videofile> <outfile_1> ... <outfile_n>");
             System.exit(1);
         }
@@ -317,7 +317,7 @@ public class DumpVideo {
         File infile = new File(args[0]);
 
         List outfiles = new LinkedList();
-        for(int i = 1; i < args.length; ++i) {
+        for (int i = 1; i < args.length; ++i) {
             outfiles.add(new File(args[i]));
         }
 
