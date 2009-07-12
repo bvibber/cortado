@@ -1,6 +1,20 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
+/* Copyright (C) <2009> Maik Merten <maikmerten@googlemail.com>
+ * Copyright (C) <2004> Wim Taymans <wim@fluendo.com> (TheoraDec.java parts)
+ *
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Library General Public
+ * License as published by the Free Software Foundation; either
+ * version 2 of the License, or (at your option) any later version.
+ *
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Library General Public License for more details.
+ *
+ * You should have received a copy of the GNU Library General Public
+ * License along with this library; if not, write to the
+ * Free Software Foundation, Inc., 59 Temple Place - Suite 330,
+ * Boston, MA 02111-1307, USA.
  */
 package com.fluendo.examples;
 
@@ -30,18 +44,12 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
- *
- * @author maik
+ * This class borrows code from TheoraDec.java
  */
 public class DumpVideo {
 
     public static final int OK = 0;
-    public static final int NOT_LINKED = -1;
-    public static final int WRONG_STATE = -2;
-    public static final int UNEXPECTED = -3;
-    public static final int NOT_NEGOTIATED = -4;
     public static final int ERROR = -5;
-    public static final int NOT_SUPPORTED = -6;
     private static final byte[] signature = {-128, 0x74, 0x68, 0x65, 0x6f, 0x72, 0x61};
     private byte[] ybytes;
     private byte[] uvbytes;
