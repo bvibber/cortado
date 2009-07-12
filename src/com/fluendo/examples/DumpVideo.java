@@ -48,8 +48,8 @@ import java.util.logging.Logger;
  */
 public class DumpVideo {
 
-    public static final int OK = 0;
-    public static final int ERROR = -5;
+    public static final Integer OK = new Integer(0);
+    public static final Integer ERROR = new Integer(-5);
     private static final byte[] signature = {-128, 0x74, 0x68, 0x65, 0x6f, 0x72, 0x61};
 
     private class TheoraDecoder {
@@ -90,7 +90,7 @@ public class DumpVideo {
 
         public Object decode(Packet op) {
 
-            int result = 0;
+            Object result = OK;
 
 
             if (packet < 3) {
@@ -157,8 +157,10 @@ public class DumpVideo {
         private boolean wroteHeader = false;
         private byte[] ybytes;
         private byte[] uvbytes;
+        private boolean raw;
 
-        public YUVWriter(File outfile) {
+        public YUVWriter(File outfile, boolean raw) {
+            this.raw = raw;
             try {
                 os = new FileOutputStream(outfile);
             } catch (FileNotFoundException ex) {
@@ -168,13 +170,14 @@ public class DumpVideo {
 
         public void writeYUVFrame(Info ti, YUVBuffer yuv) {
             try {
-                if (!wroteHeader) {
-                    String headerstring = "YUV4MPEG2 W" + ti.width + " H" + ti.height + " F" + ti.fps_numerator + ":" + ti.fps_denominator + " Ip A" + ti.aspect_numerator + ":" + ti.aspect_denominator + "\n";
-                    os.write(headerstring.getBytes());
-                    wroteHeader = true;
+                if (!raw) {
+                    if (!wroteHeader) {
+                        String headerstring = "YUV4MPEG2 W" + ti.width + " H" + ti.height + " F" + ti.fps_numerator + ":" + ti.fps_denominator + " Ip A" + ti.aspect_numerator + ":" + ti.aspect_denominator + "\n";
+                        os.write(headerstring.getBytes());
+                        wroteHeader = true;
+                    }
+                    os.write("FRAME\n".getBytes());
                 }
-
-                os.write("FRAME\n".getBytes());
 
                 if (ybytes == null || ybytes.length != yuv.y_width * yuv.y_height) {
                     ybytes = new byte[yuv.y_width * yuv.y_height];
@@ -229,7 +232,7 @@ public class DumpVideo {
         return -1;
     }
 
-    public void dumpVideo(File videofile, List outfiles) throws IOException {
+    public void dumpVideo(File videofile, List outfiles, boolean raw) throws IOException {
         InputStream is = videofile.toURI().toURL().openStream();
 
         SyncState oy = new SyncState();
@@ -252,12 +255,12 @@ public class DumpVideo {
 
             while (oy.pageout(og) == 1) {
 
-                int serialno = og.serialno();
+                Integer serialno = new Integer(og.serialno());
 
                 StreamState state = (StreamState) streamstates.get(serialno);
                 if (state == null) {
                     state = new StreamState();
-                    state.init(serialno);
+                    state.init(serialno.intValue());
                     streamstates.put(serialno, state);
                     Debug.info("created StreamState for stream no. " + og.serialno());
                 }
@@ -287,7 +290,7 @@ public class DumpVideo {
 
                             YUVWriter yuvwriter = (YUVWriter) yuvwriters.get(serialno);
                             if (yuvwriter == null && !outfiles.isEmpty()) {
-                                yuvwriter = new YUVWriter((File) outfiles.get(0));
+                                yuvwriter = new YUVWriter((File) outfiles.get(0), raw);
                                 yuvwriters.put(serialno, yuvwriter);
                                 outfiles.remove(0);
                             }
@@ -310,19 +313,24 @@ public class DumpVideo {
     public static void main(String[] args) throws IOException {
 
         if (args.length < 2) {
-            System.err.println("usage: DumpVideo <videofile> <outfile_1> ... <outfile_n>");
+            System.err.println("usage: DumpVideo <videofile> <outfile_1> ... <outfile_n> [--raw>]");
             System.exit(1);
         }
 
+        boolean raw = false;
         File infile = new File(args[0]);
 
         List outfiles = new LinkedList();
         for (int i = 1; i < args.length; ++i) {
+            if(args[i].equals("--raw")) {
+                raw = true;
+                break;
+            }
             outfiles.add(new File(args[i]));
         }
 
         DumpVideo dv = new DumpVideo();
-        dv.dumpVideo(infile, outfiles);
+        dv.dumpVideo(infile, outfiles, raw);
 
     }
 }
