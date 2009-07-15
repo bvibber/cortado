@@ -39,7 +39,7 @@ If any questions should be added, let us know.
 BUGS
 ----
 
-You can file bugs at Fluendo's issue tracker:
+You can file bugs at Xiph's issue tracker:
 https://trac.xiph.org/newticket?component=Cortado
 
 Make sure to choose the "Cortado" component.
@@ -63,11 +63,6 @@ Run
   ant -p
 
 to see all the possible targets.
-
-FAQ
----
-You can find our FAQ on-line at
-https://core.fluendo.com/flumotion/trac/wiki/FAQ#about-cortado
 
 EXAMPLES
 --------
