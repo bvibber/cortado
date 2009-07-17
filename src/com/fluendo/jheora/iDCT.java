@@ -291,7 +291,7 @@ public final class iDCT
         _A = (xC1S7 * ip[1*8 + off]) >> 16;
         _B = (xC7S1 * ip[1*8 + off]) >> 16;
         _C = (xC3S5 * ip[3*8 + off]) >> 16;
-        _D = -1 * ((xC5S3 * ip[3*8 + off]) >> 16);
+        _D = -((xC5S3 * ip[3*8 + off]) >> 16);
 
         _Ad = (xC4S4 * (short)(_A - _C)) >> 16;
         _Bd = (xC4S4 * (short)(_B - _D)) >> 16;
