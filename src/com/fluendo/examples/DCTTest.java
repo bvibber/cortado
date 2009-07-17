@@ -143,15 +143,16 @@ public class DCTTest {
                 System.out.println("test vector " + ++cnt + (pass ? " passed " : " didn't pass ") + " using " + (just10 ? " fast DCT " : " slow DCT."));
 
                 if (!pass) {
+
                     System.out.print("reference: ");
-                    for (short s : result) {
-                        System.out.print(" " + pad(s));
+                    for (int i = 0; i < result.length; ++i) {
+                        System.out.print(" " + pad(result[i]));
                     }
                     System.out.println();
 
                     System.out.print("iDCT.java: ");
-                    for (short s : myresult) {
-                        System.out.print(" " + pad(s));
+                    for (int i = 0; i < myresult.length; ++i) {
+                        System.out.print(" " + pad(myresult[i]));
                     }
                     System.out.println();
                     System.out.println();
