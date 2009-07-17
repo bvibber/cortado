@@ -206,6 +206,7 @@ public final class iDCT
     }
   }
 
+
   /************************
     x  x  x  x  0  0  0  0
     x  x  x  0  0  0  0  0
@@ -230,6 +231,7 @@ public final class iDCT
 
   public final void IDct10 (short[] InputData, short[]QuantMatrix, short[] OutputData)
   {
+
     short[] op = OutputData;
 
     int _A, _B, _C, _D, _Ad, _Bd, _Cd, _Dd, _E, _F, _G, _H;
@@ -244,7 +246,7 @@ public final class iDCT
         _A = (xC1S7 * ip[1 + off]) >> 16;
         _B = (xC7S1 * ip[1 + off]) >> 16;
         _C = (xC3S5 * ip[3 + off]) >> 16;
-        _D = (xC5S3 * ip[3 + off]) >> 16;
+        _D = -((xC5S3 * ip[3 + off]) >> 16);
 
         _Ad = (xC4S4 * (short)(_A - _C)) >> 16;
         _Bd = (xC4S4 * (short)(_B - _D)) >> 16;
@@ -289,7 +291,7 @@ public final class iDCT
         _A = (xC1S7 * ip[1*8 + off]) >> 16;
         _B = (xC7S1 * ip[1*8 + off]) >> 16;
         _C = (xC3S5 * ip[3*8 + off]) >> 16;
-        _D = (xC5S3 * ip[3*8 + off]) >> 16;
+        _D = -1 * ((xC5S3 * ip[3*8 + off]) >> 16);
 
         _Ad = (xC4S4 * (short)(_A - _C)) >> 16;
         _Bd = (xC4S4 * (short)(_B - _D)) >> 16;
@@ -340,6 +342,7 @@ public final class iDCT
       }
     }
   }
+
 
   /***************************
     x   0   0  0  0  0  0  0
