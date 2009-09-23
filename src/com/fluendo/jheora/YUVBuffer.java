@@ -24,6 +24,7 @@
 package com.fluendo.jheora;
 
 import java.awt.image.*;
+//import java.util.Random;
 
 public class YUVBuffer implements ImageProducer {
 
@@ -93,8 +94,12 @@ public class YUVBuffer implements ImageProducer {
     public Object getObject(int x, int y, int width, int height) {
         return this;
     }
-    
-    private void YUVtoRGB2(int x, int y, int width, int height) {
+
+
+    /*
+     * unused "classic" YUV conversion, kept for reference
+     */
+    private void YUVtoRGB_classic(int x, int y, int width, int height) {
 
         /*
          * this modified version of the original YUVtoRGB was
@@ -165,7 +170,7 @@ public class YUVBuffer implements ImageProducer {
                 pixels[RGBPtr2] =
                         ((clamp255(r) << 16) + (clamp255(g) << 8) + clamp255(b)) | 0xff000000;
 
-                
+
                 r = (t1 + t2) >> 8;
                 g = (t1 - t3) >> 8;
                 b = (t1 + t4) >> 8;
@@ -196,7 +201,77 @@ public class YUVBuffer implements ImageProducer {
         return (short) -((val >> 31) & val);
     }
 
+    /*
+     * Fast table-lookup based conversion algorithm. The following comment
+     * is directly lifted from Robin Watt's C implementation. It describes
+     * RGB555, but it's still valid documentation on the idea.
+     *
+     * Thank you, Robin!
+     *
+     */
+
+    /* The algorithm used here is based heavily on one created by Sophie Wilson
+     * of Acorn/e-14/Broadcomm. Many thanks.
+     *
+     * Additional tweaks (in the fast fixup code) are from Paul Gardiner.
+     *
+     * The old implementation of YUV -> RGB did:
+     *
+     * R = CLAMP((Y-16)*1.164 +           1.596*V)
+     * G = CLAMP((Y-16)*1.164 - 0.391*U - 0.813*V)
+     * B = CLAMP((Y-16)*1.164 + 2.018*U          )
+     *
+     * We're going to bend that here as follows:
+     *
+     * R = CLAMP(y +           1.596*V)
+     * G = CLAMP(y - 0.383*U - 0.813*V)
+     * B = CLAMP(y + 1.976*U          )
+     *
+     * where y = 0               for       Y <=  16,
+     *       y = (  Y-16)*1.164, for  16 < Y <= 239,
+     *       y = (239-16)*1.164, for 239 < Y
+     *
+     * i.e. We clamp Y to the 16 to 239 range (which it is supposed to be in
+     * anyway). We then pick the B_U factor so that B never exceeds 511. We then
+     * shrink the G_U factor in line with that to avoid a colour shift as much as
+     * possible.
+     *
+     * We're going to use tables to do it faster, but rather than doing it using
+     * 5 tables as as the above suggests, we're going to do it using just 3.
+     *
+     * We do this by working in parallel within a 32 bit word, and using one
+     * table each for Y U and V.
+     *
+     * Source Y values are    0 to 255, so    0.. 260 after scaling
+     * Source U values are -128 to 127, so  -49.. 49(G), -253..251(B) after
+     * Source V values are -128 to 127, so -204..203(R), -104..103(G) after
+     *
+     * So total summed values:
+     * -223 <= R <= 481, -173 <= G <= 431, -253 <= B < 511
+     *
+     * We need to pack R G and B into a 32 bit word, and because of Bs range we
+     * need 2 bits above the valid range of B to detect overflow, and another one
+     * to detect the sense of the overflow. We therefore adopt the following
+     * representation:
+     *
+     * osGGGGGgggggosBBBBBbbbosRRRRRrrr
+     *
+     * Each such word breaks down into 3 ranges.
+     *
+     * osGGGGGggggg   osBBBBBbbb   osRRRRRrrr
+     *
+     * Thus we have 8 bits for each B and R table entry, and 10 bits for G (good
+     * as G is the most noticable one). The s bit for each represents the sign,
+     * and o represents the overflow.
+     *
+     * For R and B we pack the table by taking the 11 bit representation of their
+     * values, and toggling bit 10 in the U and V tables.
+     *
+     * For the green case we calculate 4*G (thus effectively using 10 bits for the
+     * valid range) truncate to 12 bits. We toggle bit 11 in the Y table.
+     */
     private final int FLAGS = 0x40080100;
+
     private void YUVtoRGB(int x, int y, int width, int height) {
 
         // Set up starting values for YUV pointers
@@ -224,7 +299,7 @@ public class YUVBuffer implements ImageProducer {
                 y_val = uv + yuv2rgb_table[data[YPtr]];
                 // fixup
                 tmp = y_val & FLAGS;
-                tmp  -= tmp >> 8;
+                tmp -= tmp >> 8;
                 y_val |= tmp;
                 tmp = FLAGS & ~(y_val >> 1);
                 y_val += tmp >> 8;
@@ -235,7 +310,7 @@ public class YUVBuffer implements ImageProducer {
                 y_val = uv + yuv2rgb_table[data[YPtr + 1]];
                 // fixup
                 tmp = y_val & FLAGS;
-                tmp  -= tmp >> 8;
+                tmp -= tmp >> 8;
                 y_val |= tmp;
                 tmp = FLAGS & ~(y_val >> 1);
                 y_val += tmp >> 8;
@@ -246,7 +321,7 @@ public class YUVBuffer implements ImageProducer {
                 y_val = uv + yuv2rgb_table[data[YPtr2]];
                 // fixup
                 tmp = y_val & FLAGS;
-                tmp  -= tmp >> 8;
+                tmp -= tmp >> 8;
                 y_val |= tmp;
                 tmp = FLAGS & ~(y_val >> 1);
                 y_val += tmp >> 8;
@@ -257,7 +332,7 @@ public class YUVBuffer implements ImageProducer {
                 y_val = uv + yuv2rgb_table[data[YPtr2 + 1]];
                 // fixup
                 tmp = y_val & FLAGS;
-                tmp  -= tmp >> 8;
+                tmp -= tmp >> 8;
                 y_val |= tmp;
                 tmp = FLAGS & ~(y_val >> 1);
                 y_val += tmp >> 8;
@@ -280,8 +355,9 @@ public class YUVBuffer implements ImageProducer {
         }
     }
 
+    // lookup table for YUV conversion, lifted from Robin Watt's implementation
     private static int[] yuv2rgb_table = {
-	/* y_table */
+        /* y_table */
         0x7FFFFFED,
         0x7FFFFFEF,
         0x7FFFFFF0,
@@ -538,7 +614,7 @@ public class YUVBuffer implements ImageProducer {
         0xC0E82104,
         0xC0E82104,
         0xC0E82104,
-	/* u_table */
+        /* u_table */
         0x0C400103,
         0x0C200105,
         0x0C200107,
@@ -795,7 +871,7 @@ public class YUVBuffer implements ImageProducer {
         0xF40002F7,
         0xF3E002F9,
         0xF3E002FB,
-	/* v_table */
+        /* v_table */
         0x1A09A000,
         0x19E9A800,
         0x19A9B800,
@@ -1051,6 +1127,48 @@ public class YUVBuffer implements ImageProducer {
         0xE6D63000,
         0xE6B64000,
         0xE6764800,
-        0xE6365800 };
+        0xE6365800};
 
+
+    // some benchmarking stuff, uncomment if you need it
+    /*public static void main(String[] args) {
+        YUVBuffer yuvbuf = new YUVBuffer();
+
+        // let's create a 512x512 picture with noise
+
+        int x = 1280;
+        int y = 720;
+
+        int size = (x * y) + (x * y) / 2;
+        short[] picdata = new short[size];
+
+        Random r = new Random();
+        for (int i = 0; i < picdata.length; ++i) {
+            picdata[i] = (short) (r.nextInt(255) | 0xFF);
+        }
+
+        System.out.println("bench...");
+
+        yuvbuf.data = picdata;
+        yuvbuf.y_height = y;
+        yuvbuf.y_width = x;
+        yuvbuf.y_stride = x;
+        yuvbuf.uv_height = y / 2;
+        yuvbuf.uv_width = x / 2;
+        yuvbuf.uv_stride = x / 2;
+        yuvbuf.u_offset = x / 2;
+        yuvbuf.v_offset = x + x / 2;
+
+        int times = 5000;
+
+        long start = System.currentTimeMillis();
+        for (int i = 0; i < times; ++i) {
+            yuvbuf.newPixels();
+            yuvbuf.prepareRGBData(0, 0, x, y);
+        }
+        long end = System.currentTimeMillis();
+
+        System.out.println("average conversion time per frame: " + ((double) (end - start)) / (times * 1f) + " ms.");
+
+    }*/
 }
