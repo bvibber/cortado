@@ -341,7 +341,7 @@ public class FrArray {
                 if ( pbi.display_fragments[dfIndex] != 0) {
                   pbi.MBCodedFlags[MBIndex] = 1;
                   pbi.CodedBlockList[pbi.CodedBlockIndex] = dfIndex;
-                  /* Clear down the pbi.QFragData structure for all coded blocks. */
+                  /* Clear down the pbi.QFragData structure for this coded block. */
                   System.arraycopy(empty64, 0, pbi.QFragData[dfIndex], 0, 64);
                   pbi.CodedBlockIndex++;
                 }
