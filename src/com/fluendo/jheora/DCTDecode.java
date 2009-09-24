@@ -666,21 +666,6 @@ public class DCTDecode
     }
   }
 
-  private static short[] empty64 = new short[64];
-  public void ClearDownQFragData(Playback pbi){
-    int       i;
-    short[]    QFragPtr;
-
-    for ( i = 0; i < pbi.CodedBlockIndex; i++ ) {
-      /* Get the linear index for the current fragment. */
-      QFragPtr = pbi.QFragData[pbi.CodedBlockList[i]];
-      // this is slow:
-      //for ( int j = 0; j < 64; j++ ) QFragPtr[j]  = 0;
-      // this is faster:
-      System.arraycopy(empty64, 0, QFragPtr, 0, 64);
-    }
-  }
-
   public void ReconRefFrames (Playback pbi){
     int i;
     int j,k,m,n;

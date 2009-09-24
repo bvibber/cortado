@@ -252,6 +252,7 @@ public class FrArray {
     return NextBit;
   }
 
+  private final short[] empty64 = new short[64];
   public void quadDecodeDisplayFragments ( Playback pbi ){
     int  SB, MB, B;
     int    DataToDecode;
@@ -340,6 +341,8 @@ public class FrArray {
                 if ( pbi.display_fragments[dfIndex] != 0) {
                   pbi.MBCodedFlags[MBIndex] = 1;
                   pbi.CodedBlockList[pbi.CodedBlockIndex] = dfIndex;
+                  /* Clear down the pbi.QFragData structure for all coded blocks. */
+                  System.arraycopy(empty64, 0, pbi.QFragData[dfIndex], 0, 64);
                   pbi.CodedBlockIndex++;
                 }
               }

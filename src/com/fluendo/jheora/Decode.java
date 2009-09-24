@@ -669,9 +669,6 @@ public final class Decode {
        for each block. */
     MemUtils.set(FragCoeffs, 0, 0, pbi.UnitFragments);
     MemUtils.set(pbi.FragCoefEOB, 0, 0, pbi.UnitFragments);
-  
-    /* Clear down the pbi.QFragData structure for all coded blocks. */
-    dctDecode.ClearDownQFragData(pbi);
 
     /* Note the number of blocks to decode */
     BlocksToDecode = pbi.CodedBlockIndex;
