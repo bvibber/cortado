@@ -21,7 +21,7 @@ if test "x$nano" = "x"
 then
   RELEASE=1
 else
-  RELEASE=0.svn.$revision
+  RELEASE=0.git.$revision
   if test "x$branch" != "xtrunk"
   then
     RELEASE=$RELEASE.$branch

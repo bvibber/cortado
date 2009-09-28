@@ -91,8 +91,8 @@ Cortado ANT build file
    <exec executable="sh" outputproperty="BRANCH">
      <arg line="${src}/../scripts/get-branch" />
    </exec>
-   <condition property="real_version" value="wm_${REVISION}" else="${product.version}">
-    <equals arg1="${product.version}" arg2="WM_REV"/>
+   <condition property="real_version" value="${REVISION}" else="${product.version}">
+    <equals arg1="${product.version}" arg2="GIT"/>
    </condition>
     <echo file="${src}/com/fluendo/player/Configure.java" append="false"
 >
