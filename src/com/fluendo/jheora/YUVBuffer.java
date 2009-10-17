@@ -42,6 +42,12 @@ public class YUVBuffer implements ImageProducer {
     private int pix_size;
     private boolean newPixels = true;
     private ColorModel colorModel = ColorModel.getRGBdefault();
+    private ImageProducer filteredThis;
+    private CropImageFilter cropFilter;
+    private int crop_x;
+    private int crop_y;
+    private int crop_w;
+    private int crop_h;
 
     public void addConsumer(ImageConsumer ic) {
     }
@@ -92,7 +98,19 @@ public class YUVBuffer implements ImageProducer {
     }
 
     public Object getObject(int x, int y, int width, int height) {
-        return this;
+        if (x == 0 && y == 0 && width == y_width && height == y_height) {
+            return this;
+        } else {
+            if (x != crop_x || y != crop_y || width != crop_w || height != crop_h) {
+                crop_x = x;
+                crop_y = y;
+                crop_w = width;
+                crop_h = height;
+                cropFilter = new CropImageFilter(crop_x, crop_y, crop_w, crop_h);
+                filteredThis = new FilteredImageSource(this, cropFilter);
+            }
+            return filteredThis;
+        }
     }
 
 
