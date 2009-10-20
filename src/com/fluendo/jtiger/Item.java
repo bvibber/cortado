@@ -24,7 +24,6 @@ import java.util.*;
 import java.awt.*;
 import java.awt.image.*;
 import java.awt.font.*;
-import java.text.*;
 import com.fluendo.jkate.Event;
 import com.fluendo.jkate.Tracker;
 import com.fluendo.utils.*;
@@ -172,6 +171,9 @@ public class Item {
 
     Graphics2D g = bimg.createGraphics();
 
+    /*
+    This code uses API calls that were not present in Java 1.1
+
     AttributedString atext = new AttributedString(text, font.getAttributes());
     AttributedCharacterIterator text_it = atext.getIterator();
     int text_end = text_it.getEndIndex();
@@ -195,6 +197,22 @@ public class Item {
 
       dy += layout.getDescent() + layout.getLeading();
     }
+    */
+
+    g.setFont(font);
+    FontMetrics fm = g.getFontMetrics();
+    float tw = fm.stringWidth(text);
+    float dy = 0.0f;
+    float shadow_dx = font_size * 0.05f, shadow_dy = font_size * 0.05f;
+
+    g.setColor(Color.black);
+    g.drawString(text, region_x+((region_w-tw)/2)+shadow_dx, region_y+dy+shadow_dy);
+    g.drawString(text, region_x+((region_w-tw)/2)-shadow_dx, region_y+dy-shadow_dy);
+    g.drawString(text, region_x+((region_w-tw)/2)+shadow_dx, region_y+dy-shadow_dy);
+    g.drawString(text, region_x+((region_w-tw)/2)-shadow_dx, region_y+dy+shadow_dy);
+
+    g.setColor(Color.white);
+    g.drawString(text, region_x+((region_w-tw)/2), region_y+dy);
 
     g.dispose();
   }
