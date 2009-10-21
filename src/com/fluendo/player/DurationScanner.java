@@ -92,7 +92,8 @@ public class DurationScanner {
             responseOffset = 0;
         } else {
             try {
-                MessageFormat format = new MessageFormat("bytes {0,number}-{1,number}", Locale.US);
+                MessageFormat format = new MessageFormat("bytes {0,number}-{1,number}");
+                format.setLocale(Locale.US);
                 java.lang.Object parts[] = format.parse(responseRange);
                 responseOffset = ((Number) parts[0]).longValue();
                 if (responseOffset < 0) {
