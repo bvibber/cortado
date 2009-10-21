@@ -33,21 +33,21 @@ public class TigerBitmap {
   /**
    * Create a new TigerBitmap from a Kate bitmap and optional palette.
    */
-  public TigerBitmap(Bitmap kb, Palette kp)
+  public TigerBitmap(Component c, Bitmap kb, Palette kp)
   {
     if (kb == null) {
       image = null;
     }
     else if (kb.bpp == 0) {
       /* PNG */
-      image = createPNGBitmap(kb, kp);
+      image = createPNGBitmap(c, kb, kp);
     }
     else {
       if (kp == null) {
         image = null;
       }
       else {
-        image = createPalettedBitmap(kb, kp);
+        image = createPalettedBitmap(c, kb, kp);
       }
     }
   }
@@ -58,7 +58,7 @@ public class TigerBitmap {
   public Image getScaled(int width, int height)
   {
     if (scaled_image == null || width != scaled_image.getWidth(null) || height != scaled_image.getHeight(null)) {
-      scaled_image = image.getScaledInstance(width, height, BufferedImage.SCALE_SMOOTH); // TODO: quality setting
+      scaled_image = image.getScaledInstance(width, height, Image.SCALE_SMOOTH); // TODO: quality setting
     }
     return scaled_image;
   }
@@ -66,7 +66,7 @@ public class TigerBitmap {
   /**
    * Create an image from bits representing a PNG image.
    */
-  private Image createPNGBitmap(Bitmap kb, Palette kp)
+  private Image createPNGBitmap(Component c, Bitmap kb, Palette kp)
   {
     Debug.warning("PNG bitmaps not supported yet");
     return null;
@@ -75,7 +75,7 @@ public class TigerBitmap {
   /**
    * Create a paletted image.
    */
-  private Image createPalettedBitmap(Bitmap kb, Palette kp)
+  private Image createPalettedBitmap(Component c, Bitmap kb, Palette kp)
   {
     byte[] cmap = new byte[4*kp.colors.length];
     for (int n=0; n<kp.colors.length; ++n) {
@@ -84,10 +84,8 @@ public class TigerBitmap {
       cmap[n*4+2] = kp.colors[n].b;
       cmap[n*4+3] = kp.colors[n].a;
     }
+
     IndexColorModel icm = new IndexColorModel(kb.bpp, kp.colors.length, cmap, 0, true);
-    BufferedImage img = new BufferedImage(kb.width, kb.height, BufferedImage.TYPE_BYTE_INDEXED, icm);
-    WritableRaster r = img.getRaster();
-    r.setDataElements(0, 0, kb.width, kb.height, kb.pixels);
-    return img;
+    return c.createImage(new MemoryImageSource(kb.width, kb.height, icm, kb.pixels, 0, kb.width));
   }
 }

@@ -29,7 +29,6 @@ import com.fluendo.utils.*;
 /* This element renders a Kate stream on incoming video */
 public class KateOverlay extends Overlay
 {
-  private BufferedImage bimg = null;
   private Font font = null;
   private String text = null;
   private Renderer tr = new Renderer();
@@ -88,30 +87,15 @@ public class KateOverlay extends Overlay
 
     /* before rendering, we update the state of the events; for now this
        just weeds out old ones, but at some point motions could be tracked. */
-    int ret = tr.update(component, buf.timestamp/(double)Clock.SECOND);
+    int ret = tr.update(component, img, buf.timestamp/(double)Clock.SECOND);
     /* if there are no Kate events active, just return the buffer as is */
     if (ret == 1)
       return;
 
-    Dimension d = component.getSize();
-    int x = 0;
-    int y = 0;
-    int w = d.width;
-    int h = d.height;
-
-    if (bimg == null || bimg.getWidth() != w || bimg.getHeight() != h) {
-      bimg = component.getGraphicsConfiguration().createCompatibleImage(w, h);
-    }
-
-    Graphics2D g2 = bimg.createGraphics();
-    g2.drawImage(img, x, y, w, h, null);
-
     /* render Kate stream on top */
-    tr.render(component, bimg);
+    img = tr.render(component, img);
 
-    g2.dispose();
-
-    buf.object = bimg;
+    buf.object = img;
   }
 
   public String getFactoryName ()

@@ -29,7 +29,7 @@ import com.fluendo.utils.*;
  */
 public class TextOverlay extends Overlay
 {
-  private BufferedImage bimg = null;
+  private int font_size = -1;
   private Font font = null;
   private String text = null;
 
@@ -61,30 +61,27 @@ public class TextOverlay extends Overlay
     int w = d.width;
     int h = d.height;
 
-    /* based on a java SDK example */
-    if (bimg == null || bimg.getWidth() != w || bimg.getHeight() != h) {
-      bimg = component.getGraphicsConfiguration().createCompatibleImage(w, h);
-      int font_size = w / 32;
-      if (font_size < 12) font_size = 12;
+    int new_font_size = w / 32;
+    if (new_font_size < 12) new_font_size = 12;
+    if (font == null || new_font_size != font_size) {
+      font_size = new_font_size;
       font = new Font("sans", Font.BOLD, font_size); // TODO: should be selectable ?
     }
 
-    Graphics2D g2 = bimg.createGraphics();
-    g2.drawImage(img, x, y, w, h, null);
+    Graphics g = img.getGraphics();
+    g.drawImage(img, x, y, w, h, null);
 
     /* render text on top */
     if (text != null) {
       double tw;
-      g2.setFont(font);
-      g2.setColor(Color.white);
-      FontMetrics fm = g2.getFontMetrics();
+      g.setFont(font);
+      g.setColor(Color.white);
+      FontMetrics fm = g.getFontMetrics();
       tw = fm.stringWidth(text);
-      g2.drawString(text, x+(int)((w-tw)/2), y+(int)(h*0.85));
+      g.drawString(text, x+(int)((w-tw)/2), y+(int)(h*0.85));
     }
 
-    g2.dispose();
-
-    buf.object = bimg;
+    g.dispose();
   }
 
   public boolean setProperty (String name, java.lang.Object value) {

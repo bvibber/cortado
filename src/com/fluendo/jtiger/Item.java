@@ -23,7 +23,6 @@ package com.fluendo.jtiger;
 import java.util.*;
 import java.awt.*;
 import java.awt.image.*;
-import java.awt.font.*;
 import com.fluendo.jkate.Event;
 import com.fluendo.jkate.Tracker;
 import com.fluendo.utils.*;
@@ -43,7 +42,6 @@ public class Item {
   private float region_y;
   private float region_w;
   private float region_h;
-
 
   /**
    * Create a new item from a Kate event.
@@ -65,9 +63,8 @@ public class Item {
   /**
    * Create a font suitable for displaying on the given component
    */
-  protected void createFont(Component c) {
-    Dimension d = c.getSize();
-    font_size = d.width / 32;
+  protected void createFont(Component c, Image img) {
+    font_size = img.getWidth(null) / 32;
     if (font_size < 12) font_size = 12;
     font = new Font("sansserif", Font.BOLD, font_size); // TODO: should be selectable ?
   }
@@ -76,22 +73,24 @@ public class Item {
    * Regenerate any cached data to match any relevant changes in the
    * given component
    */
-  protected void updateCachedData(Component c) {
-    Dimension d = c.getSize();
-    if (d.width == width && d.height == height)
+  protected void updateCachedData(Component c, Image img) {
+    int img_width = img.getWidth(null);
+    int img_height = img.getHeight(null);
+
+    if (img_width == width && img_height == height)
       return;
 
-    createFont(c);
+    createFont(c, img);
 
-    width = d.width;
-    height = d.height;
+    width = img_width;
+    height = img_height;
   }
 
   /**
    * Updates the item at the given time.
    * returns true for alive, false for dead
    */
-  public boolean update(Component c, double t) {
+  public boolean update(Component c, Image img, double t) {
     com.fluendo.jkate.Event ev = kin.ev;
     if (ev == null) return false;
     if (t >= ev.end_time) return false;
@@ -103,14 +102,14 @@ public class Item {
       alive = true;
     }
 
-    Dimension d = c.getSize();
+    Dimension d = new Dimension(img.getWidth(null), img.getHeight(null));
     return kin.update(t-ev.start_time, d, d);
   }
 
   /**
    * Set up the region.
    */
-  public void setupRegion(Component c) {
+  public void setupRegion(Component c, Image img) {
     if (kin.has[Tracker.has_region]) {
       region_x = kin.region_x;
       region_y = kin.region_y;
@@ -118,7 +117,7 @@ public class Item {
       region_h = kin.region_h;
     }
     else {
-      Dimension d = c.getSize();
+      Dimension d = new Dimension(img.getWidth(null), img.getHeight(null));
       region_x = d.width * 0.1f;
       region_y = d.height * 0.8f;
       region_w = d.width * 0.8f;
@@ -129,31 +128,31 @@ public class Item {
   /**
    * Renders the item on the given image.
    */
-  public void render(Component c, BufferedImage bimg) {
+  public void render(Component c, Image img) {
     com.fluendo.jkate.Event ev = kin.ev;
 
     if (!alive)
       return;
 
-    updateCachedData(c);
+    updateCachedData(c, img);
 
-    setupRegion(c);
-    renderBackground(bimg);
-    renderText(bimg);
+    setupRegion(c, img);
+    renderBackground(c, img);
+    renderText(img);
   }
 
   /**
    * Render a background for the item, if approrpiate.
    * The background may be a color, or an image.
    */
-  public void renderBackground(BufferedImage bimg)
+  public void renderBackground(Component c, Image img)
   {
     if (kin.ev.bitmap != null) {
       if (background_image == null) {
-        background_image = new TigerBitmap(kin.ev.bitmap, kin.ev.palette);
+        background_image = new TigerBitmap(c, kin.ev.bitmap, kin.ev.palette);
       }
       
-      Graphics2D g = bimg.createGraphics();
+      Graphics g = img.getGraphics();
       int rx = (int)(region_x+0.5), ry = (int)(region_y+0.5);
       int rw = (int)(region_w+0.5), rh = (int)(region_h+0.5);
       g.drawImage(background_image.getScaled(rw, rh), rx, ry, null);
@@ -164,39 +163,38 @@ public class Item {
   /**
    * Render text text for the item, if approrpiate.
    */
-  public void renderText(BufferedImage bimg)
+  public void renderText(Image img)
   {
     if (text == null)
       return;
 
-    Graphics2D g = bimg.createGraphics();
+    Graphics g = img.getGraphics();
 
+    /* This code uses API calls that were not present in Java 1.1 */
     /*
-    This code uses API calls that were not present in Java 1.1
+      AttributedString atext = new AttributedString(text, font.getAttributes());
+      AttributedCharacterIterator text_it = atext.getIterator();
+      int text_end = text_it.getEndIndex();
 
-    AttributedString atext = new AttributedString(text, font.getAttributes());
-    AttributedCharacterIterator text_it = atext.getIterator();
-    int text_end = text_it.getEndIndex();
+      FontRenderContext frc = g.getFontRenderContext();
+      LineBreakMeasurer lbm = new LineBreakMeasurer(text_it, frc);
+      float dy = 0.0f;
+      float shadow_dx = font_size * 0.05f, shadow_dy = font_size * 0.05f;
+      while (lbm.getPosition() < text_end) {
+        TextLayout layout = lbm.nextLayout(region_w);
+        dy += layout.getAscent();
+        float tw = layout.getAdvance();
 
-    FontRenderContext frc = g.getFontRenderContext();
-    LineBreakMeasurer lbm = new LineBreakMeasurer(text_it, frc);
-    float dy = 0.0f;
-    float shadow_dx = font_size * 0.05f, shadow_dy = font_size * 0.05f;
-    while (lbm.getPosition() < text_end) {
-      TextLayout layout = lbm.nextLayout(region_w);
-      dy += layout.getAscent();
-      float tw = layout.getAdvance();
+        g.setColor(Color.black);
+        layout.draw(g, region_x+((region_w-tw)/2)+shadow_dx, region_y+dy+shadow_dy);
+        layout.draw(g, region_x+((region_w-tw)/2)-shadow_dx, region_y+dy-shadow_dy);
+        layout.draw(g, region_x+((region_w-tw)/2)+shadow_dx, region_y+dy-shadow_dy);
+        layout.draw(g, region_x+((region_w-tw)/2)-shadow_dx, region_y+dy+shadow_dy);
+        g.setColor(Color.white);
+        layout.draw(g, region_x+((region_w-tw)/2), region_y+dy);
 
-      g.setColor(Color.black);
-      layout.draw(g, region_x+((region_w-tw)/2)+shadow_dx, region_y+dy+shadow_dy);
-      layout.draw(g, region_x+((region_w-tw)/2)-shadow_dx, region_y+dy-shadow_dy);
-      layout.draw(g, region_x+((region_w-tw)/2)+shadow_dx, region_y+dy-shadow_dy);
-      layout.draw(g, region_x+((region_w-tw)/2)-shadow_dx, region_y+dy+shadow_dy);
-      g.setColor(Color.white);
-      layout.draw(g, region_x+((region_w-tw)/2), region_y+dy);
-
-      dy += layout.getDescent() + layout.getLeading();
-    }
+        dy += layout.getDescent() + layout.getLeading();
+      }
     */
 
     g.setFont(font);
@@ -206,13 +204,13 @@ public class Item {
     float shadow_dx = font_size * 0.05f, shadow_dy = font_size * 0.05f;
 
     g.setColor(Color.black);
-    g.drawString(text, region_x+((region_w-tw)/2)+shadow_dx, region_y+dy+shadow_dy);
-    g.drawString(text, region_x+((region_w-tw)/2)-shadow_dx, region_y+dy-shadow_dy);
-    g.drawString(text, region_x+((region_w-tw)/2)+shadow_dx, region_y+dy-shadow_dy);
-    g.drawString(text, region_x+((region_w-tw)/2)-shadow_dx, region_y+dy+shadow_dy);
+    g.drawString(text, (int)(region_x+((region_w-tw)/2)+shadow_dx+0.5f), (int)(region_y+dy+shadow_dy+0.5f));
+    g.drawString(text, (int)(region_x+((region_w-tw)/2)-shadow_dx+0.5f), (int)(region_y+dy-shadow_dy+0.5f));
+    g.drawString(text, (int)(region_x+((region_w-tw)/2)+shadow_dx+0.5f), (int)(region_y+dy-shadow_dy+0.5f));
+    g.drawString(text, (int)(region_x+((region_w-tw)/2)-shadow_dx+0.5f), (int)(region_y+dy+shadow_dy+0.5f));
 
     g.setColor(Color.white);
-    g.drawString(text, region_x+((region_w-tw)/2), region_y+dy);
+    g.drawString(text, (int)(region_x+((region_w-tw)/2)+0.5f), (int)(region_y+dy+0.5f));
 
     g.dispose();
   }

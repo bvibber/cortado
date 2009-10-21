@@ -38,9 +38,9 @@ public class Renderer {
    * Update the renderer, and all the events it tracks.
    * Returns 1 if there is nothing to draw, as an optimization
    */
-  public int update(Component c, double t) {
+  public int update(Component c, Image img, double t) {
     for (int n=0; n<items.size(); ++n) {
-      boolean ret = ((Item)items.get(n)).update(c, t);
+      boolean ret = ((Item)items.elementAt(n)).update(c, img, t);
       if (!ret) {
         items.removeElementAt(n);
         --n;
@@ -54,9 +54,18 @@ public class Renderer {
   /**
    * Renders onto the given image.
    */
-  public void render(Component c, BufferedImage bimg) {
+  public Image render(Component c, Image img) {
+    /* there used to be some non copying code using BufferedImage, but that's not in SDK 1.1, so we do it the slow way */
+    Image copy = c.createImage(img.getWidth(null), img.getHeight(null));
+    Graphics g = copy.getGraphics();
+    g.drawImage(img, 0, 0, null);
+    g.dispose();
+    img = copy;
+
     for (int n=0; n<items.size(); ++n) {
-      ((Item)items.get(n)).render(c, bimg);
+      ((Item)items.elementAt(n)).render(c, img);
     }
+
+    return img;
   }
 }
