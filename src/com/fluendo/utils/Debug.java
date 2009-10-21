@@ -17,7 +17,6 @@
  */
 
 package com.fluendo.utils;
-import java.util.Arrays;
 
 public class Debug {
   public static final int NONE = 0;
@@ -47,8 +46,10 @@ public class Debug {
 
   public static String rpad(String s, int length) {
     if ( length > s.length() ) {
-      char arr[] = new char[length - s.length()];
-      Arrays.fill( arr, ' ' );
+      int sz = length - s.length();
+      char arr[] = new char[sz];
+      for (int n=0; n<sz; ++n)
+        arr[n] = ' ';
       return s + new String( arr );
     } else {
       return s;
