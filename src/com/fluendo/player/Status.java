@@ -107,7 +107,7 @@ public class Status extends Component implements MouseListener,
     }
 
     public void removeStatusListener(StatusListener l) {
-        listeners.remove(l);
+        listeners.removeElement(l);
     }
 
     public void notifyNewState(int newState) {

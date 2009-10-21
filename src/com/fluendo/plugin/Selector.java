@@ -40,7 +40,7 @@ public class Selector extends Element
     protected boolean eventFunc (com.fluendo.jst.Event event) {
       boolean ret = true;
       for (int n=0; n<sinks.size(); ++n) {
-        ret &= ((Pad)sinks.get(n)).pushEvent(event);
+        ret &= ((Pad)sinks.elementAt(n)).pushEvent(event);
       }
       return ret;
     }
@@ -48,7 +48,7 @@ public class Selector extends Element
 
   private int findPad (Pad pad) {
     for (int n=0; n<sinks.size(); ++n) {
-      if (sinks.get(n) == pad)
+      if (sinks.elementAt(n) == pad)
         return n;
     }
     return -1;
@@ -111,7 +111,7 @@ public class Selector extends Element
       }
       else {
         selected = new_selected;
-        selectedPad = (Pad)sinks.get(selected);
+        selectedPad = (Pad)sinks.elementAt(selected);
       }
     }
     else {

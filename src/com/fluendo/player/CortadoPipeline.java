@@ -288,10 +288,10 @@ public class CortadoPipeline extends Pipeline implements PadListener, CapsListen
         overlay.setState(STOP);
       }
       for (int n=0; n<katedec.size(); ++n) {
-        el = (Element)katedec.get(n);
+        el = (Element)katedec.elementAt(n);
         el.setState(STOP);
         remove(el);
-        el = (Element)k_queue.get(n);
+        el = (Element)k_queue.elementAt(n);
         el.setState(STOP);
         remove(el);
       }
@@ -302,8 +302,8 @@ public class CortadoPipeline extends Pipeline implements PadListener, CapsListen
       }
       remove (videosink);
       remove (overlay);
-      katedec.clear();
-      k_queue.clear();
+      katedec.removeAllElements();
+      k_queue.removeAllElements();
       videosink = null;
       overlay = null;
       changed = true;
@@ -362,7 +362,7 @@ public class CortadoPipeline extends Pipeline implements PadListener, CapsListen
     boolean has_category = !category.equals("");
     if (has_language || has_category) {
       for (int n=0; n<katedec.size(); ++n) {
-        Element e = (Element)katedec.get(n);
+        Element e = (Element)katedec.elementAt(n);
         if (e != null) {
           String e_language = String.valueOf(e.getProperty("language"));
           String e_category = String.valueOf(e.getProperty("category"));
@@ -681,15 +681,15 @@ public class CortadoPipeline extends Pipeline implements PadListener, CapsListen
     }
 
     for (n=0; n<katedec.size(); ++n) {
-      if (k_queue.get(n) != null) {
-        remove ((Element)k_queue.get(n));
+      if (k_queue.elementAt(n) != null) {
+        remove ((Element)k_queue.elementAt(n));
       }
-      if (katedec.get(n) != null) {
-        remove((Element)katedec.get(n));
+      if (katedec.elementAt(n) != null) {
+        remove((Element)katedec.elementAt(n));
       }
     }
-    k_queue.clear();
-    katedec.clear();
+    k_queue.removeAllElements();
+    katedec.removeAllElements();
 
     if (kselector != null) {
       remove(kselector);
