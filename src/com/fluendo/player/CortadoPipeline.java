@@ -613,6 +613,7 @@ public class CortadoPipeline extends Pipeline implements PadListener, CapsListen
     com.fluendo.plugin.AudioSink s;
     try {
       Class.forName("javax.sound.sampled.AudioSystem");
+      Class.forName("javax.sound.sampled.DataLine");
       usingJavaX = true;
       s = (com.fluendo.plugin.AudioSink)ElementFactory.makeByName("audiosinkj2", "audiosink");
       Debug.log(Debug.INFO, "using high quality javax.sound backend");
