@@ -40,11 +40,15 @@ public class ElementFactory
 	  String str = br.readLine();
 	  if (str == null)
 	    break;
-	  Class cl = Class.forName(str);
-
-          Debug.log(Debug.INFO, "registered plugin: "+str);
-	  Element pl = (Element) cl.newInstance();
-	  elements.addElement(pl);
+          try {
+	    Class cl = Class.forName(str);
+            Debug.log(Debug.INFO, "registered plugin: "+str);
+	    Element pl = (Element) cl.newInstance();
+	    elements.addElement(pl);
+          }
+          catch (Throwable t) {
+            Debug.log(Debug.INFO, "Failed to register plugin: "+str);
+          }
 	}
 	while (true);
       }
