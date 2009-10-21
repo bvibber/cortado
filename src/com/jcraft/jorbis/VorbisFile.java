@@ -1298,7 +1298,7 @@ public class VorbisFile{
     static final String mode="r";
     private SeekableInputStream(){
     }
-    SeekableInputStream(String file) throws java.io.FileNotFoundException{
+    SeekableInputStream(String file) throws java.io.FileNotFoundException,java.io.IOException{
       raf=new java.io.RandomAccessFile(file, mode);
     }
     public int read() throws java.io.IOException{
