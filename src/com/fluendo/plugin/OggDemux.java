@@ -416,10 +416,11 @@ public class OggDemux extends Element
         for (int i=0; i<streams.size(); i++) {
 	  OggStream cstream = (OggStream) streams.elementAt(i);
 
-	  if (cstream.type == TYPE_MEDIA)
+	  if (cstream.type == TYPE_MEDIA) {
 	    hasMedia = true;
-	  if (!(check = cstream.isComplete()))
-	    break;
+	    if (!(check = cstream.isComplete()))
+	      break;
+          }
         }
 	/* isComplete check do not work for annodex file right now, cause we don't parse
 	 * the annodex headers properly at this moment. So we shouldn't consider all
