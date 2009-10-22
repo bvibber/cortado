@@ -43,6 +43,7 @@ public class Status extends Component implements MouseListener,
     private boolean seekable;
     private boolean live;
     private boolean showSpeaker;
+    private boolean clearedScreen;
 
     private static final int NONE = 0;
     private static final int BUTTON1 = 1;
@@ -270,12 +271,20 @@ public class Status extends Component implements MouseListener,
     }
 
     public void paint(Graphics g) {
-	int pos = 0;
 
-        if (!isVisible())
+        if (!isVisible() && clearedScreen)
             return;
 
         r = getBounds();
+        
+        if(!isVisible() && !clearedScreen) {
+            g.clearRect(r.x, r.y, r.width, r.height);
+            clearedScreen = true;
+            return;
+        }
+        clearedScreen = false;
+
+        int pos = 0;
 
         Image img = component.createImage(r.width, r.height);
 	if (img == null)

@@ -458,7 +458,7 @@ public class Cortado extends Applet implements Runnable, MouseMotionListener,
             return;
         }
 
-        if (status != null && status.isVisible()) {
+        if (status != null) {
             status.setBounds(0, dheight - statusHeight, dwidth, statusHeight);
             status.paint(g);
         }
