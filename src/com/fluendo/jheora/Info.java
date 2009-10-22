@@ -95,6 +95,9 @@ public class Info {
     offset_x = (int)opb.readB(8);
     offset_y = (int)opb.readB(8);
 
+    /* Invert the offset so that it is from the top down */
+    offset_y = height-frame_height-offset_y;
+
     fps_numerator = opb.readB(32);
     fps_denominator = opb.readB(32);
     aspect_numerator = opb.readB(24);
