@@ -48,7 +48,7 @@ public class CortadoPipeline extends Pipeline implements PadListener, CapsListen
   private Element audiodec;
   private Element videosink;
   private Element audiosink;
-  private Element v_queue, a_queue;
+  private Element v_queue, v_queue2, a_queue;
   private Element overlay;
   private Pad asinkpad, ovsinkpad, oksinkpad;
   private Pad apad, vpad;
@@ -109,7 +109,10 @@ public class CortadoPipeline extends Pipeline implements PadListener, CapsListen
       a_queue.setState (PAUSE);
     }
     else if (enableVideo && mime.equals("video/x-theora")) {
+      // Constructs a chain of the form
+      // oggdemux -> v_queue -> theoradec -> v_queue2 -> videosink
       v_queue = ElementFactory.makeByName("queue", "v_queue");
+      v_queue2 = ElementFactory.makeByName("queue", "v_queue2");
       if (v_queue == null) {
         noSuchElement ("queue");
 	    return;
@@ -118,11 +121,15 @@ public class CortadoPipeline extends Pipeline implements PadListener, CapsListen
       if (!setupVideoDec ("theoradec"))
         return;
 
+      v_queue2.setProperty("maxBuffers","1");
+
       add(v_queue);
+      add(v_queue2);
 
       pad.link(v_queue.getPad("sink"));
       v_queue.getPad("src").link(videodec.getPad("sink"));
-      if (!videodec.getPad("src").link(ovsinkpad)) {
+      videodec.getPad("src").link(v_queue2.getPad("sink"));
+      if (!v_queue2.getPad("src").link(ovsinkpad)) {
         postMessage (Message.newError (this, "videosink already linked"));
         return;
       }
@@ -131,6 +138,7 @@ public class CortadoPipeline extends Pipeline implements PadListener, CapsListen
 
       videodec.setState (PAUSE);
       v_queue.setState (PAUSE);
+      v_queue2.setState (PAUSE);
     }
     else if (enableVideo && mime.equals("image/jpeg")) {
       if (!setupVideoDec ("jpegdec")) {
@@ -667,6 +675,10 @@ public class CortadoPipeline extends Pipeline implements PadListener, CapsListen
     if (v_queue != null) {
       remove (v_queue);
       v_queue = null;
+    }
+    if (v_queue2 != null) {
+      remove (v_queue2);
+      v_queue2 = null;
     }
     if (a_queue != null) {
       remove (a_queue);
