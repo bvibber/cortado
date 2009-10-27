@@ -746,6 +746,7 @@ com.fluendo.plugin.KateOverlay
           description="make the release">
     <ant>
       <target name="debug" />
+      <target name="clean" />
       <target name="stripped" />
     </ant>
     <checksum file="${out.dist}/src/cortado-${real_version}.tar.gz"
