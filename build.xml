@@ -681,7 +681,7 @@ com.fluendo.plugin.KateOverlay
     <delete dir="${out}/distcheck" />
   </target>
 
-  <target name="dist" depends="init,source-info,spec"
+  <target name="dist" depends="init,configure,source-info,spec"
           description="create a source distribution package">
     <property name="tar"
               value="${out.dist}/src/cortado-${real_version}.tar" />
