@@ -6,7 +6,7 @@ Changes since 0.2.2:
       * Faster YUV to RGB conversion with better results
       * Basic support for embedded Ogg Kate streams
       * Seeking fixed for files with an Ogg Skeleton track
-      * restored compatibility with MSJVM
+      * Maintained compatibility with the Microsoft VM
 
 Changes since 0.2.1:
     
