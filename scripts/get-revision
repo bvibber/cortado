@@ -1,2 +1,2 @@
 #!/bin/sh
-git describe --all HEAD^ | cut  -f2 -d"/"
+git describe --tags
