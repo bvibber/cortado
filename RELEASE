@@ -1,5 +1,5 @@
 
-Release notes for Cortado 0.5.0 "I live... again!"
+Release notes for Cortado 0.5.1 "Mars is populated by robots"
         
 
 Cortado applet
@@ -7,11 +7,7 @@ Cortado applet
   
 Features of this release
     
- * Support for files encoded with Theora 1.1
- * Faster YUV to RGB conversion with better results
- * Basic support for embedded Ogg Kate streams
- * Seeking fixed for files with an Ogg Skeleton track
- * restored compatibility with MSJVM
+ * Fix for ticket #1565: Cortado doesn't handle incomplete packets correctly
 
 
 
@@ -38,14 +34,7 @@ It is hosted on http://git.xiph.org/?p=cortado.git
         
 Contributors to this release
 
- * Tim Starling
- * Gregory Maxwell    
- * J^
- * oggkoggk
- * Benjamin Schwartz
- * Robin Watts
- * Ilan and Yaniv Ben Hagai
- * Maik Merten
+ * Philip Heron
  
         
  

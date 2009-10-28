@@ -1,4 +1,9 @@
-This is Cortado 0.5.0, "I live... again!"
+This is Cortado 0.5.1, "Mars is populated by robots"
+
+Changes since 0.5.0:
+
+      * Fix for ticket #1565: Cortado doesn't handle
+        incomplete packets correctly
 
 Changes since 0.2.2:
 
