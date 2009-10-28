@@ -279,7 +279,6 @@ private  int body_returned;   /* elements of fill returned */
     // are we in sequence?
     if(_pageno!=pageno){
       int i;
-
       // unroll previous partial packet (if any)
       for(i=lacing_packet;i<lacing_fill;i++){
 	body_fill-=lacing_vals[i]&0xff;
@@ -292,11 +291,14 @@ private  int body_returned;   /* elements of fill returned */
 	lacing_vals[lacing_fill++]=0x400;
 	lacing_packet++;
       }
-
-      // are we a 'continued packet' page?  If so, we'll need to skip
-      // some segments
-      if(continued!=0){
-	bos=0;
+    }
+    
+    // are we a 'continued packet' page?  If so, we'll need to skip
+    // some segments
+    if(continued!=0){
+      if(lacing_fill<1 ||
+         lacing_vals[lacing_fill-1]==0x400){
+         bos=0;
 	for(;segptr<segments;segptr++){
 	  int val=(header_base[header+27+segptr]&0xff);
 	  body+=val;
