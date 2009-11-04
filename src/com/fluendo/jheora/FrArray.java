@@ -196,7 +196,7 @@ public class FrArray {
     long ret;
     if (BitsLeft == 0){
       /* Toggle the value.   */
-      NextBit = NextBit = (byte) (NextBit ^ 1);
+      NextBit = (byte) (NextBit ^ 1);
   
       /* Read next run */
       init();
