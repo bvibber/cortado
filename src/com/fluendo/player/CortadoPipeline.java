@@ -121,6 +121,7 @@ public class CortadoPipeline extends Pipeline implements PadListener, CapsListen
       if (!setupVideoDec ("theoradec"))
         return;
 
+      v_queue.setProperty("leaky", "2"); // 2 == Queue.LEAK_DOWNSTREAM
       v_queue2.setProperty("maxBuffers","1");
 
       add(v_queue);

@@ -24,23 +24,32 @@ import com.fluendo.utils.*;
 
 public class Queue extends Element 
 {
+  /* leaky types */
+  public static final int NO_LEAK = 0;
+  public static final int LEAK_UPSTREAM = 1;
+  public static final int LEAK_DOWNSTREAM = 2;
+
   private static final int DEFAULT_MAX_BUFFERS = 100;
   private static final int DEFAULT_MAX_SIZE = -1;
   private static final boolean DEFAULT_IS_BUFFER = false;
   private static final int DEFAULT_LOW_PERCENT = 10;
   private static final int DEFAULT_HIGH_PERCENT = 70;
-
+  private static final int DEFAULT_LEAKY = NO_LEAK;
+  
   private Vector queue = new Vector();
   private int srcResult = Pad.WRONG_STATE;
   private int size;
   private boolean isBuffering;
   private boolean isEOS;
+  private boolean headNeedsDiscont = false;
+  private boolean tailNeedsDiscont = false;
 
   private int maxBuffers = DEFAULT_MAX_BUFFERS;
   private int maxSize = DEFAULT_MAX_SIZE;
   private boolean isBuffer = DEFAULT_IS_BUFFER;
   private int lowPercent = DEFAULT_LOW_PERCENT;
   private int highPercent = DEFAULT_HIGH_PERCENT;
+  private int leaky = DEFAULT_LEAKY;
 
   private boolean isFilled() {
     if (maxSize != -1) {
@@ -94,6 +103,24 @@ public class Queue extends Element
       }
     }
   }
+  
+  private void leakDownstream () {
+    /* for as long as the queue is filled, dequeue an item and discard it */
+    java.lang.Object leak;
+    while (isFilled()) {
+      synchronized (queue) {
+        leak = queue.lastElement();
+        if (leak == null) {
+          Debug.error("There is nothing to dequeue and the queue is still filled. This should not happen.");
+        }
+        queue.removeElementAt(queue.size()-1);
+        if (leak instanceof Buffer)
+          ((Buffer)leak).free();
+        headNeedsDiscont = true;
+        queue.notifyAll();
+      }
+    }
+  }
 
   private Pad srcpad = new Pad(Pad.SRC, "src") {
     protected void taskFunc() {
@@ -128,6 +155,11 @@ public class Queue extends Element
       }
       else {
         Buffer buf = (Buffer) obj;
+        
+        if (headNeedsDiscont) {
+          buf.setFlag(Buffer.FLAG_DISCONT, true);
+          headNeedsDiscont = false;
+        }
 
 	size -= buf.length;
 
@@ -267,20 +299,42 @@ public class Queue extends Element
 	} 
 
 	while (isFilled()) {
-          try {
-	    Debug.debug(parent.getName() + " full, waiting...");
-            queue.wait();
-	    if (srcResult != OK) {
+	  switch (leaky) {
+	    case LEAK_UPSTREAM:
+	      tailNeedsDiscont = true;
+	      Debug.debug(parent.getName() + "is full, leaking buffer on upstream end");
 	      buf.free();
-	      return srcResult;
-	    }
-	  }
-	  catch (InterruptedException ie) {
-	    ie.printStackTrace();
-	    buf.free();
-	    return WRONG_STATE;
+	      queue.notifyAll();
+	      return OK;
+	    case LEAK_DOWNSTREAM:
+	      leakDownstream();
+	      break;
+	    default:
+	      Debug.warn("Unknown leaky type, using default");
+	      /* fall-through */
+	    case NO_LEAK:
+              try {
+	        Debug.debug(parent.getName() + " full, waiting...");
+                queue.wait();
+	        if (srcResult != OK) {
+	          buf.free();
+	          return srcResult;
+	        }
+	      }
+	      catch (InterruptedException ie) {
+	        ie.printStackTrace();
+	        buf.free();
+	        return WRONG_STATE;
+	      }
+	      break;
 	  }
 	}
+	
+	if (tailNeedsDiscont) {
+	  buf.setFlag(Buffer.FLAG_DISCONT, true);
+	  tailNeedsDiscont = false;
+	}
+	
 	size += buf.length;
 	updateBuffering();
 
@@ -318,6 +372,8 @@ public class Queue extends Element
       lowPercent = Integer.valueOf(value.toString()).intValue();
     else if (name.equals("highPercent"))
       highPercent = Integer.valueOf(value.toString()).intValue();
+    else if (name.equals("leaky"))
+      leaky = Integer.valueOf(value.toString()).intValue();
     else
       return false;
 
@@ -335,6 +391,8 @@ public class Queue extends Element
       return new Integer (lowPercent);
     else if (name.equals("highPercent"))
       return new Integer (highPercent);
+    else if (name.equals("leaky"))
+      return new Integer (leaky);
 
     return null;
   }
