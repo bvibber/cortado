@@ -76,7 +76,7 @@ public class GetSourceInfo {
 	lnr.readLine();
 	line = lnr.readLine();
 	try {
-	  Integer intRev = Integer.parseInt(line.trim());
+	  Integer intRev = new Integer(Integer.parseInt(line.trim()));
 	  revision = "r" + intRev.toString();
 	} catch(NumberFormatException e) {
 	  System.out.println("Invalid format for .svn/entries, unable to determine revision");
