@@ -839,8 +839,9 @@ public class Cortado extends Applet implements Runnable, MouseMotionListener,
 }
 
 /* dialog box */
-class AppFrame extends Frame
-        implements WindowListener {
+class AppFrame extends Frame implements WindowListener {
+
+    private static final long serialVersionUID = 1L;
 
     public AppFrame(String title) {
         super(title);
@@ -873,6 +874,8 @@ class AppFrame extends Frame
 }
 
 class AboutFrame extends AppFrame {
+
+    private static final long serialVersionUID = 1L;
 
     Dialog d;
 

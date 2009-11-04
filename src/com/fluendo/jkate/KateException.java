@@ -22,5 +22,6 @@ package com.fluendo.jkate;
 
 class KateException extends java.lang.Exception {
   public KateException(String s) { super(); }
+  private static final long serialVersionUID = 1L;
 }
 

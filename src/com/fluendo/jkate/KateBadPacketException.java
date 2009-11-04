@@ -22,5 +22,6 @@ package com.fluendo.jkate;
 
 class KateBadPacketException extends KateException {
   public KateBadPacketException() { super("Bad packet"); }
+  private static final long serialVersionUID = 1L;
 }
 
