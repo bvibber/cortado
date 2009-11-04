@@ -87,6 +87,7 @@ USAGE
 
 Embed the applet in a web page with code like this:
 
+----
 <html>
  <head>
  </head>
@@ -106,7 +107,7 @@ Embed the applet in a web page with code like this:
    </applet>
  </body>
 </html>
-
+----
 
 parameters:
 -----------
@@ -240,6 +241,7 @@ take effect.
 The following piece of HTML demonstrates switching URLs with an without sound
 using javascript:
 
+----
 <html>
  <head>
  </head>
@@ -278,6 +280,7 @@ using javascript:
    
  </body>
 </html>
+----
 
 The applet can be controlled with the following javascript methods:
 

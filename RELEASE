@@ -1,39 +1,40 @@
+== Cortado applet ==
 
 Release notes for Cortado 0.5.1 "Mars is populated by robots"
         
-
-Cortado applet
-
-  
-Features of this release
+ 
+=== Features of this release ===
     
- * Fix for ticket #1565: Cortado doesn't handle incomplete packets correctly
+ * Fix for ticket #1565: Cortado doesn't handle incomplete packets correctly.
  * On very slow machines that can't handle video in realtime, completely
    skip decoding of inter frames and process keyframes only to ensure smooth
    audio decoding.
 
 
 
-Download
+=== Download ===
 
-You can find source releases of cortado in the download directory:
-http://downloads.xiph.org/releases/cortado/
+You can find source releases and built applets of cortado in the 
+download directory:
 
-Cortado Homepage
+  http://downloads.xiph.org/releases/cortado/
+
+=== Cortado Homepage ===
 
 More details can be found on the project's website:
-http://theora.org/cortado/
 
-Support and Bugs
+  http://theora.org/cortado/
+
+=== Support and Bugs ===
 
 We use an issue tracker for bug reports and feature requests:
-https://trac.xiph.org/
 
-Developers
+  https://trac.xiph.org/
+
+=== Developers ===
 
 All code is in GIT and can be checked out from there.
 It is hosted on http://git.xiph.org/?p=cortado.git
-
         
 Contributors to this release
 
