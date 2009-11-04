@@ -126,8 +126,6 @@ public class Item {
    * Renders the item on the given image.
    */
   public void render(Component c, Image img) {
-    com.fluendo.jkate.Event ev = kin.ev;
-
     if (!alive)
       return;
 

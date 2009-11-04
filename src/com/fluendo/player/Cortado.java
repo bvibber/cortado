@@ -739,7 +739,6 @@ public class Cortado extends Applet implements Runnable, MouseMotionListener,
     }
 
     public void newState(int aState) {
-        int ret;
         switch (aState) {
             case Status.STATE_PAUSED:
                 doPause();

@@ -70,7 +70,6 @@ public class CortadoPipeline extends Pipeline implements PadListener, CapsListen
 
   public void padAdded(Pad pad) {
     Caps caps = pad.getCaps ();
-    Pad tmp;
 
     if (caps == null) {
       Debug.log(Debug.INFO, "pad added without caps: "+pad);

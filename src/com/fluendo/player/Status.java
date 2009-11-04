@@ -435,16 +435,12 @@ public class Status extends Component implements MouseListener,
     }
 
     private boolean intersectSeeker(MouseEvent e) {
-        int end;
-
         r = getBounds();
 	Rectangle tr = getThumbRect();
 	return tr.contains(e.getPoint());
     }
 
     private boolean intersectSeekbar(MouseEvent e) {
-        int end;
-
         r = getBounds();
 	Rectangle sr = getSeekBarRect();
 	return sr.contains(e.getPoint());
