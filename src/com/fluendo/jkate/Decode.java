@@ -21,7 +21,6 @@
 package com.fluendo.jkate;
 
 import com.jcraft.jogg.*;
-import com.fluendo.utils.*;
 
 public final class Decode {
 

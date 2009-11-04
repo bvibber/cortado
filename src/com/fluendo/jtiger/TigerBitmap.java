@@ -20,7 +20,6 @@
 
 package com.fluendo.jtiger;
 
-import java.util.*;
 import java.awt.*;
 import java.awt.image.*;
 import com.fluendo.jkate.*;

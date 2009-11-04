@@ -22,7 +22,6 @@ package com.fluendo.jtiger;
 
 import java.util.*;
 import java.awt.*;
-import java.awt.image.*;
 
 public class Renderer {
   private Vector items = new Vector();

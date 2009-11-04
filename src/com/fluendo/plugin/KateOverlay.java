@@ -18,11 +18,9 @@
 
 package com.fluendo.plugin;
 
-import java.util.*;
 import java.awt.*;
 import java.awt.image.*;
 import com.fluendo.jst.*;
-import com.fluendo.jkate.Event;
 import com.fluendo.jtiger.Renderer;
 import com.fluendo.utils.*;
 

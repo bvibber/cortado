@@ -20,7 +20,6 @@
 
 package com.fluendo.jkate;
 
-import java.util.*;
 import java.awt.*;
 import com.fluendo.utils.*;
 
