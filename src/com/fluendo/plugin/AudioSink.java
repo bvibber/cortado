@@ -447,7 +447,7 @@ public abstract class AudioSink extends Sink implements ClockProvider
   }
   protected int render (Buffer buf)
   {
-    long sample, renderSample;
+    long sample;
     long time;
 
     if (buf.isFlagSet (com.fluendo.jst.Buffer.FLAG_DISCONT))

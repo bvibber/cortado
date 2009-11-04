@@ -32,7 +32,6 @@ public class SystemClock extends Clock {
     long real = getInternalTime();
     long entryt = id.time;
     long now = adjust (real);
-    long systemTime = System.currentTimeMillis();
 
     res.jitter = now - entryt;
 

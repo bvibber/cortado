@@ -165,7 +165,7 @@ class CodeBook{
   }
 
   int decodevv_add(float[][] a, int offset,int ch, Buffer b,int n){
-    int i,j,k,entry;
+    int i,j,entry;
     int chptr=0;
     //System.out.println("decodevv_add: a="+a+",b="+b+",valuelist="+valuelist);
 

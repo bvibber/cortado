@@ -43,7 +43,6 @@ class Mdct{
     bitrev=new int[n/4];
     trig=new float[n+n/4];
 
-    int n2=n>>>1;
     log2n=(int)Math.rint(Math.log(n)/Math.log(2));
     this.n=n;
 
