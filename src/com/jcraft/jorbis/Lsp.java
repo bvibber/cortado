@@ -54,8 +54,6 @@ class Lsp{
       float p=.7071067812f;
       float q=.7071067812f;
       float w=Lookup.coslook(wdel*k);
-      int ftmp=0;
-      int c=m>>>1;
 
       for(int j=0;j<m2;j+=2){
         q*=lsp[j]-w;

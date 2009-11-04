@@ -234,7 +234,7 @@ class Residue0 extends FuncResidue{
   }
 
   static int _2inverse(Block vb, Object vl, float[][] in, int ch){
-    int i,j,k,l,s;
+    int i,k,l,s;
     LookResidue0 look=(LookResidue0 )vl;
     InfoResidue0 info=look.info;
 
