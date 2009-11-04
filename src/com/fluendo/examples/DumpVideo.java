@@ -40,8 +40,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+
 
 /**
  * This class borrows code from TheoraDec.java
@@ -164,7 +163,7 @@ public class DumpVideo {
             try {
                 os = new FileOutputStream(outfile);
             } catch (FileNotFoundException ex) {
-                Logger.getLogger(DumpVideo.class.getName()).log(Level.SEVERE, null, ex);
+                ex.printStackTrace();
             }
         }
 
@@ -216,7 +215,7 @@ public class DumpVideo {
                 os.write(uvbytes);
 
             } catch (IOException ex) {
-                Logger.getLogger(DumpVideo.class.getName()).log(Level.SEVERE, null, ex);
+                ex.printStackTrace();
             }
         }
     }
