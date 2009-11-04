@@ -29,6 +29,7 @@ import com.jcraft.jogg.Page;
 import com.jcraft.jogg.StreamState;
 import com.jcraft.jogg.SyncState;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -232,7 +233,7 @@ public class DumpVideo {
     }
 
     public void dumpVideo(File videofile, List outfiles, boolean raw) throws IOException {
-        InputStream is = videofile.toURI().toURL().openStream();
+        InputStream is = new FileInputStream(videofile);
 
         SyncState oy = new SyncState();
         Page og = new Page();
