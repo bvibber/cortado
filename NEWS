@@ -3,15 +3,16 @@ This is Cortado 0.5.1, "Mars is populated by robots"
 Changes since 0.5.0:
 
       * Fix for ticket #1565: Cortado doesn't handle
-        incomplete packets correctly
-      * On very slow machines that can't handle video decoding in realtime
-        completely skip decoding of inter-frames and process keyframes only
-        to ensure smooth audio decoding.
+        incomplete packets correctly.
+      * On very slow machines that can't handle video in realtime,
+        completely skip decoding of inter frames and process
+        keyframes only to ensure smooth audio decoding.
 
 Changes since 0.2.2:
 
       * Support for files encoded with Theora 1.1
       * Faster YUV to RGB conversion with better results
+      * Correct a bug in the iDCT10 implementation
       * Basic support for embedded Ogg Kate streams
       * Seeking fixed for files with an Ogg Skeleton track
       * Maintained compatibility with the Microsoft VM
