@@ -102,9 +102,7 @@ public class Bitwise {
   }
 
   static private final int fp_bits = (4*8);
-  static private final int fp_cuts_bits = fp_bits/2-1;
   static private final int fp_cuts_bits_bits = 4;
-  static private final int fp_sign_bit = 0x80000000;
   private static int[] readFixed(Buffer opb, int count) {
     int head = opb.read(fp_cuts_bits_bits);
     int tail = opb.read(fp_cuts_bits_bits);
