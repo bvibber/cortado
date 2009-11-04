@@ -4,6 +4,9 @@ Changes since 0.5.0:
 
       * Fix for ticket #1565: Cortado doesn't handle
         incomplete packets correctly
+      * On very slow machines that can't handle video decoding in realtime
+        completely skip decoding of inter-frames and process keyframes only
+        to ensure smooth audio decoding.
 
 Changes since 0.2.2:
 
