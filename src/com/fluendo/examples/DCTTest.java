@@ -25,7 +25,7 @@ import java.io.FileReader;
 import java.io.IOException;
 
 public class DCTTest {
-
+/*
     // create a lookup-table to translate into zig-zag
     private static int[] zigzag;
 
@@ -161,5 +161,5 @@ public class DCTTest {
 
             line = br.readLine();
         }
-    }
+    }*/
 }
