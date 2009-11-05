@@ -5,8 +5,8 @@ Summary:        Cortado - a Java media framework
 
 Group:          Applications/Multimedia
 License:	GPL/LGPL/BSD
-URL:            http://www.flumotion.net/
-Source:         http://www.flumotion.net/src/cortado/%{name}-%{version}.tar.gz
+URL:            http://www.theora.org/cortado/
+Source:         http://downloads.xiph.org/releases/cortado/%{name}-%{version}.tar.gz
 BuildRoot:      %{_tmppath}/%{name}-%{version}-%{release}-root
 
 BuildRequires:	ant
@@ -44,6 +44,10 @@ rm -rf $RPM_BUILD_ROOT
 %{_datadir}/cortado
 
 %changelog
+* Thu Nov 5 2009 Ralph Giles <giles@xiph.org>
+- Update the URLs; since 0.5.0 the project has been hosted at xiph.org.
+
 * Thu Oct 26 2006 Thomas Vander Stichele <thomas at apestaart dot org>
 - add doap file
+
 
