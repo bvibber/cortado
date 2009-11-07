@@ -126,9 +126,7 @@ public class DCTDecode
     }
 
     // create copy with DC coefficient of primary frame qi
-    for(int i = 1; i < 64; ++i) {
-        dequant_matrix[i] = dequant_coeffs[i];
-    }
+    System.arraycopy(dequant_coeffs, 1, dequant_matrix, 1, 63);
 
     /* Set up pointer into the quantisation buffer. */
     short[] quantized_list = pbi.QFragData[FragmentNumber];
@@ -232,9 +230,7 @@ public class DCTDecode
       }
     }
     // create copy with DC coefficient of primary frame qi
-    for(int i = 1; i < 64; ++i) {
-        dequant_matrix[i] = dequant_coeffs[i];
-    }
+    System.arraycopy(dequant_coeffs, 1, dequant_matrix, 1, 63);
     
     /* Set up pointer into the quantisation buffer. */
     short[] quantized_list = pbi.QFragData[FragmentNumber];
