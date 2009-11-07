@@ -86,11 +86,19 @@ public class CortadoPipeline extends Pipeline implements PadListener, CapsListen
         return;
       }
 
+      // if we already have a video queue: We want smooth audio playback
+      // over frame completeness, so make the video queue leaky
+      if(v_queue != null) {
+        v_queue.setProperty("leaky", "2"); // 2 == Queue.LEAK_DOWNSTREAM
+      }
+
       audiodec = ElementFactory.makeByName("vorbisdec", "audiodec");
       if (audiodec == null) {
         noSuchElement ("vorbisdec");
         return;
       }
+
+      a_queue.setProperty("maxBuffers","100");
 
       add(a_queue);
       add(audiodec);
@@ -120,7 +128,12 @@ public class CortadoPipeline extends Pipeline implements PadListener, CapsListen
       if (!setupVideoDec ("theoradec"))
         return;
 
-      v_queue.setProperty("leaky", "2"); // 2 == Queue.LEAK_DOWNSTREAM
+      // if we have audio: We want smooth audio playback
+      // over frame completeness
+      if(a_queue != null) {
+        v_queue.setProperty("leaky", "2"); // 2 == Queue.LEAK_DOWNSTREAM
+      }
+      v_queue.setProperty("maxBuffers","175");
       v_queue2.setProperty("maxBuffers","1");
 
       add(v_queue);
