@@ -168,7 +168,7 @@ class Configure
     </condition>
    </target>
 
-<!-- generate includes and plugins.ini based on contents of exclude -->
+<!-- generate includes based on contents of exclude -->
   <target name="includes"
           depends="plugins,includes-delete,include-JPEG,include-Mulaw,include-Multipart,include-Ogg,include-Smoke,include-Theora,include-Vorbis,include-Kate">
     <echo>Generating ${out.buildtyped}/includes</echo>
@@ -188,18 +188,8 @@ com/fluendo/plugin/Overlay*
 com/fluendo/plugin/HTTPSrc*
 com/fluendo/plugin/Queue*
 com/fluendo/plugin/Selector*
-plugins.ini
 </echo>
-    <echo file="${out.buildtyped}/plugins.ini"
->com.fluendo.plugin.HTTPSrc
-com.fluendo.plugin.VideoSink
-com.fluendo.plugin.AudioSinkJ2
-com.fluendo.plugin.AudioSinkSA
-com.fluendo.plugin.Queue
-com.fluendo.plugin.FakeSink
-com.fluendo.plugin.Overlay
-com.fluendo.plugin.Selector
-</echo>
+
  
   </target>
 
@@ -208,9 +198,6 @@ com.fluendo.plugin.Selector
     <echo file="${out.buildtyped}/includes" append="true"
 >com/fluendo/plugin/JPEG*
 </echo>
-    <echo file="${out.buildtyped}/plugins.ini" append="true"
->com.fluendo.plugin.JPEGDec
-</echo>
   </target>
 
   <target name="include-Mulaw" unless="plugin.Mulaw.false">
@@ -218,9 +205,7 @@ com.fluendo.plugin.Selector
     <echo file="${out.buildtyped}/includes" append="true"
 >com/fluendo/plugin/Mulaw*
 </echo>
-    <echo file="${out.buildtyped}/plugins.ini" append="true"
->com.fluendo.plugin.MulawDec
-</echo>
+
   </target>
 
   <target name="include-Multipart" unless="plugin.Multipart.false">
@@ -228,9 +213,7 @@ com.fluendo.plugin.Selector
     <echo file="${out.buildtyped}/includes" append="true"
 >com/fluendo/plugin/Multipart*
 </echo>
-    <echo file="${out.buildtyped}/plugins.ini" append="true"
->com.fluendo.plugin.MultipartDemux
-</echo>
+
   </target>
 
   <target name="include-Ogg" unless="plugin.Ogg.false">
@@ -239,9 +222,7 @@ com.fluendo.plugin.Selector
 >com/jcraft/jogg/*
 com/fluendo/plugin/Ogg*
 </echo>
-    <echo file="${out.buildtyped}/plugins.ini" append="true"
->com.fluendo.plugin.OggDemux
-</echo>
+
   </target>
 
   <target name="include-Smoke" unless="plugin.Smoke.false">
@@ -250,9 +231,7 @@ com/fluendo/plugin/Ogg*
 >com/fluendo/codecs/Smoke*
 com/fluendo/plugin/Smoke*
 </echo>
-    <echo file="${out.buildtyped}/plugins.ini" append="true"
->com.fluendo.plugin.SmokeDec
-</echo>
+
   </target>
 
   <target name="include-Theora" unless="plugin.Theora.false">
@@ -261,9 +240,7 @@ com/fluendo/plugin/Smoke*
 >com/fluendo/jheora/*
 com/fluendo/plugin/Theora*
 </echo>
-    <echo file="${out.buildtyped}/plugins.ini" append="true"
->com.fluendo.plugin.TheoraDec
-</echo>
+
   </target>
 
   <target name="include-Vorbis" unless="plugin.Vorbis.false">
@@ -272,9 +249,7 @@ com/fluendo/plugin/Theora*
 >com/jcraft/jorbis/*
 com/fluendo/plugin/Vorbis*
 </echo>
-    <echo file="${out.buildtyped}/plugins.ini" append="true"
->com.fluendo.plugin.VorbisDec
-</echo>
+
   </target>
 
   <target name="include-Kate" unless="plugin.Kate.false">
@@ -284,10 +259,7 @@ com/fluendo/plugin/Vorbis*
 com/fluendo/jtiger/*
 com/fluendo/plugin/Kate*
 </echo>
-    <echo file="${out.buildtyped}/plugins.ini" append="true"
->com.fluendo.plugin.KateDec
-com.fluendo.plugin.KateOverlay
-</echo>
+
   </target>
 
 <!-- COMPILATION -->

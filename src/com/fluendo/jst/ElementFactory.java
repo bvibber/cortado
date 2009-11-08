@@ -15,136 +15,136 @@
  * Free Software Foundation, Inc., 59 Temple Place - Suite 330,
  * Boston, MA 02111-1307, USA.
  */
-
 package com.fluendo.jst;
 
-import java.io.*;
-import java.util.*;
-import com.fluendo.utils.*;
+import com.fluendo.utils.Debug;
+import java.util.Enumeration;
+import java.util.Vector;
 
-public class ElementFactory
-{
-  private static Vector elements = new Vector();
-  static {
-    loadElements();
-  }
 
-  public static void loadElements()
-  {
-    try {
-      InputStream is = ElementFactory.class.getResourceAsStream("/plugins.ini");
-      if (is != null) {
-        BufferedReader br = new BufferedReader (new InputStreamReader(is));
+public class ElementFactory {
 
-        do {
-	  String str = br.readLine();
-	  if (str == null)
-	    break;
-          try {
-	    Class cl = Class.forName(str);
-            Debug.log(Debug.INFO, "registered plugin: "+str);
-	    Element pl = (Element) cl.newInstance();
-	    elements.addElement(pl);
-          }
-          catch (Throwable t) {
-            Debug.log(Debug.INFO, "Failed to register plugin: "+str);
-          }
-	}
-	while (true);
-      }
-      else {
-        Debug.log(Debug.INFO, "could not register plugins");
-      }
+    private static String[] components = {
+        "com.fluendo.plugin.HTTPSrc",
+        "com.fluendo.plugin.VideoSink",
+        "com.fluendo.plugin.AudioSinkJ2",
+        "com.fluendo.plugin.AudioSinkSA",
+        "com.fluendo.plugin.Queue",
+        "com.fluendo.plugin.FakeSink",
+        "com.fluendo.plugin.Overlay",
+        "com.fluendo.plugin.Selector",
+        "com.fluendo.plugin.OggDemux",
+        "com.fluendo.plugin.TheoraDec",
+        "com.fluendo.plugin.VorbisDec",
+        "com.fluendo.plugin.KateDec",
+        "com.fluendo.plugin.KateOverlay"
+    };
+    private static Vector elements = new Vector();
+
+    static {
+        loadElements();
     }
-    catch (Exception e) {
-      e.printStackTrace();
+
+    public static void loadElements() {
+        try {
+
+            for (int i = 0; i < components.length; ++i) {
+                String str = components[i];
+                try {
+                    Class cl = Class.forName(str);
+                    Debug.log(Debug.INFO, "registered plugin: " + str);
+                    Element pl = (Element) cl.newInstance();
+                    elements.addElement(pl);
+                } catch (Throwable t) {
+                    Debug.log(Debug.INFO, "Failed to register plugin: " + str);
+                }
+            }
+
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
-  }
 
-  private static final Element dup (Element element, String name) {
-    Element result = null;
+    private static final Element dup(Element element, String name) {
+        Element result = null;
 
-    Class cl = element.getClass();
-    try {
-      result = (Element) cl.newInstance();
-      if (result != null && name != null) {
-        result.setName (name);
-      }
-      Debug.log(Debug.INFO, "create element: "+result);
+        Class cl = element.getClass();
+        try {
+            result = (Element) cl.newInstance();
+            if (result != null && name != null) {
+                result.setName(name);
+            }
+            Debug.log(Debug.INFO, "create element: " + result);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return result;
     }
-    catch (Exception e) {
-      e.printStackTrace();
+
+    private static final Element findTypeFind(byte[] data, int offset, int length) {
+        int best = -1;
+        Element result = null;
+
+        for (Enumeration e = elements.elements(); e.hasMoreElements();) {
+            Element element = (Element) e.nextElement();
+
+            int rank = element.typeFind(data, offset, length);
+            if (rank > best) {
+                best = rank;
+                result = element;
+            }
+        }
+        return result;
     }
-    return result;
-  }
-  private static final Element findTypeFind(byte[] data, int offset, int length)
-  {
-    int best = -1;
-    Element result = null;
 
-    for (Enumeration e = elements.elements(); e.hasMoreElements();) {
-      Element element = (Element) e.nextElement();
+    public static final String typeFindMime(byte[] data, int offset, int length) {
+        Element elem;
+        String result = null;
 
-      int rank = element.typeFind (data, offset, length);
-      if (rank > best) {
-        best = rank;
-	result = element;
-      }
+        elem = findTypeFind(data, offset, length);
+        if (elem != null) {
+            result = elem.getMime();
+        }
+        return result;
     }
-    return result;
-  }
 
-  public static final String typeFindMime(byte[] data, int offset, int length)
-  {
-    Element elem;
-    String result = null;
+    public static final Element makeTypeFind(byte[] data, int offset, int length, String name) {
+        Element result = null;
 
-    elem = findTypeFind (data, offset, length);
-    if (elem != null) {
-      result = elem.getMime();
+        result = findTypeFind(data, offset, length);
+
+        if (result != null) {
+            result = dup(result, name);
+        }
+        return result;
     }
-    return result;
-  }
 
-  public static final Element makeTypeFind(byte[] data, int offset, int length, String name)
-  {
-    Element result = null;
+    public static final Element makeByMime(String mime, String name) {
+        Element result = null;
 
-    result = findTypeFind (data, offset, length);
-    
-    if (result != null) {
-      result = dup (result, name);
+        for (Enumeration e = elements.elements(); e.hasMoreElements();) {
+            Element element = (Element) e.nextElement();
+
+            if (mime.equals(element.getMime())) {
+                result = dup(element, name);
+                break;
+            }
+        }
+        return result;
     }
-    return result;
-  }
 
-  public static final Element makeByMime(String mime, String name)
-  {
-    Element result = null;
+    public static final Element makeByName(String name, String elemName) {
+        Element result = null;
 
-    for (Enumeration e = elements.elements(); e.hasMoreElements();) {
-      Element element = (Element) e.nextElement();
+        for (Enumeration e = elements.elements(); e.hasMoreElements();) {
+            Element element = (Element) e.nextElement();
 
-      if (mime.equals(element.getMime())) {
-        result = dup (element, name);
-        break;
-      }
+            if (name.equals(element.getFactoryName())) {
+                result = dup(element, elemName);
+                break;
+            }
+        }
+        return result;
     }
-    return result;
-  }
-
-  public static final Element makeByName(String name, String elemName)
-  {
-    Element result = null;
-
-    for (Enumeration e = elements.elements(); e.hasMoreElements();) {
-      Element element = (Element) e.nextElement();
-
-      if (name.equals(element.getFactoryName())) {
-        result = dup (element, elemName);
-        break;
-      }
-    }
-    return result;
-  }
 }
