@@ -32,6 +32,7 @@ public class CortadoPipeline extends Pipeline implements PadListener, CapsListen
   private String password;
   private boolean enableAudio;
   private boolean enableVideo;
+  private boolean keepAspect;
   private boolean ignoreAspect;
   private int enableKate;
   private Component component;
@@ -356,6 +357,9 @@ public class CortadoPipeline extends Pipeline implements PadListener, CapsListen
   public void setUserId(String aUserId) {
     userId = aUserId;
   }
+  public void setKeepAspect(boolean keep) {
+    keepAspect = keep;
+  }
   public void setIgnoreAspect(boolean ignore) {
     ignoreAspect = ignore;
   }
@@ -617,6 +621,7 @@ public class CortadoPipeline extends Pipeline implements PadListener, CapsListen
         return false;
       }
 
+      videosink.setProperty("keep-aspect", keepAspect ? "true" : "false");
       videosink.setProperty("ignore-aspect", ignoreAspect ? "true" : "false");
 
       videosink.setProperty ("component", component);

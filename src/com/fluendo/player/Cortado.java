@@ -270,6 +270,7 @@ public class Cortado extends Applet implements Runnable, MouseMotionListener,
         pipeline.setPassword(password);
         pipeline.enableAudio(audio);
         pipeline.enableVideo(video);
+        pipeline.setKeepAspect(keepAspect);
         pipeline.setIgnoreAspect(ignoreAspect);
         pipeline.enableKateStream(kateIndex, kateLanguage, kateCategory);
         pipeline.setBufferSize(bufferSize);
