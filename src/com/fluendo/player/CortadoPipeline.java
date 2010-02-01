@@ -48,7 +48,7 @@ public class CortadoPipeline extends Pipeline implements PadListener, CapsListen
   private Element audiodec;
   private Element videosink;
   private Element audiosink;
-  private Element v_queue, v_queue2, a_queue;
+  private Element v_queue, v_queue2, a_queue = null;
   private Element overlay;
   private Pad asinkpad, ovsinkpad, oksinkpad;
   private Pad apad, vpad;
@@ -80,6 +80,11 @@ public class CortadoPipeline extends Pipeline implements PadListener, CapsListen
     String mime = caps.getMime();
     
     if (enableAudio && mime.equals("audio/x-vorbis")) {
+      if (a_queue != null) {
+        Debug.log (Debug.INFO, "More than one audio stream detected, ignoring all except first one");
+        return;
+      }
+
       a_queue = ElementFactory.makeByName("queue", "a_queue");
       if (a_queue == null) {
         noSuchElement ("queue");
