@@ -1,15 +1,16 @@
 == Cortado applet ==
 
-Release notes for Cortado 0.5.1 "Mars is populated by robots"
+Release notes for Cortado 0.5.2, "Age of universe: A few billion years and counting"
         
  
 === Features of this release ===
     
- * Fix for ticket #1565: Cortado doesn't handle incomplete packets correctly.
- * On very slow machines that can't handle video in realtime, completely
-   skip decoding of inter frames and process keyframes only to ensure smooth
-   audio decoding.
-
+ * make keepAspect ignorable again
+ * minor optimizations in the decoder regarding frame quantizers
+ * buffer tweaks to prevent unwanted frame drops
+ * contents of plugins.ini moved into code to work around
+   resource-loading problems in ancient JVMs
+ * fix problems with several audio streams
 
 
 === Download ===

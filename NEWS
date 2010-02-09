@@ -1,4 +1,13 @@
-This is Cortado 0.5.1, "Mars is populated by robots"
+This is Cortado 0.5.2, "Age of universe: A few billion years and counting"
+
+Changes since 0.5.1
+      * make keepAspect ignorable again
+      * minor optimizations in the decoder regarding frame quantizers
+      * buffer tweaks to prevent unwanted frame drops
+      * contents of plugins.ini moved into code to work around
+        resource-loading problems in ancient JVMs
+      * fix problems with several audio streams
+
 
 Changes since 0.5.0:
 
