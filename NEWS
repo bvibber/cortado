@@ -2,11 +2,12 @@ This is Cortado 0.5.2, "Age of universe: A few billion years and counting"
 
 Changes since 0.5.1
       * make keepAspect ignorable again
-      * minor optimizations in the decoder regarding frame quantizers
+      * minor optimizations in the decoder
       * buffer tweaks to prevent unwanted frame drops
       * contents of plugins.ini moved into code to work around
         resource-loading problems in ancient JVMs
       * fix problems with several audio streams
+      * optimizations in YUV-to-RGB code
 
 
 Changes since 0.5.0:
