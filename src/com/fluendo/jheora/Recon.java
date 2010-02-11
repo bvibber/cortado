@@ -27,9 +27,7 @@ package com.fluendo.jheora;
 public final class Recon 
 {
   private static final short clamp255(int val) {
-    val -= 255;
-    val = -(255+((val>>(31))&val));
-    return (short) -((val>>31)&val);
+    return (short)((~(val>>31)) & 255 & (val | ((255-val)>>31)));
   }
 
   public static final void CopyBlock(short[] src,

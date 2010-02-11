@@ -76,9 +76,7 @@ public final class Filter
   }
 
   private static final short clamp255(int val) {
-    val -= 255;
-    val = -(255+((val>>(31))&val));
-    return (short) -((val>>31)&val);
+    return (short)((~(val>>31)) & 255 & (val | ((255-val)>>31)));
   }
 
   private void FilterHoriz(short[] PixelPtr, int idx,
