@@ -143,57 +143,56 @@ public class YUVBuffer implements ImageProducer {
             for (int j = 0; j < width2; j++) {
                 int D, E, r, g, b, t1, t2, t3, t4;
 
-                D = data[UPtr++] - 128;
-                E = data[VPtr++] - 128;
+                D = data[UPtr++];
+                E = data[VPtr++];
 
                 t1 = 298 * (data[YPtr] - 16);
-                t2 = 409 * E + 128;
-                t3 = (100 * D) + (208 * E) - 128;
-                t4 = 516 * D + 128;
+                t2 = 409 * E - 409*128 + 128;
+                t3 = (100 * D) + (208 * E) - 100*128 - 208*128 - 128;
+                t4 = 516 * D - 516*128 + 128;
 
-                r = (t1 + t2) >> 8;
-                g = (t1 - t3) >> 8;
-                b = (t1 + t4) >> 8;
+                r = (t1 + t2);
+                g = (t1 - t3);
+                b = (t1 + t4);
 
                 // retrieve data for next pixel now, hide latency?
                 t1 = 298 * (data[YPtr + 1] - 16);
 
                 // pack pixel
                 pixels[RGBPtr] =
-                        ((clamp255(r) << 16) + (clamp255(g) << 8) + clamp255(b)) | 0xff000000;
+                        (clamp65280(r) << 8) | clamp65280(g) | (clamp65280(b)>>8) | 0xff000000;
 
-                r = (t1 + t2) >> 8;
-                g = (t1 - t3) >> 8;
-                b = (t1 + t4) >> 8;
+                r = (t1 + t2);
+                g = (t1 - t3);
+                b = (t1 + t4);
 
                 // retrieve data for next pixel now, hide latency?
                 t1 = 298 * (data[YPtr2] - 16);
 
                 // pack pixel
                 pixels[RGBPtr + 1] =
-                        ((clamp255(r) << 16) + (clamp255(g) << 8) + clamp255(b)) | 0xff000000;
+                        (clamp65280(r) << 8) | clamp65280(g) | (clamp65280(b)>>8) | 0xff000000;
 
 
-                r = (t1 + t2) >> 8;
-                g = (t1 - t3) >> 8;
-                b = (t1 + t4) >> 8;
+                r = (t1 + t2);
+                g = (t1 - t3);
+                b = (t1 + t4);
 
                 // retrieve data for next pixel now, hide latency?
                 t1 = 298 * (data[YPtr2 + 1] - 16);
 
                 // pack pixel
                 pixels[RGBPtr2] =
-                        ((clamp255(r) << 16) + (clamp255(g) << 8) + clamp255(b)) | 0xff000000;
+                        (clamp65280(r) << 8) | clamp65280(g) | (clamp65280(b)>>8) | 0xff000000;
 
 
-                r = (t1 + t2) >> 8;
-                g = (t1 - t3) >> 8;
-                b = (t1 + t4) >> 8;
+                r = (t1 + t2);
+                g = (t1 - t3);
+                b = (t1 + t4);
 
                 // pack pixel
                 pixels[RGBPtr2 + 1] =
-                        ((clamp255(r) << 16) + (clamp255(g) << 8) + clamp255(b)) | 0xff000000;
-
+                        (clamp65280(r) << 8) | clamp65280(g) | (clamp65280(b)>>8) | 0xff000000;
                 YPtr += 2;
                 YPtr2 += 2;
                 RGBPtr += 2;
@@ -210,17 +209,26 @@ public class YUVBuffer implements ImageProducer {
         }
     }
 
-    private static final short clamp255(int val) {
-        val -= 255;
-        val = -(255 + ((val >> (31)) & val));
-        return (short) -((val >> 31) & val);
+    // kept for reference
+    /*private static final int clamp255(int val) {
+        return ((~(val>>31)) & 255 & (val | ((255-val)>>31)));
+    }*/
+    
+    private static final int clamp65280(int val) {
+        /* 65280 == 255 << 8 == 0x0000FF00 */
+        /* This function is just like clamp255, but only acting on the top
+        24 bits (bottom 8 are zero'd).  This allows val, initially scaled
+        to 65536, to be clamped without shifting, thereby saving one shift.
+        (RGB packing must be aware that the info is in the second-lowest
+        byte.) */
+        return ((~(val>>31)) & 65280 & (val | ((65280-val)>>31)));
     }
 
     // some benchmarking stuff, uncomment if you need it
     /*public static void main(String[] args) {
         YUVBuffer yuvbuf = new YUVBuffer();
 
-        // let's create a 512x512 picture with noise
+        // let's create a 1280x720 picture with noise
 
         int x = 1280;
         int y = 720;
