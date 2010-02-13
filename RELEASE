@@ -5,13 +5,7 @@ Release notes for Cortado 0.5.2, "Age of universe: A few billion years and count
  
 === Features of this release ===
     
- * make keepAspect ignorable again
- * minor optimizations in the decoder regarding frame quantizers
- * buffer tweaks to prevent unwanted frame drops
- * contents of plugins.ini moved into code to work around
-   resource-loading problems in ancient JVMs
- * fix problems with several audio streams
-
+Please refer to the NEWS file for an overview of changes.
 
 === Download ===
 
@@ -36,11 +30,5 @@ We use an issue tracker for bug reports and feature requests:
 
 All code is in GIT and can be checked out from there.
 It is hosted on http://git.xiph.org/?p=cortado.git
-        
-Contributors to this release
-
- * Philip Heron
- * Benjamin Schwartz
- 
         
  
