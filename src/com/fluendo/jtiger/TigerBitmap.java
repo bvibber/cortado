@@ -49,6 +49,10 @@ public class TigerBitmap {
         image = createPalettedBitmap(c, kb, kp);
       }
     }
+    if (image == null) {
+      // if we failed to create the bitmap, replace it with a 1x1 transparent one to avoid corner cases
+      image = c.getToolkit().createImage(new MemoryImageSource(1, 1, new int[]{0}, 0, 1));
+    }
   }
 
   /**
