@@ -95,7 +95,7 @@ public final class BlockMapping
     }
   }
 
-  public BlockMapping (int ySuperBlocks, int uvSuperBlocks, int hFrags, int vFrags ) 
+  public BlockMapping (int ySuperBlocks, int uvSuperBlocks, int hFrags, int vFrags, int shiftx, int shifty) 
   {
     blockMap = new int[ySuperBlocks + uvSuperBlocks * 2][4][4];
 
@@ -109,9 +109,9 @@ public final class BlockMapping
     }
 
     CreateMapping (0, 0, hFrags, vFrags );
-    CreateMapping (ySuperBlocks, hFrags*vFrags, hFrags/2, vFrags/2 );
-    CreateMapping (ySuperBlocks + uvSuperBlocks, (hFrags*vFrags*5)/4,
-                  hFrags/2, vFrags/2 );
+    CreateMapping (ySuperBlocks, hFrags*vFrags, hFrags>>shiftx, vFrags>>shifty );
+    CreateMapping (ySuperBlocks + uvSuperBlocks, hFrags*vFrags + (hFrags>>shiftx)*(vFrags>>shifty),
+                  hFrags>>shiftx, vFrags>>shifty );
   }
 
 }

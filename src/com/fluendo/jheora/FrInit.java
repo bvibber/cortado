@@ -45,8 +45,8 @@ public class FrInit {
     }
 
     /* U */
-    HorizFrags >>= 1;
-    VertFrags >>= 1;
+    HorizFrags >>= pbi.UVShiftX;
+    VertFrags >>= pbi.UVShiftY;
     StartFrag = pbi.YPlaneFragments;
 
     for(i = 0; i< VertFrags; i++) {
@@ -85,13 +85,13 @@ public class FrInit {
     }
 
     off = pbi.YPlaneFragments;
-    for ( i = 0; i < ((pbi.HFragments >> 1) * pbi.VFragments); i++ ) {
+    for ( i = 0; i < ((pbi.HFragments >> pbi.UVShiftX) * pbi.VFragments); i++ ) {
       PixelIndexTablePtr[ i + off] =
-        ((i / (pbi.HFragments / 2) ) *
+        ((i / (pbi.HFragments >> pbi.UVShiftX) ) *
          (Constants.VFRAGPIXELS *
-          (pbi.info.width / 2)) );
+          (pbi.info.width >> pbi.UVShiftX)) );
       PixelIndexTablePtr[ i + off] +=
-        ((i % (pbi.HFragments / 2) ) *
+        ((i % (pbi.HFragments >> pbi.UVShiftX) ) *
          Constants.HFRAGPIXELS) + pbi.YPlaneSize;
     }
 
@@ -111,10 +111,10 @@ public class FrInit {
     off = pbi.YPlaneFragments;
     for ( i = 0; i < pbi.UVPlaneFragments; i++ ) {
       PixelIndexTablePtr[i+off] =
-        ((i / (pbi.HFragments / 2) ) *
+        ((i / (pbi.HFragments >> pbi.UVShiftX) ) *
          (Constants.VFRAGPIXELS * (pbi.UVStride)) );
       PixelIndexTablePtr[i+off] +=
-        ((i % (pbi.HFragments / 2) ) *
+        ((i % (pbi.HFragments >> pbi.UVShiftX) ) *
          Constants.HFRAGPIXELS) + pbi.ReconUDataOffset;
     }
   
@@ -122,10 +122,10 @@ public class FrInit {
     off = pbi.YPlaneFragments + pbi.UVPlaneFragments;
     for ( i = 0; i < pbi.UVPlaneFragments; i++ ) {
       PixelIndexTablePtr[ i +off] =
-        ((i / (pbi.HFragments / 2) ) *
+        ((i / (pbi.HFragments >> pbi.UVShiftX) ) *
          (Constants.VFRAGPIXELS * (pbi.UVStride)) );
       PixelIndexTablePtr[ i +off] +=
-        ((i % (pbi.HFragments / 2) ) * Constants.HFRAGPIXELS) +
+        ((i % (pbi.HFragments >> pbi.UVShiftX) ) * Constants.HFRAGPIXELS) +
         pbi.ReconVDataOffset;
     }
   }
@@ -204,7 +204,7 @@ public class FrInit {
   }
 
   static void InitFrameDetails(Playback pbi){
-    int FrameSize;
+    int FrameSize, uv_fact;
 
     /*pbi.PostProcessingLevel = 0;
       pbi.PostProcessingLevel = 4;
@@ -213,23 +213,30 @@ public class FrInit {
 
     pbi.PostProcessingLevel = 0;
 
+    pbi.UVShiftX = pbi.UVShiftY = 1;
+    if (pbi.info.pixel_fmt == PixelFormat.TH_PF_422)
+      pbi.UVShiftY = 0;
+    if (pbi.info.pixel_fmt == PixelFormat.TH_PF_444)
+      pbi.UVShiftX = pbi.UVShiftY = 0;
+
+    uv_fact = 1 << (pbi.UVShiftX + pbi.UVShiftY);
 
     /* Set the frame size etc. */
 
     pbi.YPlaneSize = pbi.info.width *
       pbi.info.height;
-    pbi.UVPlaneSize = pbi.YPlaneSize / 4;
+    pbi.UVPlaneSize = pbi.YPlaneSize / uv_fact;
     pbi.HFragments = pbi.info.width / Constants.HFRAGPIXELS;
     pbi.VFragments = pbi.info.height / Constants.VFRAGPIXELS;
-    pbi.UnitFragments = ((pbi.VFragments * pbi.HFragments)*3)/2;
     pbi.YPlaneFragments = pbi.HFragments * pbi.VFragments;
-    pbi.UVPlaneFragments = pbi.YPlaneFragments / 4;
+    pbi.UVPlaneFragments = pbi.YPlaneFragments / uv_fact;
+    pbi.UnitFragments = pbi.YPlaneFragments + 2*pbi.UVPlaneFragments;
 
     pbi.YStride = (pbi.info.width + Constants.STRIDE_EXTRA);
-    pbi.UVStride = pbi.YStride / 2;
+    pbi.UVStride = pbi.YStride >> pbi.UVShiftX;
     pbi.ReconYPlaneSize = pbi.YStride *
     (pbi.info.height + Constants.STRIDE_EXTRA);
-    pbi.ReconUVPlaneSize = pbi.ReconYPlaneSize / 4;
+    pbi.ReconUVPlaneSize = pbi.ReconYPlaneSize / uv_fact;
     FrameSize = pbi.ReconYPlaneSize + 2 * pbi.ReconUVPlaneSize;
 
     pbi.YDataOffset = 0;
@@ -238,19 +245,21 @@ public class FrInit {
     pbi.ReconYDataOffset =
       (pbi.YStride * Constants.UMV_BORDER) + Constants.UMV_BORDER;
     pbi.ReconUDataOffset = pbi.ReconYPlaneSize +
-      (pbi.UVStride * (Constants.UMV_BORDER/2)) + (Constants.UMV_BORDER/2);
+      (pbi.UVStride * (Constants.UMV_BORDER>>pbi.UVShiftY)) +
+      (Constants.UMV_BORDER>>pbi.UVShiftX);
     pbi.ReconVDataOffset = pbi.ReconYPlaneSize + pbi.ReconUVPlaneSize +
-      (pbi.UVStride * (Constants.UMV_BORDER/2)) + (Constants.UMV_BORDER/2);
+      (pbi.UVStride * (Constants.UMV_BORDER>>pbi.UVShiftY)) +
+      (Constants.UMV_BORDER>>pbi.UVShiftX);
   
     /* Image dimensions in Super-Blocks */
     pbi.YSBRows = (pbi.info.height/32)  +
       ( pbi.info.height%32 !=0 ? 1 : 0 );
     pbi.YSBCols = (pbi.info.width/32)  +
       ( pbi.info.width%32 !=0 ? 1 : 0 );
-    pbi.UVSBRows = ((pbi.info.height/2)/32)  +
-      ( (pbi.info.height/2)%32 !=0 ? 1 : 0 );
-    pbi.UVSBCols = ((pbi.info.width/2)/32)  +
-      ( (pbi.info.width/2)%32 !=0 ? 1 : 0 );
+    pbi.UVSBRows = ((pbi.info.height>>pbi.UVShiftY)/32)  +
+      ( (pbi.info.height>>pbi.UVShiftY)%32 !=0 ? 1 : 0 );
+    pbi.UVSBCols = ((pbi.info.width>>pbi.UVShiftX)/32)  +
+      ( (pbi.info.width>>pbi.UVShiftX)%32 !=0 ? 1 : 0 );
 
     /* Super-Blocks per component */
     pbi.YSuperBlocks = pbi.YSBRows * pbi.YSBCols;
@@ -259,7 +268,8 @@ public class FrInit {
 
     /* Useful externals */
     pbi.YMacroBlocks = ((pbi.VFragments+1)/2)*((pbi.HFragments+1)/2);
-    pbi.UVMacroBlocks = ((pbi.VFragments/2+1)/2)*((pbi.HFragments/2+1)/2);
+    pbi.UVMacroBlocks = 
+      (((pbi.VFragments>>pbi.UVShiftY)+1)/2)*(((pbi.HFragments>>pbi.UVShiftX)+1)/2);
     pbi.MacroBlocks = pbi.YMacroBlocks+2*pbi.UVMacroBlocks;
 
     InitFragmentInfo(pbi);
@@ -268,7 +278,8 @@ public class FrInit {
   
     /* Configure mapping between quad-tree and fragments */
     pbi.BlockMap = new BlockMapping (pbi.YSuperBlocks,
-                       pbi.UVSuperBlocks, pbi.HFragments, pbi.VFragments);
+                       pbi.UVSuperBlocks, pbi.HFragments, pbi.VFragments,
+                       pbi.UVShiftX, pbi.UVShiftY);
 
     /* Re-initialise the pixel index table. */
 

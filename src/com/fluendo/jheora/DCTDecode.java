@@ -166,9 +166,11 @@ public class DCTDecode
                                         reconstruction in half pixel
                                         MC */
     int    MVOffset;           /* Baseline motion vector offset */
-    int    MvShift  ;          /* Shift to correct to 1/2 or 1/4 pixel */
-    int    MvModMask;          /* Mask to determine whether 1/2
+    int    MvShiftX  ;          /* Shift to correct to 1/2 or 1/4 pixel */
+    int    MvShiftY  ;          /* Shift to correct to 1/2 or 1/4 pixel */
+    int    MvModMaskX;          /* Mask to determine whether 1/2
                                         pixel is used */
+    int    MvModMaskY;
     short[] dequant_coeffs;
     CodingMode codingMode;
     
@@ -186,8 +188,8 @@ public class DCTDecode
     /* Select the appropriate inverse Q matrix and line stride */
     if ( FragmentNumber<(int)pbi.YPlaneFragments ) {
       ReconPixelsPerLine = pbi.YStride;
-      MvShift = 1;
-      MvModMask = 0x00000001;
+      MvShiftX = MvShiftY = 1;
+      MvModMaskX = MvModMaskY = 0x00000001;
 
       /* Select appropriate dequantiser matrix. */
       if ( codingMode == CodingMode.CODE_INTRA ) {
@@ -201,8 +203,11 @@ public class DCTDecode
       }
     }else{
       ReconPixelsPerLine = pbi.UVStride;
-      MvShift = 2;
-      MvModMask = 0x00000003;
+      MvShiftX = pbi.UVShiftX + 1;
+      MvShiftY = pbi.UVShiftY + 1;
+      MvModMaskX = MvModMaskY = 0x00000003;
+      if (MvShiftX == 1) MvModMaskX = 0x00000001;
+      if (MvShiftY == 1) MvModMaskY = 0x00000001;
 
       /* Select appropriate dequantiser matrix. */
 
@@ -281,23 +286,23 @@ public class DCTDecode
 
       dir = pbi.FragMVect[FragmentNumber].x;
       if (dir > 0) {
-        MVOffset = dir >> MvShift;
-        if ((dir & MvModMask) != 0 )
+        MVOffset = dir >> MvShiftX;
+        if ((dir & MvModMaskX) != 0 )
           ReconPtr2Offset = 1;
       } else if (dir < 0) {
-        MVOffset = -((-dir) >> MvShift);
-        if (((-dir) & MvModMask) != 0 )
+        MVOffset = -((-dir) >> MvShiftX);
+        if (((-dir) & MvModMaskX) != 0 )
           ReconPtr2Offset = -1;
       }
 
       dir = pbi.FragMVect[FragmentNumber].y;
       if ( dir > 0 ){
-        MVOffset += (dir >>  MvShift) * ReconPixelsPerLine;
-        if ((dir & MvModMask) != 0 )
+        MVOffset += (dir >>  MvShiftY) * ReconPixelsPerLine;
+        if ((dir & MvModMaskY) != 0 )
           ReconPtr2Offset += ReconPixelsPerLine;
       } else if (dir < 0 ){
-        MVOffset -= ((-dir) >> MvShift) * ReconPixelsPerLine;
-        if (((-dir) & MvModMask) != 0 )
+        MVOffset -= ((-dir) >> MvShiftY) * ReconPixelsPerLine;
+        if (((-dir) & MvModMaskY) != 0 )
           ReconPtr2Offset -= ReconPixelsPerLine;
       }
 
@@ -359,6 +364,7 @@ public class DCTDecode
     int  PlaneFragments;
     int  LineFragments;
     int  PlaneBorderWidth;
+    int  PlaneBorderHeight;
 
     short[] SrcPtr1;
     int    SrcOff1;
@@ -376,6 +382,7 @@ public class DCTDecode
                     (Constants.VFRAGPIXELS - 1));
       PlaneStride = pbi.YStride;
       PlaneBorderWidth = Constants.UMV_BORDER;
+      PlaneBorderHeight = Constants.UMV_BORDER;
       PlaneFragments = pbi.YPlaneFragments;
       LineFragments = pbi.HFragments;
     }else{
@@ -383,9 +390,10 @@ public class DCTDecode
       BlockVStep = (pbi.UVStride *
                     (Constants.VFRAGPIXELS - 1));
       PlaneStride = pbi.UVStride;
-      PlaneBorderWidth = Constants.UMV_BORDER / 2;
+      PlaneBorderWidth = Constants.UMV_BORDER >> pbi.UVShiftX;
+      PlaneBorderHeight = Constants.UMV_BORDER >> pbi.UVShiftY;
       PlaneFragments = pbi.UVPlaneFragments;
-      LineFragments = pbi.HFragments / 2;
+      LineFragments = pbi.HFragments >> pbi.UVShiftX;
     }
 
     /* Setup the source and destination pointers for the top and bottom
@@ -394,7 +402,7 @@ public class DCTDecode
     SrcPtr1 = DestReconPtr;
     SrcOff1 = PixelIndex - PlaneBorderWidth;
     DestPtr1 = SrcPtr1;
-    DestOff1 = SrcOff1 - (PlaneBorderWidth * PlaneStride);
+    DestOff1 = SrcOff1 - (PlaneBorderHeight * PlaneStride);
 
     PixelIndex = pbi.recon_pixel_index_table[PlaneFragOffset +
                                            PlaneFragments - LineFragments] + 
@@ -406,7 +414,7 @@ public class DCTDecode
 
     /* Now copy the top and bottom source lines into each line of the
        respective borders */
-    for ( i = 0; i < PlaneBorderWidth; i++ ) {
+    for ( i = 0; i < PlaneBorderHeight; i++ ) {
       System.arraycopy(SrcPtr1, SrcOff1, DestPtr1, DestOff1, PlaneStride);
       System.arraycopy(SrcPtr2, SrcOff2, DestPtr2, DestOff2, PlaneStride);
       DestOff1 += PlaneStride;
@@ -444,9 +452,9 @@ public class DCTDecode
     }else{
       /* U or V plane. */
       PlaneStride = pbi.UVStride;
-      PlaneBorderWidth = Constants.UMV_BORDER / 2;
-      LineFragments = pbi.HFragments / 2;
-      PlaneHeight = pbi.info.height / 2;
+      PlaneBorderWidth = Constants.UMV_BORDER >> pbi.UVShiftX;
+      LineFragments = pbi.HFragments >> pbi.UVShiftX;
+      PlaneHeight = pbi.info.height >> pbi.UVShiftY;
     }
 
     /* Setup the source data values and destination pointers for the
@@ -694,14 +702,14 @@ public class DCTDecode
         break;
       case 1: /* u */
         FromFragment = pbi.YPlaneFragments;
-        FragsAcross = pbi.HFragments >> 1;
-        FragsDown = pbi.VFragments >> 1;
+        FragsAcross = pbi.HFragments >> pbi.UVShiftX;
+        FragsDown = pbi.VFragments >> pbi.UVShiftY;
         break;
       /*case 2:  v */
       default:    
         FromFragment = pbi.YPlaneFragments + pbi.UVPlaneFragments;
-        FragsAcross = pbi.HFragments >> 1;
-        FragsDown = pbi.VFragments >> 1;
+        FragsAcross = pbi.HFragments >> pbi.UVShiftX;
+        FragsDown = pbi.VFragments >> pbi.UVShiftY;
         break;
       }
   

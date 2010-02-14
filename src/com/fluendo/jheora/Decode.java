@@ -367,12 +367,32 @@ public final class Decode {
                 FragCodingMethod[FragIndex + pbi.HFragments + 1] = CodingMethod;
   
                 /* Matching fragments in the U and V planes */
-                UVRow = (FragIndex / (pbi.HFragments * 2));
-                UVColumn = (FragIndex % pbi.HFragments) / 2;
-                UVFragOffset = (UVRow * (pbi.HFragments / 2)) + UVColumn;
-                FragCodingMethod[pbi.YPlaneFragments + UVFragOffset] = CodingMethod;
-                FragCodingMethod[pbi.YPlaneFragments + pbi.UVPlaneFragments + UVFragOffset] =
-                  CodingMethod;
+                if (pbi.UVShiftX == 1 && pbi.UVShiftY == 1){ /* TH_PF_420 */
+                  UVRow = (FragIndex / (pbi.HFragments * 2));
+                  UVColumn = (FragIndex % pbi.HFragments) / 2;
+                  UVFragOffset = (UVRow * (pbi.HFragments / 2)) + UVColumn;
+                  FragCodingMethod[pbi.YPlaneFragments + UVFragOffset] = CodingMethod;
+                  FragCodingMethod[pbi.YPlaneFragments + pbi.UVPlaneFragments + UVFragOffset] =
+                    CodingMethod;
+                } else if (pbi.UVShiftX == 0) { /* TH_PF_444 */
+                  FragIndex += pbi.YPlaneFragments;
+                  FragCodingMethod[FragIndex] =
+                  FragCodingMethod[FragIndex + 1] =
+                  FragCodingMethod[FragIndex + pbi.HFragments] =
+                  FragCodingMethod[FragIndex + pbi.HFragments + 1] = CodingMethod;
+                  FragIndex += pbi.UVPlaneFragments;
+                  FragCodingMethod[FragIndex] =
+                  FragCodingMethod[FragIndex + 1] =
+                  FragCodingMethod[FragIndex + pbi.HFragments] =
+                  FragCodingMethod[FragIndex + pbi.HFragments + 1] = CodingMethod;
+                } else { /*TH_PF_422 */
+                  FragIndex = pbi.YPlaneFragments + FragIndex/2;
+                  FragCodingMethod[FragIndex] =
+                  FragCodingMethod[FragIndex + pbi.HFragments/2] = CodingMethod;
+                  FragIndex += pbi.UVPlaneFragments;
+                  FragCodingMethod[FragIndex] =
+                  FragCodingMethod[FragIndex + pbi.HFragments/2] = CodingMethod;
+                }
   
               }
             }
@@ -409,6 +429,8 @@ public final class Decode {
     if (pbi.getFrameType() == Constants.BASE_FRAME ){
       return;
     }
+    
+    MotionVector dummy = new MotionVector();
 
     /* set the default motion vector to 0,0 */
     LastInterMV.x = 0;
@@ -445,12 +467,28 @@ public final class Decode {
               MotionVector MVect3 = pbi.FragMVect[FragIndex + pbi.HFragments + 1];
   
               /* Matching fragments in the U and V planes */
-              UVRow = (FragIndex / (pbi.HFragments * 2));
-              UVColumn = (FragIndex % pbi.HFragments) / 2;
-              UVFragOffset = (UVRow * (pbi.HFragments / 2)) + UVColumn;
+              UVRow = (FragIndex / (pbi.HFragments << pbi.UVShiftY));
+              UVColumn = (FragIndex % pbi.HFragments) >> pbi.UVShiftX;
+              UVFragOffset = (UVRow * (pbi.HFragments >> pbi.UVShiftX)) + UVColumn;
   
-              MotionVector MVect4 = pbi.FragMVect[pbi.YPlaneFragments + UVFragOffset];
-              MotionVector MVect5 = pbi.FragMVect[pbi.YPlaneFragments + pbi.UVPlaneFragments + UVFragOffset];
+              MotionVector MVectU0 = pbi.FragMVect[pbi.YPlaneFragments + UVFragOffset];
+              MotionVector MVectV0 = pbi.FragMVect[pbi.YPlaneFragments + pbi.UVPlaneFragments + UVFragOffset];
+              MotionVector MVectU1 = dummy;
+              MotionVector MVectV1 = dummy;
+              MotionVector MVectU2 = dummy;
+              MotionVector MVectV2 = dummy;
+              MotionVector MVectU3 = dummy;
+              MotionVector MVectV3 = dummy;
+              if (pbi.UVShiftY == 0) {
+                MVectU2 = pbi.FragMVect[pbi.YPlaneFragments + UVFragOffset + pbi.HFragments>>pbi.UVShiftX];
+                MVectV2 = pbi.FragMVect[pbi.YPlaneFragments + pbi.UVPlaneFragments + UVFragOffset + pbi.HFragments>>pbi.UVShiftX];
+                if (pbi.UVShiftX == 0){
+                  MVectU1 = pbi.FragMVect[pbi.YPlaneFragments + UVFragOffset + 1];
+                  MVectV1 = pbi.FragMVect[pbi.YPlaneFragments + pbi.UVPlaneFragments + UVFragOffset + 1];                  
+                  MVectU3 = pbi.FragMVect[pbi.YPlaneFragments + UVFragOffset + pbi.HFragments + 1];
+                  MVectV3 = pbi.FragMVect[pbi.YPlaneFragments + pbi.UVPlaneFragments + UVFragOffset + pbi.HFragments + 1];
+                }
+              }
   
               /* Read the motion vector or vectors if present. */
               if (CodingMethod == CodingMode.CODE_INTER_PLUS_MV) {
@@ -460,26 +498,51 @@ public final class Decode {
 		                MVect1.x = 
 				MVect2.x = 
 				MVect3.x = 
-				MVect4.x = 
-				MVect5.x = MVC.extract(opb);
+				MVectU0.x = 
+				MVectV0.x = 
+				MVectU1.x =
+				MVectV1.x =
+				MVectU2.x =
+				MVectV2.x =
+				MVectU3.x =
+				MVectV3.x = MVC.extract(opb);
+				
                 LastInterMV.y = MVect0.y = 
 		                MVect1.y = 
 				MVect2.y = 
 				MVect3.y = 
-				MVect4.y = 
-				MVect5.y = MVC.extract(opb);
+				MVectU0.y = 
+				MVectV0.y = 
+				MVectU1.y =
+				MVectV1.y =
+				MVectU2.y =
+				MVectV2.y =
+				MVectU3.y =
+				MVectV3.y = MVC.extract(opb);
 	      }
               else if (CodingMethod == CodingMode.CODE_GOLDEN_MV){
                 MVect0.x = MVect1.x = 
 		           MVect2.x = 
 			   MVect3.x = 
-			   MVect4.x = 
-			   MVect5.x = MVC.extract(opb);
+				MVectU0.x = 
+				MVectV0.x = 
+				MVectU1.x =
+				MVectV1.x =
+				MVectU2.x =
+				MVectV2.x =
+				MVectU3.x =
+				MVectV3.x = MVC.extract(opb);
                 MVect0.y = MVect1.y = 
 		           MVect2.y = 
 			   MVect3.y = 
-			   MVect4.y = 
-			   MVect5.y = MVC.extract(opb);
+				MVectU0.y = 
+				MVectV0.y = 
+				MVectU1.y =
+				MVectV1.y =
+				MVectU2.y =
+				MVectV2.y =
+				MVectU3.y =
+				MVectV3.y = MVC.extract(opb);
               }
 	      else if ( CodingMethod == CodingMode.CODE_INTER_FOURMV ){
                   
@@ -527,18 +590,54 @@ public final class Decode {
                   x += MVect3.x = 0;
                   y += MVect3.y = 0;
                 }
-                /* Calculate the U and V plane MVs as the average of the
-                   Y plane MVs. */
-                /* First .x component */
-                if (x >= 0 ) x = (x+2) / 4;
-                else         x = (x-2) / 4;
-                MVect4.x = x;
-                MVect5.x = x;
-                /* Then .y component */
-                if (y >= 0 ) y = (y+2) / 4;
-                else         y = (y-2) / 4;
-                MVect4.y = y;
-                MVect5.y = y;
+                
+                if(pbi.UVShiftY == 0) {
+                  if(pbi.UVShiftX == 0) {
+                    MVectU0.x = MVectV0.x = MVect0.x;
+                    MVectU0.y = MVectV0.y = MVect0.y;
+                    MVectU1.x = MVectV1.x = MVect1.x;
+                    MVectU1.y = MVectV1.y = MVect1.y;
+                    MVectU2.x = MVectV2.x = MVect2.x;
+                    MVectU2.y = MVectV2.y = MVect2.y;
+                    MVectU3.x = MVectV3.x = MVect3.x;
+                    MVectU3.y = MVectV3.y = MVect3.y;
+                  } else {
+                    /* 4:2:2, so average components only horizontally */
+                    x = MVect0.x + MVect1.x;
+                    if (x >= 0 ) x = (x+1) / 2;
+                    else         x = (x-1) / 2;
+                    MVectU0.x =
+                    MVectV0.x = x;
+                    y = MVect0.y + MVect1.y;
+                    if (y >= 0 ) y = (y+1) / 2;
+                    else         y = (y-1) / 2;
+                    MVectU0.y =
+                    MVectV0.y = y;
+                    x = MVect2.x + MVect3.x;
+                    if (x >= 0 ) x = (x+1) / 2;
+                    else         x = (x-1) / 2;
+                    MVectU2.x =
+                    MVectV2.x = x;
+                    y = MVect2.y + MVect3.y;
+                    if (y >= 0 ) y = (y+1) / 2;
+                    else         y = (y-1) / 2;
+                    MVectU2.y =
+                    MVectV2.y = y;
+                  }
+                } else {
+                  /* Calculate the U and V plane MVs as the average of the
+                     Y plane MVs. */
+                  /* First .x component */
+                  if (x >= 0 ) x = (x+2) / 4;
+                  else         x = (x-2) / 4;
+                  MVectU0.x = x;
+                  MVectV0.x = x;
+                  /* Then .y component */
+                  if (y >= 0 ) y = (y+2) / 4;
+                  else         y = (y-2) / 4;
+                  MVectU0.y = y;
+                  MVectV0.y = y;
+                }
 
               }
 	      else if ( CodingMethod == CodingMode.CODE_INTER_LAST_MV ){
@@ -546,26 +645,50 @@ public final class Decode {
                 MVect0.x = MVect1.x = 
 		           MVect2.x = 
 			   MVect3.x = 
-			   MVect4.x = 
-			   MVect5.x = LastInterMV.x;
+				MVectU0.x = 
+				MVectV0.x = 
+				MVectU1.x =
+				MVectV1.x =
+				MVectU2.x =
+				MVectV2.x =
+				MVectU3.x =
+				MVectV3.x = LastInterMV.x;
                 MVect0.y = MVect1.y = 
 		           MVect2.y = 
 			   MVect3.y = 
-			   MVect4.y = 
-			   MVect5.y = LastInterMV.y;
+				MVectU0.y = 
+				MVectV0.y = 
+				MVectU1.y =
+				MVectV1.y =
+				MVectU2.y =
+				MVectV2.y =
+				MVectU3.y =
+				MVectV3.y = LastInterMV.y;
               } 
 	      else if ( CodingMethod == CodingMode.CODE_INTER_PRIOR_LAST ){
                 /* Use the next-to-last coded Inter motion vector. */
                 MVect0.x = MVect1.x = 
 		           MVect2.x = 
 			   MVect3.x = 
-			   MVect4.x = 
-			   MVect5.x = PriorLastInterMV.x;
+			   MVectU0.x = 
+				MVectV0.x = 
+				MVectU1.x =
+				MVectV1.x =
+				MVectU2.x =
+				MVectV2.x =
+				MVectU3.x =
+				MVectV3.x = PriorLastInterMV.x;
                 MVect0.y = MVect1.y = 
 		           MVect2.y = 
 			   MVect3.y = 
-			   MVect4.y = 
-			   MVect5.y = PriorLastInterMV.y;
+			   MVectU0.y = 
+				MVectV0.y = 
+				MVectU1.y =
+				MVectV1.y =
+				MVectU2.y =
+				MVectV2.y =
+				MVectU3.y =
+				MVectV3.y = PriorLastInterMV.y;
   
                 /* Swap the prior and last MV cases over */
                 MotionVector TmpMVect = PriorLastInterMV;

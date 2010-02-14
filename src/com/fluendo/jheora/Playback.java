@@ -75,6 +75,9 @@ public class Playback
   int           UnitFragments;
   int           YPlaneFragments;
   int           UVPlaneFragments;
+  
+  int           UVShiftX;       /* 1 unless Info.pixel_fmt == TH_PF_444 */
+  int           UVShiftY;       /* 0 unless Info.pixel_fmt == TH_PF_420 */
 
   int           ReconYPlaneSize;
   int           ReconUVPlaneSize;

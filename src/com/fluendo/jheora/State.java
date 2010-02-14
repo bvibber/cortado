@@ -112,8 +112,8 @@ public class State
     yuv.y_height = pbi.info.height;
     yuv.y_stride = pbi.YStride;
 
-    yuv.uv_width = pbi.info.width / 2;
-    yuv.uv_height = pbi.info.height / 2;
+    yuv.uv_width = pbi.info.width >> pbi.UVShiftX;
+    yuv.uv_height = pbi.info.height >> pbi.UVShiftY;
     yuv.uv_stride = pbi.UVStride;
 
     if(pbi.PostProcessingLevel != 0){

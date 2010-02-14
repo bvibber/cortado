@@ -85,7 +85,11 @@ public class YUVBuffer implements ImageProducer {
                 pixels = new int[size];
                 pix_size = size;
             }
-            YUVtoRGB(x, y, width, height);
+            /* rely on the buffer size being set correctly, and the only allowed
+             video formats being Theora's video formats */
+            if (uv_height < y_height) YUV420toRGB(x, y, width, height);
+            else if (uv_width == y_width) YUV444toRGB(x, y, width, height);
+            else YUV422toRGB(x, y, width, height);
         } catch (Throwable t) {
             /* ignore */
         }
@@ -114,7 +118,7 @@ public class YUVBuffer implements ImageProducer {
     }
 
    
-    private void YUVtoRGB(int x, int y, int width, int height) {
+    private void YUV420toRGB(int x, int y, int width, int height) {
 
         /*
          * this modified version of the original YUVtoRGB was
@@ -223,6 +227,73 @@ public class YUVBuffer implements ImageProducer {
         byte.) */
         return ((~(val>>31)) & 65280 & (val | ((65280-val)>>31)));
     }
+    
+    private void YUV444toRGB(int x, int y, int width, int height) {
+        for (int j = 0; j < height; j++) {
+            for (int i = 0; i < width; i++) {
+                int D, E, r, g, b, t1, t2, t3, t4, p;
+                p = x + i + (j + y)*y_stride;
+
+                D = data[u_offset + p];
+                E = data[v_offset + p];
+
+                t1 = 298 * (data[y_offset + p] - 16);
+                t2 = 409 * E - 409*128 + 128;
+                t3 = (100 * D) + (208 * E) - 100*128 - 208*128 - 128;
+                t4 = 516 * D - 516*128 + 128;
+
+                r = (t1 + t2);
+                g = (t1 - t3);
+                b = (t1 + t4);
+
+                // pack pixel
+                pixels[i + j*width] =
+                        (clamp65280(r) << 8) | clamp65280(g) | (clamp65280(b)>>8) | 0xff000000;
+            }
+        }
+    }
+    
+    private void YUV422toRGB(int x, int y, int width, int height) {
+        int x2 = x/2;
+        int width2 = width/2;
+        for (int j = 0; j < height; j++) {
+            for (int i = 0; i < width2; i++) {
+                int D, E, r, g, b, t1, t2, t3, t4, p;
+                p = x2 + i + (y + j)*uv_stride;
+
+                D = data[u_offset + p];
+                E = data[v_offset + p];
+
+                p = y_offset + 2*(x2 + i) + (y + j)*y_stride;
+                t1 = 298 * (data[p] - 16);
+                t2 = 409 * E - 409*128 + 128;
+                t3 = (100 * D) + (208 * E) - 100*128 - 208*128 - 128;
+                t4 = 516 * D - 516*128 + 128;
+
+                r = (t1 + t2);
+                g = (t1 - t3);
+                b = (t1 + t4);
+                
+                p++;
+                t1 = 298 * (data[p] - 16);
+                                
+                // pack pixel
+                p = 2*i + j*width;
+                pixels[p] =
+                        (clamp65280(r) << 8) | clamp65280(g) | (clamp65280(b)>>8) | 0xff000000;
+                
+                r = (t1 + t2);
+                g = (t1 - t3);
+                b = (t1 + t4);
+                p++;
+
+                // pack pixel
+                pixels[p] =
+                        (clamp65280(r) << 8) | clamp65280(g) | (clamp65280(b)>>8) | 0xff000000;
+            }
+        }
+    }
+
 
     // some benchmarking stuff, uncomment if you need it
     /*public static void main(String[] args) {

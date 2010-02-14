@@ -38,6 +38,7 @@ public class Info {
   public int aspect_numerator;
   public int aspect_denominator;
   public Colorspace colorspace;
+  public PixelFormat pixel_fmt;
   public int  target_bitrate;
   public int  quality;
   public int  quick_p;  /* quick encode/decode */
@@ -108,9 +109,13 @@ public class Info {
     quality = opb.readB(6);
 
     keyframe_frequency_force = 1<<opb.readB(5);
+    
+    pixel_fmt = PixelFormat.formats[opb.readB(2)];
+    if (pixel_fmt==PixelFormat.TH_PF_RSVD)
+      return (Result.BADHEADER);
 
     /* spare configuration bits */
-    if (opb.readB(5) == -1)
+    if (opb.readB(3) == -1)
       return (Result.BADHEADER);
 
     return(0);
