@@ -307,6 +307,9 @@ public class CortadoPipeline extends Pipeline implements PadListener, CapsListen
       remove (audiosink);
       audiosink = null;
       changed = true;
+      if (videosink != null) {
+        videosink.setProperty ("max-lateness", Long.toString(Long.MAX_VALUE));
+      }
     }
     if (vpad == null && enableVideo) {
       Debug.log(Debug.INFO, "file has no video, remove videosink");
@@ -627,7 +630,8 @@ public class CortadoPipeline extends Pipeline implements PadListener, CapsListen
       videosink.setProperty ("component", component);
       resize(component.getSize());
 
-      videosink.setProperty ("max-lateness", Long.toString(Clock.MSECOND * 20));
+      videosink.setProperty ("max-lateness", 
+         Long.toString(enableAudio ? Clock.MSECOND * 20 : Long.MAX_VALUE));
       add(videosink);
 
       ovsinkpad = videosink.getPad("sink");
