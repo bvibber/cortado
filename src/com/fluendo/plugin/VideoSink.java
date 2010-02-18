@@ -83,64 +83,65 @@ public class VideoSink extends Sink
     Image image;
     int x, y, w, h;
 
-    Debug.log( Debug.DEBUG, this.getName() + " starting buffer " + buf );
+    if (!buf.duplicate) {
+      Debug.log( Debug.DEBUG, this.getName() + " starting buffer " + buf );
 
-    if (buf.object instanceof ImageProducer) {
-      image = component.createImage((ImageProducer)buf.object);
-    }
-    else if (buf.object instanceof Image) {
-      image = (Image)buf.object;
-    }
-    else {
-      System.out.println(this+": unknown buffer received "+buf);
-      return Pad.ERROR;
-    }
-
-    if (!component.isVisible())
-      return Pad.NOT_NEGOTIATED;
-
-    Graphics graphics = component.getGraphics();
-
-    if (keepAspect) {
-      double src_ratio, dst_ratio;
-
-      if (bounds == null) {
-	bounds = new Rectangle(component.getSize());
+      if (buf.object instanceof ImageProducer) {
+        image = component.createImage((ImageProducer)buf.object);
       }
-      src_ratio = (double) width / height;
-      dst_ratio = (double) bounds.width / bounds.height;
+      else if (buf.object instanceof Image) {
+        image = (Image)buf.object;
+      }
+      else {
+        System.out.println(this+": unknown buffer received "+buf);
+        return Pad.ERROR;
+      }
 
-      if (src_ratio > dst_ratio) {
-        w = bounds.width;
-        h = (int) (bounds.width / src_ratio);
-        x = bounds.x;
-        y = bounds.y + (bounds.height - h) / 2;
-      } else if (src_ratio < dst_ratio) {
-        w = (int) (bounds.height * src_ratio);
-        h = bounds.height;
+      if (!component.isVisible())
+        return Pad.NOT_NEGOTIATED;
+
+      Graphics graphics = component.getGraphics();
+
+      if (keepAspect) {
+        double src_ratio, dst_ratio;
+
+        if (bounds == null) {
+  	  bounds = new Rectangle(component.getSize());
+        }
+        src_ratio = (double) width / height;
+        dst_ratio = (double) bounds.width / bounds.height;
+
+        if (src_ratio > dst_ratio) {
+          w = bounds.width;
+          h = (int) (bounds.width / src_ratio);
+          x = bounds.x;
+          y = bounds.y + (bounds.height - h) / 2;
+        } else if (src_ratio < dst_ratio) {
+          w = (int) (bounds.height * src_ratio);
+          h = bounds.height;
+          x = bounds.x + (bounds.width - w) / 2;
+          y = bounds.y;
+        } else {
+          x = bounds.x;
+          y = bounds.y;
+          w = bounds.width;
+          h = bounds.height;
+        }
+      } else if (!scale) {
+        w = Math.min (width, bounds.width);
+        h = Math.min (height, bounds.height);
         x = bounds.x + (bounds.width - w) / 2;
-        y = bounds.y;
+        y = bounds.y + (bounds.height - h) / 2;
       } else {
-        x = bounds.x;
-        y = bounds.y;
+        /* draw in available area */
         w = bounds.width;
         h = bounds.height;
+        x = 0;
+        y = 0;
       }
-    } else if (!scale) {
-      w = Math.min (width, bounds.width);
-      h = Math.min (height, bounds.height);
-      x = bounds.x + (bounds.width - w) / 2;
-      y = bounds.y + (bounds.height - h) / 2;
-    } else {
-      /* draw in available area */
-      w = bounds.width;
-      h = bounds.height;
-      x = 0;
-      y = 0;
+      graphics.drawImage (image, x, y, w, h, null);
+      Debug.log( Debug.DEBUG, this.getName() + " done with buffer " + buf );
     }
-    graphics.drawImage (image, x, y, w, h, null);
-    Debug.log( Debug.DEBUG, this.getName() + " done with buffer " + buf );
-
     return Pad.OK;
   };
 

@@ -34,8 +34,10 @@ public class TheoraDec extends Element implements OggPayload
   private Packet op;
   private int packet;
   private YUVBuffer yuv;
+  private java.lang.Object last_yuv_obj;
 
   private long lastTs;
+  private long lastnondupe = -1;
   private boolean needKeyframe;
   private boolean haveBOS = false;
   private boolean haveDecoder = false;
@@ -197,18 +199,6 @@ public class TheoraDec extends Element implements OggPayload
 	return OK;
       }
       else {
-        if (op.bytes == 0) {
-          Debug.log(Debug.DEBUG, "duplicate frame");
-          return OK;
-        }
-        if ((op.packet_base[op.packet] & 0x80) == 0x80) {
-          Debug.log(Debug.INFO, "ignoring header");
-          return OK;
-        }
-        if (needKeyframe && ts.isKeyframe(op)) {
-	  needKeyframe = false;
-        }
-
 	if (timestamp != -1) {
 	  lastTs = timestamp;
 	}
@@ -220,18 +210,41 @@ public class TheoraDec extends Element implements OggPayload
 	  timestamp = lastTs;
 	}
 
+        if (op.bytes > 0) {
+          if ((op.packet_base[op.packet] & 0x80) == 0x80) {
+            Debug.log(Debug.INFO, "ignoring header");
+            return OK;
+          }
+          if (needKeyframe && ts.isKeyframe(op)) {
+            needKeyframe = false;
+          }        
+        } else {
+          Debug.log(Debug.DEBUG, "duplicate frame");
+        }
+
 	if (!needKeyframe) {
 	  try{
             if (ts.decodePacketin(op) != 0) {
               Debug.log(Debug.ERROR, "Bad Theora packet. Most likely not fatal, hoping for better luck next packet.");
             }
-            if (ts.decodeYUVout(yuv) != 0) {
-              buf.free();
-	      postMessage (Message.newError (this, "Error getting the Theora picture"));
-              Debug.log(Debug.ERROR, "Error getting the picture.");
-              return ERROR;
+            if (op.bytes > 0 ) {
+              if (ts.decodeYUVout(yuv) != 0) {
+                buf.free();
+  	        postMessage (Message.newError (this, "Error getting the Theora picture"));
+                Debug.log(Debug.ERROR, "Error getting the picture.");
+                return ERROR;
+	      }
+              buf.duplicate = false;
+              lastnondupe = timestamp;
+              last_yuv_obj = yuv.getObject(ti.offset_x, ti.offset_y, ti.frame_width, ti.frame_height);
+	    } else {
+	      if (timestamp-lastnondupe>=Clock.SECOND) {
+                buf.duplicate = false;
+                lastnondupe = timestamp;
+              } else 
+	      buf.duplicate = true;
 	    }
-            buf.object = yuv.getObject(ti.offset_x, ti.offset_y, ti.frame_width, ti.frame_height);
+	    buf.object = last_yuv_obj;
 	    buf.caps = caps;
 	    buf.timestamp = timestamp;
             Debug.log( Debug.DEBUG, parent.getName() + " >>> " + buf );

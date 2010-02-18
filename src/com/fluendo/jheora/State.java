@@ -65,45 +65,47 @@ public class State
 
     pbi.DecoderErrorCode = 0;
 
-    pbi.opb.readinit(op.packet_base, op.packet, op.bytes);
+    if (op.bytes>0) {
+      pbi.opb.readinit(op.packet_base, op.packet, op.bytes);
 
-    /* verify that this is a video frame */
-    ret = pbi.opb.readB(1);
+      /* verify that this is a video frame */
+      ret = pbi.opb.readB(1);
 
-    if (ret==0) {
-      try {
-        ret=dec.loadAndDecode();
-      } catch(Exception e) {
-        /* If lock onto the bitstream is lost all sort of Exceptions can occur.
-         * The bitstream damage may be local, so the next packet may be okay. */
-        e.printStackTrace();
-        return Result.BADPACKET;  
-      }
-
-      if(ret != 0)
-        return (int) ret;
- 
-      if(op.granulepos>-1)
-        granulepos=op.granulepos;
-      else{
-        if(granulepos==-1){
-          granulepos=0;
-        } 
-	else {
-          if (pbi.FrameType == Constants.BASE_FRAME){
-            long frames= granulepos & ((1<<pbi.keyframe_granule_shift)-1);
-            granulepos>>=pbi.keyframe_granule_shift;
-            granulepos+=frames+1;
-            granulepos<<=pbi.keyframe_granule_shift;
-          }else
-            granulepos++;
+      if (ret==0) {
+        try {
+          ret=dec.loadAndDecode();
+        } catch(Exception e) {
+          /* If lock onto the bitstream is lost all sort of Exceptions can occur.
+           * The bitstream damage may be local, so the next packet may be okay. */
+          e.printStackTrace();
+          return Result.BADPACKET;
         }
-      }
-  
-      return(0);
-    }
 
-    return Result.BADPACKET;
+        if(ret != 0)
+          return (int) ret;
+ 
+      } else {
+        return Result.BADPACKET;
+      }
+   }
+   if(op.granulepos>-1)
+      granulepos=op.granulepos;
+   else{
+      if(granulepos==-1){
+        granulepos=0;
+      }
+      else {
+        if ((op.bytes>0) && (pbi.FrameType == Constants.BASE_FRAME)){
+          long frames= granulepos & ((1<<pbi.keyframe_granule_shift)-1);
+          granulepos>>=pbi.keyframe_granule_shift;
+          granulepos+=frames+1;
+          granulepos<<=pbi.keyframe_granule_shift;
+        }else
+          granulepos++;
+      }
+   }
+
+        return(0);
   }
 
   public int decodeYUVout (YUVBuffer yuv)

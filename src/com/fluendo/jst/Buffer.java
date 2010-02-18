@@ -38,6 +38,7 @@ public class Buffer {
   public long time_offset;
   public long timestamp;
   public long timestampEnd;
+  public boolean duplicate = false;
 
   public static Buffer create() {
     Buffer result;
