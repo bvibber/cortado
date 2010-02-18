@@ -191,6 +191,10 @@ public class TheoraDec extends Element implements OggPayload
 	return OK;
       }
       else {
+        if (op.bytes == 0) {
+          Debug.log(Debug.DEBUG, "duplicate frame");
+          return OK;
+        }
         if ((op.packet_base[op.packet] & 0x80) == 0x80) {
           Debug.log(Debug.INFO, "ignoring header");
           return OK;
