@@ -480,8 +480,8 @@ public final class Decode {
               MotionVector MVectU3 = dummy;
               MotionVector MVectV3 = dummy;
               if (pbi.UVShiftY == 0) {
-                MVectU2 = pbi.FragMVect[pbi.YPlaneFragments + UVFragOffset + pbi.HFragments>>pbi.UVShiftX];
-                MVectV2 = pbi.FragMVect[pbi.YPlaneFragments + pbi.UVPlaneFragments + UVFragOffset + pbi.HFragments>>pbi.UVShiftX];
+                MVectU2 = pbi.FragMVect[pbi.YPlaneFragments + UVFragOffset + (pbi.HFragments>>pbi.UVShiftX)];
+                MVectV2 = pbi.FragMVect[pbi.YPlaneFragments + pbi.UVPlaneFragments + UVFragOffset + (pbi.HFragments>>pbi.UVShiftX)];
                 if (pbi.UVShiftX == 0){
                   MVectU1 = pbi.FragMVect[pbi.YPlaneFragments + UVFragOffset + 1];
                   MVectV1 = pbi.FragMVect[pbi.YPlaneFragments + pbi.UVPlaneFragments + UVFragOffset + 1];                  
