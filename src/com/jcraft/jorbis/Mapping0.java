@@ -513,7 +513,8 @@ class Mapping0 extends FuncMapping{
 
   private static int ilog2(int v){
     int ret=0;
-    while(v>1){
+    if (v>0)v--;
+    while(v>0){
       ret++;
       v>>>=1;
     }

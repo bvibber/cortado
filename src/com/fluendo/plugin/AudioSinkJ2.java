@@ -24,7 +24,7 @@ import javax.sound.sampled.*;
 
 public class AudioSinkJ2 extends AudioSink
 {
-  public static final int SEGSIZE = 8192;
+  public static final int SEGSIZE = 2048;
 
   private SourceDataLine line = null;
   private int channels;
@@ -46,7 +46,7 @@ public class AudioSinkJ2 extends AudioSink
     Debug.log(Debug.INFO, "line info: buffer: "+ line.getBufferSize());
     Debug.log(Debug.INFO, "line info: framePosition: "+ line.getFramePosition());
 
-    ring.segSize = SEGSIZE;
+    ring.segSize = SEGSIZE*channels*2;
     ring.segTotal = line.getBufferSize() / ring.segSize;
     while (ring.segTotal < 4) {
       ring.segSize >>= 1;
@@ -179,7 +179,7 @@ public class AudioSinkJ2 extends AudioSink
 	    // Sleep for a quarter of the buffer time before we fill it up again
 	    AudioFormat format = line.getFormat();
 	    long sleepTime = (long)(line.getBufferSize() * 1000 
-	      / format.getSampleRate() / format.getSampleSizeInBits() * 8 / 4);
+	      / format.getSampleRate() / format.getSampleSizeInBits() * 8 / (2*channels));//ee
 	    Debug.debug( "Sleeping for " + sleepTime + "ms" );
 	    Thread.sleep(sleepTime);
 	  } catch ( InterruptedException e ) {}
