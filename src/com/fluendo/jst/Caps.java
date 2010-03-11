@@ -51,7 +51,7 @@ public class Caps
       if (sep3 == -1)
         sep3 = len;
       setField (mime.substring(sep1, sep2), mime.substring(sep2+1, sep3));
-      sep2 = sep3+1;
+      sep2 = sep3;
     }
   }
 
