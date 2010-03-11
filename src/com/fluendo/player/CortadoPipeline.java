@@ -35,6 +35,8 @@ public class CortadoPipeline extends Pipeline implements PadListener, CapsListen
   private boolean keepAspect;
   private boolean ignoreAspect;
   private int enableKate;
+  private String enableKateLanguage = "";
+  private String enableKateCategory = "";
   private Component component;
   private int bufferSize = -1;
   private int bufferLow = -1;
@@ -277,6 +279,15 @@ public class CortadoPipeline extends Pipeline implements PadListener, CapsListen
       if (enableKate == katedec.size()-1) {
         doEnableKateIndex(enableKate);
       }
+      else if (enableKate < 0 && (!enableKateLanguage.equals("") || !enableKateCategory.equals(""))) {
+        String language = caps.getFieldString("language", "");
+        String category = caps.getFieldString("category", "");
+        boolean matching_language = enableKateLanguage.equals("") || enableKateLanguage.equals(language);
+        boolean matching_category = enableKateCategory.equals("") || enableKateCategory.equals(category);
+        if (matching_language && matching_category) {
+          doEnableKateIndex(katedec.size()-1);
+        }
+      }
     }
   }
   
@@ -416,7 +427,11 @@ public class CortadoPipeline extends Pipeline implements PadListener, CapsListen
    * A negative index and empty language/category strings will enable none.
    */
   public void enableKateStream(int idx, String language, String category) {
-    if (idx < 0) idx = findKateStream(language, category);
+    if (idx < 0) {
+      enableKateLanguage = language;
+      enableKateCategory = category;
+      idx = findKateStream(language, category);
+    }
     if (idx == enableKate) return;
     doEnableKateIndex(idx);
   }

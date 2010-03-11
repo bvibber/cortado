@@ -301,6 +301,11 @@ public class VorbisDec extends Element implements OggPayload
   {
     return "audio/x-vorbis";
   }
+  public String getMime (Packet op)
+  {
+    if (!isType(op)) return null;
+    return getMime();
+  }
   public int typeFind (byte[] data, int offset, int length)
   {
     if (MemUtils.startsWith (data, offset, length, signature))

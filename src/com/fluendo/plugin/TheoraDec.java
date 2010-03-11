@@ -302,6 +302,11 @@ public class TheoraDec extends Element implements OggPayload
   {
     return "video/x-theora";
   }
+  public String getMime (Packet op)
+  {
+    if (!isType(op)) return null;
+    return "video/x-theora";
+  }
   public int typeFind (byte[] data, int offset, int length)
   {
     if (MemUtils.startsWith (data, offset, length, signature))

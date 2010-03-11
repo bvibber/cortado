@@ -185,7 +185,7 @@ public class OggDemux extends Element
             /* we have a valid media type */
             type = TYPE_MEDIA;
             /* set mime type */
-            String mime = payload.getMime();
+            String mime = payload.getMime(op);
             Debug.log(Debug.INFO, "new stream "+serialno+", mime "+mime);
             setCaps (new Caps (mime));
 	    return;

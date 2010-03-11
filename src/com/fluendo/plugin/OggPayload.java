@@ -54,6 +54,10 @@ interface OggPayload
    */
   public String getMime ();
   /**
+   * Get mime type from the given packet
+   */
+  public String getMime (Packet op);
+  /**
    * Check if the stream is discontinuous (eg, no need to wait
    * for data on this stream before playing)
    */

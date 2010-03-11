@@ -337,6 +337,18 @@ public class KateDec extends Element implements OggPayload
   {
     return "application/x-kate";
   }
+  public String getMime (Packet op)
+  {
+    Info ki = new Info();
+    Comment kc = new Comment();
+    if (!isType(op)) return null;
+    int ret = ki.decodeHeader(kc, op);
+    if (ret < 0) return null;
+    String mime = "application/x-kate";
+    if (!ki.language.equals("")) mime += ";language="+ki.language;
+    if (!ki.category.equals("")) mime += ";category="+ki.category;
+    return mime;
+  }
   public int typeFind (byte[] data, int offset, int length)
   {
     if (MemUtils.startsWith (data, offset, length, signature))
