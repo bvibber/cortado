@@ -215,22 +215,33 @@ public class CortadoPipeline extends Pipeline implements PadListener, CapsListen
         Debug.debug("No Kate selector yet, creating one");
 
         /* insert an overlay before the video sink */
-        ovsinkpad.unlink();
-        videodec.getPad("src").unlink();
-        overlay = ElementFactory.makeByName("kateoverlay", "overlay");
-        if (overlay == null) {
-          noSuchElement ("overlay");
-          return;
+        if (videodec != null) {
+          ovsinkpad.unlink();
+          videodec.getPad("src").unlink();
+          overlay = ElementFactory.makeByName("kateoverlay", "overlay");
+          if (overlay == null) {
+            noSuchElement ("overlay");
+            return;
+          }
+          ovsinkpad = overlay.getPad("videosink");
+          oksinkpad = overlay.getPad("katesink");
+          if (!videodec.getPad("src").link(ovsinkpad)) {
+            postMessage (Message.newError (this, "Failed linking video decoder to overlay"));
+            return;
+          }
+          add(overlay);
+          overlay.setProperty ("component", component);
+          overlay.getPad("videosrc").link(videosink.getPad("sink"));
         }
-        ovsinkpad = overlay.getPad("videosink");
-        oksinkpad = overlay.getPad("katesink");
-        if (!videodec.getPad("src").link(ovsinkpad)) {
-          postMessage (Message.newError (this, "Failed linking video decoder to overlay"));
-          return;
+        else {
+          Element fakesink = ElementFactory.makeByName("fakesink", "fakesink");
+          if (fakesink == null) {
+            noSuchElement("fakesink");
+            return;
+          }
+          oksinkpad = fakesink.getPad("sink");
+          add(fakesink);
         }
-        add(overlay);
-        overlay.setProperty ("component", component);
-        overlay.getPad("videosrc").link(videosink.getPad("sink"));
 
         kselector = ElementFactory.makeByName("selector", "selector");
         if (kselector == null) {
@@ -238,10 +249,12 @@ public class CortadoPipeline extends Pipeline implements PadListener, CapsListen
           return;
         }
         add(kselector);
+
         if (!kselector.getPad("src").link(oksinkpad)) {
           postMessage (Message.newError (this, "Failed linking Kate selector to overlay"));
           return;
         }
+
         kselector.setState (PAUSE);
       }
       tmp_katesink = kselector;
@@ -328,23 +341,9 @@ public class CortadoPipeline extends Pipeline implements PadListener, CapsListen
       if (overlay != null) {
         overlay.setState(STOP);
       }
-      for (int n=0; n<katedec.size(); ++n) {
-        el = (Element)katedec.elementAt(n);
-        el.setState(STOP);
-        remove(el);
-        el = (Element)k_queue.elementAt(n);
-        el.setState(STOP);
-        remove(el);
-      }
-      if (kselector != null) {
-        kselector.setState(STOP);
-        remove(kselector);
-        kselector = null;
-      }
+
       remove (videosink);
       remove (overlay);
-      katedec.removeAllElements();
-      k_queue.removeAllElements();
       videosink = null;
       overlay = null;
       changed = true;
