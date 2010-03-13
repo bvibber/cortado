@@ -78,6 +78,14 @@ public class Renderer {
     return img;
   }
 
+  /**
+   * Flushes all events.
+   */
+  public void flush() {
+    items.removeAllElements();
+    dirty = true;
+  }
+
   public boolean isDirty() {
     return dirty;
   }

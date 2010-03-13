@@ -34,6 +34,16 @@ public class KateOverlay extends Overlay
   private Pad kateSinkPad = new Pad(Pad.SINK, "katesink") {
     protected boolean eventFunc (com.fluendo.jst.Event event) {
       /* don't propagate, the video sink is the master */
+
+      switch (event.getType()) {
+        case com.fluendo.jst.Event.FLUSH_START:
+        case com.fluendo.jst.Event.FLUSH_STOP:
+        case com.fluendo.jst.Event.NEWSEGMENT:
+          onFlush();
+          break;
+	default:
+          break;
+      }
       return true;
     }
 
@@ -64,6 +74,16 @@ public class KateOverlay extends Overlay
   protected synchronized void addKateEvent(com.fluendo.jkate.Event ev) {
     tr.add(ev);
     Debug.log(Debug.DEBUG, "Kate overlay got Kate event: "+new String(ev.text));
+  }
+
+  /**
+   * Upon a flushing event, remove any existing event, now obsolete.
+   * This needs locking so the Kate events are not changed while the
+   * overlay is rendering them to an image.
+   */
+  protected synchronized void onFlush() {
+    tr.flush();
+    Debug.log(Debug.DEBUG, "Kate overlay flushing");
   }
 
   /**
