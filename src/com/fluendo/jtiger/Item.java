@@ -35,12 +35,37 @@ public class Item {
   private int width = -1;
   private int height = -1;
 
-  private float region_x;
-  private float region_y;
-  private float region_w;
-  private float region_h;
+  private Rectangle region = new Rectangle();
 
   private boolean dirty = true;
+
+  private static TextRenderer textRenderer = detectTextRenderer();
+
+  private static TextRenderer detectTextRenderer() {
+    TextRenderer tr = null;
+    try {
+      Class c = Class.forName("com.fluendo.jtiger.BasicTextRenderer");
+      tr = (TextRenderer)c.newInstance();
+      Debug.info("jtiger.Item: detecting Graphics2D");
+      Class.forName("java.awt.Graphics2D");
+      Debug.info("jtiger.Item: detecting TextLayout");
+      Class.forName("java.awt.font.TextLayout");
+      Debug.info("jtiger.Item: detecting AttributedString");
+      Class.forName("java.text.AttributedString");
+      c = Class.forName("com.fluendo.jtiger.FancyTextRenderer");
+      tr = (TextRenderer)c.newInstance();
+      Debug.info("jtiger.Item: We can use the fancy text renderer");
+    }
+    catch (Throwable e) {
+      if (tr == null) {
+        Debug.info("jtiger.Item: We cannot use any text renderer: "+e.toString());
+      }
+      else {
+        Debug.info("jtiger.Item: We have to use the basic text renderer: "+e.toString());
+      }
+    }
+    return tr;
+  }
 
   /**
    * Create a new item from a Kate event.
@@ -118,17 +143,17 @@ public class Item {
    */
   public void setupRegion(Component c, Image img) {
     if (kin.has[Tracker.has_region]) {
-      region_x = kin.region_x;
-      region_y = kin.region_y;
-      region_w = kin.region_w;
-      region_h = kin.region_h;
+      region.x = (int)(kin.region_x + 0.5f);
+      region.y = (int)(kin.region_y + 0.5f);
+      region.width = (int)(kin.region_w + 0.5f);
+      region.height = (int)(kin.region_h + 0.5f);
     }
     else {
       Dimension d = new Dimension(img.getWidth(null), img.getHeight(null));
-      region_x = d.width * 0.1f;
-      region_y = d.height * 0.8f;
-      region_w = d.width * 0.8f;
-      region_h = d.height * 0.1f;
+      region.x = (int)(d.width * 0.1f + 0.5f);
+      region.y = (int)(d.height * 0.8f + 0.5f);
+      region.width = (int)(d.width * 0.8f + 0.5f);
+      region.height = (int)(d.height * 0.1f + 0.5f);
     }
   }
 
@@ -160,9 +185,7 @@ public class Item {
       }
       
       Graphics g = img.getGraphics();
-      int rx = (int)(region_x+0.5), ry = (int)(region_y+0.5);
-      int rw = (int)(region_w+0.5), rh = (int)(region_h+0.5);
-      g.drawImage(background_image.getScaled(rw, rh), rx, ry, null);
+      g.drawImage(background_image.getScaled(region.width, region.height), region.x, region.y, null);
       g.dispose();
     }
   }
@@ -177,47 +200,8 @@ public class Item {
 
     Graphics g = img.getGraphics();
 
-    /* This code uses API calls that were not present in Java 1.1 */
-    /*
-      AttributedString atext = new AttributedString(text, font.getAttributes());
-      AttributedCharacterIterator text_it = atext.getIterator();
-      int text_end = text_it.getEndIndex();
-
-      FontRenderContext frc = g.getFontRenderContext();
-      LineBreakMeasurer lbm = new LineBreakMeasurer(text_it, frc);
-      float dy = 0.0f;
-      float shadow_dx = font_size * 0.05f, shadow_dy = font_size * 0.05f;
-      while (lbm.getPosition() < text_end) {
-        TextLayout layout = lbm.nextLayout(region_w);
-        dy += layout.getAscent();
-        float tw = layout.getAdvance();
-
-        g.setColor(Color.black);
-        layout.draw(g, region_x+((region_w-tw)/2)+shadow_dx, region_y+dy+shadow_dy);
-        layout.draw(g, region_x+((region_w-tw)/2)-shadow_dx, region_y+dy-shadow_dy);
-        layout.draw(g, region_x+((region_w-tw)/2)+shadow_dx, region_y+dy-shadow_dy);
-        layout.draw(g, region_x+((region_w-tw)/2)-shadow_dx, region_y+dy+shadow_dy);
-        g.setColor(Color.white);
-        layout.draw(g, region_x+((region_w-tw)/2), region_y+dy);
-
-        dy += layout.getDescent() + layout.getLeading();
-      }
-    */
-
-    g.setFont(font);
-    FontMetrics fm = g.getFontMetrics();
-    float tw = fm.stringWidth(text);
-    float dy = 0.0f;
-    float shadow_dx = font_size * 0.05f, shadow_dy = font_size * 0.05f;
-
-    g.setColor(Color.black);
-    g.drawString(text, (int)(region_x+((region_w-tw)/2)+shadow_dx+0.5f), (int)(region_y+dy+shadow_dy+0.5f));
-    g.drawString(text, (int)(region_x+((region_w-tw)/2)-shadow_dx+0.5f), (int)(region_y+dy-shadow_dy+0.5f));
-    g.drawString(text, (int)(region_x+((region_w-tw)/2)+shadow_dx+0.5f), (int)(region_y+dy-shadow_dy+0.5f));
-    g.drawString(text, (int)(region_x+((region_w-tw)/2)-shadow_dx+0.5f), (int)(region_y+dy+shadow_dy+0.5f));
-
-    g.setColor(Color.white);
-    g.drawString(text, (int)(region_x+((region_w-tw)/2)+0.5f), (int)(region_y+dy+0.5f));
+    if (textRenderer != null)
+      textRenderer.renderText(g, region, font, text);
 
     g.dispose();
   }
