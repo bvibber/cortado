@@ -25,12 +25,14 @@ import java.awt.*;
 
 public class Renderer {
   private Vector items = new Vector();
+  private boolean dirty = true;
 
   /**
    * Add a new event to the renderer.
    */
   public void add(com.fluendo.jkate.Event ev) {
     items.addElement(new Item(ev));
+    dirty = true;
   }
 
   /**
@@ -42,7 +44,13 @@ public class Renderer {
       boolean ret = ((Item)items.elementAt(n)).update(c, img, t);
       if (!ret) {
         items.removeElementAt(n);
+        dirty = true;
         --n;
+      }
+      else {
+        if (((Item)items.elementAt(n)).isDirty()) {
+          dirty = true;
+        }
       }
     }
     if (items.size() == 0)
@@ -65,6 +73,12 @@ public class Renderer {
       ((Item)items.elementAt(n)).render(c, img);
     }
 
+    dirty = false;
+
     return img;
+  }
+
+  public boolean isDirty() {
+    return dirty;
   }
 }

@@ -40,6 +40,8 @@ public class Item {
   private float region_w;
   private float region_h;
 
+  private boolean dirty = true;
+
   /**
    * Create a new item from a Kate event.
    */
@@ -55,6 +57,8 @@ public class Item {
         text = null;
       }
     }
+
+    dirty = false; /* not dirty yet, inactive */
   }
 
   /**
@@ -81,6 +85,8 @@ public class Item {
 
     width = img_width;
     height = img_height;
+
+    dirty = true;
   }
 
   /**
@@ -90,13 +96,18 @@ public class Item {
   public boolean update(Component c, Image img, double t) {
     com.fluendo.jkate.Event ev = kin.ev;
     if (ev == null) return false;
-    if (t >= ev.end_time) return false;
 
-    if (t < ev.start_time) {
+    /* early out if we're not within the lifetime of the event */
+    if (t < ev.start_time) return true;
+    if (t >= ev.end_time) {
       alive = false;
+      dirty = true;
+      return false; /* we're done, and will get destroyed */
     }
-    else {
+
+    if (!alive) {
       alive = true;
+      dirty = true;
     }
 
     Dimension d = new Dimension(img.getWidth(null), img.getHeight(null));
@@ -134,6 +145,8 @@ public class Item {
     setupRegion(c, img);
     renderBackground(c, img);
     renderText(img);
+
+    dirty = false;
   }
 
   /**
@@ -208,5 +221,9 @@ public class Item {
     g.drawString(text, (int)(region_x+((region_w-tw)/2)+0.5f), (int)(region_y+dy+0.5f));
 
     g.dispose();
+  }
+
+  public boolean isDirty() {
+    return dirty;
   }
 }
