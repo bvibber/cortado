@@ -47,6 +47,7 @@ public class KateDec extends Element implements OggPayload
 
   private long basetime = 0;
   private long lastTs;
+  private boolean haveBOS = false;
   private boolean haveDecoder = false;
 
   /* 
@@ -71,6 +72,9 @@ public class KateDec extends Element implements OggPayload
   public int takeHeader (Packet op)
   {
     int ret = ki.decodeHeader(kc, op);
+    if (ret >= 0) {
+      haveBOS = true;
+    }
     if (ret > 0) {
       k.decodeInit(ki);
       Debug.debug("Kate decoder ready");

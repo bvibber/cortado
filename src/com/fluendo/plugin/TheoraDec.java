@@ -37,6 +37,7 @@ public class TheoraDec extends Element implements OggPayload
 
   private long lastTs;
   private boolean needKeyframe;
+  private boolean haveBOS = false;
   private boolean haveDecoder = false;
 
   /* 
@@ -52,7 +53,10 @@ public class TheoraDec extends Element implements OggPayload
     byte header;
     ret = ti.decodeHeader(tc, op);
     header = op.packet_base[op.packet];
-    if (header == -126) {
+    if (header == -128) {
+      haveBOS = true;
+    }
+    else if (header == -126) {
       ts.decodeInit(ti);
       haveDecoder = true;
     }
@@ -98,12 +102,14 @@ public class TheoraDec extends Element implements OggPayload
   {
     long res;
 
-    if (gp < 0 || !haveDecoder)
+    if (gp < 0 || !haveBOS)
       return -1;
 
-    res = (long) (ts.granuleTime(gp) * Clock.SECOND);
+    long iframe=gp>>ti.keyframe_granule_shift;
+    long pframe=gp-(iframe<<ti.keyframe_granule_shift);
 
-    return res;
+    return (long)((iframe+pframe)*
+      ((double)ti.fps_denominator/ti.fps_numerator) * Clock.SECOND);
   }
 
   private Pad srcPad = new Pad(Pad.SRC, "src") {

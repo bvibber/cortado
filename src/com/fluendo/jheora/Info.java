@@ -48,6 +48,7 @@ public class Info {
   public byte version_minor;
   public byte version_subminor;
 
+  public int   keyframe_granule_shift;
   public long  keyframe_frequency_force;
 
   /* codec_setup_info */
@@ -108,7 +109,8 @@ public class Info {
     target_bitrate = opb.readB(24);
     quality = opb.readB(6);
 
-    keyframe_frequency_force = 1<<opb.readB(5);
+    keyframe_granule_shift = opb.readB(5);
+    keyframe_frequency_force = 1<<keyframe_granule_shift;
     
     pixel_fmt = PixelFormat.formats[opb.readB(2)];
     if (pixel_fmt==PixelFormat.TH_PF_RSVD)
