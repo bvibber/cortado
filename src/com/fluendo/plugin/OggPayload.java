@@ -21,7 +21,7 @@ package com.fluendo.plugin;
 import java.util.*;
 import com.jcraft.jogg.*;
 
-interface OggPayload
+public interface OggPayload
 {
   /**
    * Check if the packet contains the signature
