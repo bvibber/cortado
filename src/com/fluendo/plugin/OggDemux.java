@@ -39,10 +39,11 @@ public class OggDemux extends Element
   private static final int TYPE_CMML = 3;
   private static final int TYPE_MEDIA = 4;
 
+  private static final String payload_names[] = {
+    "TheoraDec", "VorbisDec", "KateDec"
+  };
   private OggPayload payloads[] = {
-    new TheoraDec(),
-    new VorbisDec(),
-    new KateDec()
+    null, null, null
   };
 
   class OggStream extends Pad {
@@ -178,6 +179,7 @@ public class OggDemux extends Element
       /* find out if it is a media payload */
       for (i=0; i<payloads.length; i++) {
 	OggPayload pl = payloads[i];
+        if (pl == null) continue;
 
 	if (pl.isType (op)) {
           try {
@@ -578,7 +580,6 @@ public class OggDemux extends Element
     return ret;
   }
 
-
   public String getFactoryName ()
   {
     return "oggdemux";
@@ -597,6 +598,21 @@ public class OggDemux extends Element
 
   public OggDemux () {
     super ();
+
+    /* Create the payloads we know about */
+    for (int n=0; n<payload_names.length; ++n)
+    {
+      String name = "com.fluendo.plugin."+payload_names[n];
+      try {
+        Class c = Class.forName(name);
+        Debug.log(Debug.INFO, "Ogg payload "+name+" found");
+        payloads[n] = (OggPayload)c.newInstance();
+      }
+      catch (Throwable e) {
+        Debug.log(Debug.INFO, "Ogg payload "+name+" not found");
+        payloads[n] = null;
+      }
+    }
 
     oy = new SyncState();
     og = new Page();
