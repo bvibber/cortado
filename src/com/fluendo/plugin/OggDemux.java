@@ -121,8 +121,7 @@ public class OggDemux extends Element
       if (!active)
         return;
 
-      if (baseTs == -1)
-	baseTs = firstTs;
+      baseTs = firstTs;
 
       time = firstTs - baseTs;
 
