@@ -113,41 +113,42 @@ public class DurationScanner {
 
     private void determineType(Packet packet, StreamInfo info) {
 
+        int ret;
+        Class c;
+
         // try theora
-        com.fluendo.jheora.Comment tc = new com.fluendo.jheora.Comment();
-        com.fluendo.jheora.Info ti = new com.fluendo.jheora.Info();
-
-        tc.clear();
-        ti.clear();
-
-        int ret = ti.decodeHeader(tc, packet);
-        if (ret == 0) {
-            info.decoder = ti;
-            info.type = THEORA;
-            info.decodedHeaders++;
-            return;
+        try {
+          c = Class.forName("com.fluendo.plugin.TheoraDec");
+          com.fluendo.plugin.OggPayload pl = (com.fluendo.plugin.OggPayload)c.newInstance();
+          ret = pl.takeHeader(packet);
+          if (ret >= 0) {
+              info.decoder = pl;
+              info.type = THEORA;
+              return;
+          }
+        }
+        catch (Throwable e) {
         }
 
         // try vorbis
-        com.jcraft.jorbis.Comment vc = new com.jcraft.jorbis.Comment();
-        com.jcraft.jorbis.Info vi = new com.jcraft.jorbis.Info();
-
-        vc.init();
-        vi.init();
-
-        ret = vi.synthesis_headerin(vc, packet);
-        if (ret == 0) {
-            info.decoder = vi;
-            info.type = VORBIS;
-            info.decodedHeaders++;
-            return;
+        try {
+          c = Class.forName("com.fluendo.plugin.VorbisDec");
+          com.fluendo.plugin.OggPayload pl = (com.fluendo.plugin.OggPayload)c.newInstance();
+          ret = pl.takeHeader(packet);
+          if (ret >= 0) {
+              info.decoder = pl;
+              info.type = VORBIS;
+              return;
+          }
+        }
+        catch (Throwable e) {
         }
 
         info.type = UNKNOWN;
     }
 
     public float getDurationForBuffer(byte[] buffer, int bufbytes) {
-        float time = -1;
+        long time = -1;
 
         int offset = oy.buffer(bufbytes);
         java.lang.System.arraycopy(buffer, 0, oy.data, offset, bufbytes);
@@ -178,8 +179,8 @@ public class DurationScanner {
                 switch (type) {
                     case VORBIS:
                          {
-                            com.jcraft.jorbis.Info i = (com.jcraft.jorbis.Info) info.decoder;
-                            float t = (float) (og.granulepos() - info.startgranule) / i.rate;
+                            com.fluendo.plugin.OggPayload pl = info.decoder;
+                            long t = pl.granuleToTime(og.granulepos()) - pl.granuleToTime(info.startgranule);
                             if (t > time) {
                                 time = t;
                             }
@@ -187,15 +188,18 @@ public class DurationScanner {
                         break;
                     case THEORA:
                          {
-                            com.fluendo.jheora.Info i = (com.fluendo.jheora.Info) info.decoder;
+                            com.fluendo.plugin.OggPayload pl = info.decoder;
+                            long t = pl.granuleToTime(og.granulepos()) - pl.granuleToTime(info.startgranule);
+                            if (t > time) {
+                                time = t;
+                            }
                         }
                         break;
                 }
             }
         }
 
-        return time;
-
+        return time / (float)com.fluendo.jst.Clock.SECOND;
     }
 
     public float getDurationForURL(URL url, String user, String password) {
@@ -243,8 +247,7 @@ public class DurationScanner {
 
     private class StreamInfo {
 
-        public Object decoder;
-        public int decodedHeaders = 0;
+        public com.fluendo.plugin.OggPayload decoder;
         public int type = NOTDETECTED;
         public long startgranule;
         public StreamState streamstate;
