@@ -23,12 +23,14 @@ import java.awt.*;
 
 public class Player extends Frame {
   private static final long serialVersionUID = 1L;
-Cortado applet;
+  private static final int window_width = 352;
+  private static final int window_height = 270;
+  Cortado applet;
 
   public Player(String url) {
     applet = new Cortado();
-    applet.setSize(352, 270);
-    setSize(352, 270);
+    applet.setSize(window_width, window_height);
+    setSize(window_width, window_height);
 
     applet.setParam ("url", url);
     applet.setParam ("local", "false");
