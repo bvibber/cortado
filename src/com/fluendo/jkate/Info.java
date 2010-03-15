@@ -126,8 +126,7 @@ public class Info {
     for (buffer_characters=0; buffer_characters<16; ++buffer_characters) {
       if (buffer16[buffer_characters] == 0) break;
     }
-    try { language = new String(buffer16, 0, buffer_characters, "US-ASCII"); }
-    catch (java.io.UnsupportedEncodingException e) { language = ""; }
+    language = new String(buffer16, 0, buffer_characters);
 
     category = "";
     buffer_characters = 0;
@@ -137,8 +136,7 @@ public class Info {
     for (buffer_characters=0; buffer_characters<16; ++buffer_characters) {
       if (buffer16[buffer_characters] == 0) break;
     }
-    try { category = new String(buffer16, 0, buffer_characters, "US-ASCII"); }
-    catch (java.io.UnsupportedEncodingException e) { category = ""; }
+    category = new String(buffer16, 0, buffer_characters);
 
     /* end of packet */
     if (opb.read(1) != -1)
