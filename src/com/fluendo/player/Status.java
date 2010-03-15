@@ -37,6 +37,7 @@ public class Status extends Component implements MouseListener,
     private Component component;
 
     private Font font = new Font("SansSerif", Font.PLAIN, 10);
+    private Font boldFont = new Font("SansSerif", Font.BOLD, 10);
 
     private boolean haveAudio;
     private boolean haveSubtitles;
@@ -60,8 +61,7 @@ public class Status extends Component implements MouseListener,
 
     private static final int SPEAKER_WIDTH = 12;
     private static final int SPEAKER_HEIGHT = 10;
-    private static final int SUBTITLES_WIDTH = 12;
-    private static final int SUBTITLES_HEIGHT = 10;
+    private static final int SUBTITLES_WIDTH = 16;
     private static final int TIME_WIDTH = 38;
     private static final int SEEK_TIME_GAP = 10;
     private static final int THUMB_WIDTH = 9;
@@ -89,19 +89,6 @@ public class Status extends Component implements MouseListener,
     private Image speakerImg;
     private int speakerWidth; // width of the speaker icon or zero if hidden
 
-    private String subtitles = 
-       "\0\0\0\0\0\377\377\377\377\377\0\0"
-      +"\0\0\0\0\377\0\0\0\0\0\377\0"
-      +"\0\0\0\377\0\0\0\0\0\0\0\377"
-      +"\0\0\0\377\0\377\377\377\377\377\0\377"
-      +"\0\0\0\377\0\0\0\0\0\0\0\377"
-      +"\0\0\377\377\0\377\377\377\377\377\0\377"
-      +"\0\377\377\0\0\0\0\0\0\0\0\377"
-      +"\0\377\0\377\377\0\0\0\0\0\377\0"
-      +"\0\377\377\377\0\377\377\377\377\377\0\0"
-      +"\377\0\0\0\0\0\0\0\0\0\0\0";
-
-    private Image subtitlesImg;
     private int subtitlesWidth; // width of the subtitles icon or zero if hidden
 
 
@@ -122,7 +109,6 @@ public class Status extends Component implements MouseListener,
         component = comp;
 
         speakerImg = createImage(comp, speaker, SPEAKER_WIDTH, SPEAKER_HEIGHT);
-        subtitlesImg = createImage(comp, subtitles, SUBTITLES_WIDTH, SUBTITLES_HEIGHT);
 
         button1Color = Color.black;
         button2Color = Color.black;
@@ -299,7 +285,10 @@ public class Status extends Component implements MouseListener,
 
     private void paintSubtitles(Graphics g) {
         if (haveSubtitles) {
-            g.drawImage(subtitlesImg, r.width - SUBTITLES_WIDTH, r.height - SUBTITLES_HEIGHT - 1, null);
+            g.setColor(Color.white);
+            g.setFont(boldFont);
+            g.drawString("CC", r.width - SUBTITLES_WIDTH, r.height - 2);
+            g.setFont(font);
         }
     }
 
