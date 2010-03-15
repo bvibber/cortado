@@ -81,7 +81,8 @@ public class Cortado extends Applet implements Runnable, MouseMotionListener,
     public boolean paused;
     public String src;
     
-    private PopupMenu menu, subtitlesMenu;
+    private PopupMenu menu;
+    private Menu subtitlesMenu;
     private Hashtable params = new Hashtable();
     private Configure configure;
     private Dimension appletDimension;
@@ -341,7 +342,7 @@ public class Cortado extends Applet implements Runnable, MouseMotionListener,
     }
 
     public void createMenu() {
-        subtitlesMenu = new PopupMenu("Subtitles");
+        subtitlesMenu = new Menu("Subtitles");
         subtitlesMenu.addActionListener(this);
 
         menu = new PopupMenu();
@@ -387,7 +388,7 @@ public class Cortado extends Applet implements Runnable, MouseMotionListener,
         return new Locale(language, country);
       }
       else {
-        return new Locale(rfc3066);
+        return new Locale(rfc3066,"");
       }
     }
 
