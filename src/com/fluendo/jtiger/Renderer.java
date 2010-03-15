@@ -39,9 +39,9 @@ public class Renderer {
    * Update the renderer, and all the events it tracks.
    * Returns 1 if there is nothing to draw, as an optimization
    */
-  public int update(Component c, Image img, double t) {
+  public int update(Component c, Dimension d, double t) {
     for (int n=0; n<items.size(); ++n) {
-      boolean ret = ((Item)items.elementAt(n)).update(c, img, t);
+      boolean ret = ((Item)items.elementAt(n)).update(c, d, t);
       if (!ret) {
         items.removeElementAt(n);
         dirty = true;

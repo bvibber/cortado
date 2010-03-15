@@ -30,6 +30,7 @@ public class KateOverlay extends Overlay
   private Font font = null;
   private String text = null;
   private Renderer tr = new Renderer();
+  private Dimension image_dimension = null;
 
   private Pad kateSinkPad = new Pad(Pad.SINK, "katesink") {
     protected boolean eventFunc (com.fluendo.jst.Event event) {
@@ -83,15 +84,12 @@ public class KateOverlay extends Overlay
    */
   protected synchronized void onFlush() {
     tr.flush();
+    image_dimension = null;
     Debug.log(Debug.DEBUG, "Kate overlay flushing");
   }
 
-  /**
-   * Overlay the Kate renderer onto the given image.
-   */
-  protected synchronized void overlay(com.fluendo.jst.Buffer buf) {
+  protected Image getImage(com.fluendo.jst.Buffer buf) {
     Image img;
-
     if (buf.object instanceof ImageProducer) {
       img = component.createImage((ImageProducer)buf.object);
     }
@@ -100,18 +98,49 @@ public class KateOverlay extends Overlay
     }
     else {
       System.out.println(this+": unknown buffer received "+buf);
-      return;
+      img = null;
+    }
+    return img;
+  }
+
+  /**
+   * Overlay the Kate renderer onto the given image.
+   */
+  protected synchronized void overlay(com.fluendo.jst.Buffer buf) {
+    Image img = null;
+
+    if (image_dimension == null) {
+      img = getImage(buf);
+      if (img == null) {
+        return;
+      }
+      image_dimension = new Dimension(img.getWidth(null), img.getHeight(null));
     }
 
     /* before rendering, we update the state of the events; for now this
        just weeds out old ones, but at some point motions could be tracked. */
-    int ret = tr.update(component, img, buf.timestamp/(double)Clock.SECOND);
-    /* if there are no Kate events active, just return the buffer as is */
-    if (ret == 1)
+    int ret = tr.update(component, image_dimension, buf.timestamp/(double)Clock.SECOND);
+    if (ret < 0) {
+      Debug.log(Debug.WARNING, "Failed to update jtiger renderer");
       return;
+    }
+
+    /* if the renderer isn't dirty and the image hasn't changed, we don't need
+       to do anything, as the result image would be the same */
+    if (buf.duplicate && !tr.isDirty()) {
+      Debug.log(Debug.DEBUG, "Video frame is a dupe and we're not dirty. Yeah.");
+      return;
+    }
 
     /* render Kate stream on top */
+    if (img == null) {
+      img = getImage(buf);
+    }
     img = tr.render(component, img);
+
+    /* We need to draw a new overlay, so we need to get the buffer to update,
+       as it might have a previous overlay on top of it */
+    buf.duplicate = false;
 
     buf.object = img;
   }

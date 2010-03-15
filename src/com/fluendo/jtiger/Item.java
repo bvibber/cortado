@@ -93,7 +93,7 @@ public class Item {
    * Updates the item at the given time.
    * returns true for alive, false for dead
    */
-  public boolean update(Component c, Image img, double t) {
+  public boolean update(Component c, Dimension d, double t) {
     com.fluendo.jkate.Event ev = kin.ev;
     if (ev == null) return false;
 
@@ -110,7 +110,6 @@ public class Item {
       dirty = true;
     }
 
-    Dimension d = new Dimension(img.getWidth(null), img.getHeight(null));
     return kin.update(t-ev.start_time, d, d);
   }
 
