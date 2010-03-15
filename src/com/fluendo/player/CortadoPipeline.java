@@ -256,6 +256,8 @@ public class CortadoPipeline extends Pipeline implements PadListener, CapsListen
         }
 
         kselector.setState (PAUSE);
+
+	((Cortado)component).status.setHaveSubtitles(true);
       }
       tmp_katesink = kselector;
 
@@ -805,5 +807,17 @@ public class CortadoPipeline extends Pipeline implements PadListener, CapsListen
       result = q.parsePositionValue (); 
     }
     return result;
+  }
+
+  protected int getNumKateStreams() {
+    return katedec.size();
+  }
+  protected String getKateStreamCategory(int idx) {
+    if (idx < 0 || idx >= katedec.size()) return "";
+    return String.valueOf(((Element)katedec.elementAt(idx)).getProperty("category"));
+  }
+  protected String getKateStreamLanguage(int idx) {
+    if (idx < 0 || idx >= katedec.size()) return "";
+    return String.valueOf(((Element)katedec.elementAt(idx)).getProperty("language"));
   }
 }

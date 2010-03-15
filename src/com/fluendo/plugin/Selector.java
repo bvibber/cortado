@@ -104,13 +104,17 @@ public class Selector extends Element
     if (name.equals("selected")) {
       int new_selected = Integer.valueOf(value.toString()).intValue();
       Debug.info("Selector: request to select "+new_selected+" (from "+selected+"), within 0-"+(sinks.size()-1));
-      if (new_selected < 0 || new_selected >= sinks.size()) {
-        selected = -1;
-        selectedPad = null;
-      }
-      else {
-        selected = new_selected;
-        selectedPad = (Pad)sinks.elementAt(selected);
+      if (new_selected != selected) {
+        srcPad.pushEvent (Event.newFlushStart());
+        if (new_selected < 0 || new_selected >= sinks.size()) {
+          selected = -1;
+          selectedPad = null;
+        }
+        else {
+          selected = new_selected;
+          selectedPad = (Pad)sinks.elementAt(selected);
+        }
+        srcPad.pushEvent (Event.newFlushStop());
       }
     }
     else {

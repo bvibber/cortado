@@ -196,6 +196,9 @@ parameters:
   showSpeaker: boolean
               Show a speaker icon when audio is available (default true)
 
+  showSubtitles: boolean
+              Show a subtitles icon when subtitles are available (default true)
+
   hideTimeout: int 
               Timeout in seconds to hide the status area when showStatus is
 	      auto. This timeout is to make sure that the status area is visible

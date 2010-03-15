@@ -39,10 +39,12 @@ public class Status extends Component implements MouseListener,
     private Font font = new Font("SansSerif", Font.PLAIN, 10);
 
     private boolean haveAudio;
+    private boolean haveSubtitles;
     private boolean havePercent;
     private boolean seekable;
     private boolean live;
     private boolean showSpeaker;
+    private boolean showSubtitles;
     private boolean clearedScreen;
 
     private static final int NONE = 0;
@@ -58,6 +60,8 @@ public class Status extends Component implements MouseListener,
 
     private static final int SPEAKER_WIDTH = 12;
     private static final int SPEAKER_HEIGHT = 10;
+    private static final int SUBTITLES_WIDTH = 12;
+    private static final int SUBTITLES_HEIGHT = 10;
     private static final int TIME_WIDTH = 38;
     private static final int SEEK_TIME_GAP = 10;
     private static final int THUMB_WIDTH = 9;
@@ -85,19 +89,41 @@ public class Status extends Component implements MouseListener,
     private Image speakerImg;
     private int speakerWidth; // width of the speaker icon or zero if hidden
 
+    private String subtitles = 
+       "\0\0\0\0\0\377\377\377\377\377\0\0"
+      +"\0\0\0\0\377\0\0\0\0\0\377\0"
+      +"\0\0\0\377\0\0\0\0\0\0\0\377"
+      +"\0\0\0\377\0\377\377\377\377\377\0\377"
+      +"\0\0\0\377\0\0\0\0\0\0\0\377"
+      +"\0\0\377\377\0\377\377\377\377\377\0\377"
+      +"\0\377\377\0\0\0\0\0\0\0\0\377"
+      +"\0\377\0\377\377\0\0\0\0\0\377\0"
+      +"\0\377\377\377\0\377\377\377\377\377\0\0"
+      +"\377\0\0\0\0\0\0\0\0\0\0\0";
+
+    private Image subtitlesImg;
+    private int subtitlesWidth; // width of the subtitles icon or zero if hidden
+
 
     private Vector listeners = new Vector();
 
+    public Image createImage(Component comp, String s, int w, int h) {
+        int[] pixels = new int[w * h];
+
+        for (int i = 0; i < w * h; i++) {
+            pixels[i] = 0xff000000 | (s.charAt(i) << 16)
+                    | (s.charAt(i) << 8) | (s.charAt(i));
+        }
+        return comp.getToolkit().createImage(
+                new MemoryImageSource(w, h, pixels, 0, w));
+    }
+
     public Status(Component comp) {
-        int[] pixels = new int[SPEAKER_WIDTH * SPEAKER_HEIGHT];
         component = comp;
 
-        for (int i = 0; i < SPEAKER_WIDTH * SPEAKER_HEIGHT; i++) {
-            pixels[i] = 0xff000000 | (speaker.charAt(i) << 16)
-                    | (speaker.charAt(i) << 8) | (speaker.charAt(i));
-        }
-        speakerImg = comp.getToolkit().createImage(
-                new MemoryImageSource(SPEAKER_WIDTH, SPEAKER_HEIGHT, pixels, 0, SPEAKER_WIDTH));
+        speakerImg = createImage(comp, speaker, SPEAKER_WIDTH, SPEAKER_HEIGHT);
+        subtitlesImg = createImage(comp, subtitles, SUBTITLES_WIDTH, SUBTITLES_HEIGHT);
+
         button1Color = Color.black;
         button2Color = Color.black;
         seekColor = Color.black;
@@ -137,7 +163,8 @@ public class Status extends Component implements MouseListener,
     private void paintPercent(Graphics g) {
         if (havePercent) {
             g.setColor(Color.white);
-            g.drawString("" + bufferPercent + "%", r.width - 26 - speakerWidth, r.height - 2);
+            g.drawString("" + bufferPercent + "%",
+                r.width - 26 - speakerWidth -subtitlesWidth, r.height - 2);
         }
     }
 
@@ -205,7 +232,7 @@ public class Status extends Component implements MouseListener,
      */
     private Rectangle getSeekBarRect() {
       return new Rectangle(r.height*2 + 1, 2,
-	  r.width - SEEK_TIME_GAP - TIME_WIDTH - speakerWidth - (r.height * 2), 
+	  r.width - SEEK_TIME_GAP - TIME_WIDTH - speakerWidth - subtitlesWidth - (r.height * 2), 
 	  r.height - 4);
     }
 
@@ -257,7 +284,7 @@ public class Status extends Component implements MouseListener,
 
         r = getBounds();
 
-        end = r.width - speakerWidth - TIME_WIDTH;
+        end = r.width - speakerWidth - subtitlesWidth - TIME_WIDTH;
 
         g.setColor(Color.white);
         g.drawString("" + hour + ":" + (min < 10 ? "0" + min : "" + min) + ":"
@@ -266,7 +293,13 @@ public class Status extends Component implements MouseListener,
 
     private void paintSpeaker(Graphics g) {
         if (haveAudio) {
-            g.drawImage(speakerImg, r.width - SPEAKER_WIDTH, r.height - SPEAKER_HEIGHT - 1, null);
+            g.drawImage(speakerImg, r.width - SPEAKER_WIDTH - subtitlesWidth, r.height - SPEAKER_HEIGHT - 1, null);
+        }
+    }
+
+    private void paintSubtitles(Graphics g) {
+        if (haveSubtitles) {
+            g.drawImage(subtitlesImg, r.width - SUBTITLES_WIDTH, r.height - SUBTITLES_HEIGHT - 1, null);
         }
     }
 
@@ -319,6 +352,9 @@ public class Status extends Component implements MouseListener,
 	}
         if (showSpeaker) {
             paintSpeaker(g2);
+        }
+        if (showSubtitles) {
+            paintSubtitles(g2);
         }
 
         g.drawImage(img, r.x, r.y, null);
@@ -392,6 +428,12 @@ public class Status extends Component implements MouseListener,
         component.repaint();
     }
 
+    public void setHaveSubtitles(boolean a) {
+        haveSubtitles = a;
+        subtitlesWidth = showSubtitles && haveSubtitles ? SUBTITLES_WIDTH : 0;
+        component.repaint();
+    }
+
     public void setHavePercent(boolean p) {
         havePercent = p;
         component.repaint();
@@ -410,6 +452,12 @@ public class Status extends Component implements MouseListener,
     public void setShowSpeaker(boolean s) {
         showSpeaker = s;
         speakerWidth = s ? SPEAKER_WIDTH : 0;
+        component.repaint();
+    }
+
+    public void setShowSubtitles(boolean s) {
+        showSubtitles = s;
+        subtitlesWidth = showSubtitles && haveSubtitles ? SUBTITLES_WIDTH : 0;
         component.repaint();
     }
 

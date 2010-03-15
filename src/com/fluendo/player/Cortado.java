@@ -38,6 +38,7 @@ public class Cortado extends Applet implements Runnable, MouseMotionListener,
     private String kateLanguage;
     private String kateCategory;
     private boolean showSpeaker;
+    private boolean showSubtitles;
     private boolean keepAspect;
     private boolean ignoreAspect;
     private boolean autoPlay;
@@ -80,7 +81,7 @@ public class Cortado extends Applet implements Runnable, MouseMotionListener,
     public boolean paused;
     public String src;
     
-    private PopupMenu menu;
+    private PopupMenu menu, subtitlesMenu;
     private Hashtable params = new Hashtable();
     private Configure configure;
     private Dimension appletDimension;
@@ -113,6 +114,7 @@ public class Cortado extends Applet implements Runnable, MouseMotionListener,
             {"hideTimeout", "int", "Timeout in seconds to hide the status area when " +
                 "showStatus is auto (default 0)"},
             {"showSpeaker", "boolean", "Show a speaker icon when audio is available (default true)"},
+            {"showSubtitles", "boolean", "Show a subtitles icon when subtitles are available (default true)"},
             {"keepAspect", "boolean",
                 "Use aspect ratio of video (default true)"},
             {"ignoreAspect", "boolean",
@@ -240,6 +242,7 @@ public class Cortado extends Applet implements Runnable, MouseMotionListener,
         showStatus = getEnumParam("showStatus", showStatusVals, "auto");
         hideTimeout = getIntParam("hideTimeout", 3);
         showSpeaker = getBoolParam("showSpeaker", true);
+        showSubtitles = getBoolParam("showSubtitles", true);
         keepAspect = getBoolParam("keepAspect", true);
         ignoreAspect = getBoolParam("ignoreAspect", false);
         bufferSize = getIntParam("bufferSize", 200);
@@ -293,7 +296,9 @@ public class Cortado extends Applet implements Runnable, MouseMotionListener,
 
         status = new Status(this);
         status.setShowSpeaker(showSpeaker);
+        status.setShowSubtitles(showSubtitles);
         status.setHaveAudio(audio);
+        status.setHaveSubtitles(false); // by default
         status.setHavePercent(true);
         /* assume live stream unless specified */
         if (live == BOOL_FALSE) {
@@ -332,10 +337,78 @@ public class Cortado extends Applet implements Runnable, MouseMotionListener,
             status.setVisible(false);
         }
 
+        createMenu();
+    }
+
+    public void createMenu() {
+        subtitlesMenu = new PopupMenu("Subtitles");
+        subtitlesMenu.addActionListener(this);
+
         menu = new PopupMenu();
+        menu.add(subtitlesMenu);
+        menu.addSeparator();
         menu.add("About...");
         menu.addActionListener(this);
         this.add(menu);
+
+        populateMenu();
+    }
+
+    public String getCategoryName(String code) {
+      String names[]={
+        "CC",  "closed captions",
+        "SUB", "subtitles",
+        "TAD", "text audio descriptions",
+        "KTV", "karaoke",
+        "TIK", "ticker text",
+        "AR",  "active regions",
+        "NB",  "semantic annotations",
+        "META","metadata",
+        "TRX", "transcript",
+        "LRC", "lyrics",
+        "LIN", "linguistic markup",
+        "CUE", "cue points",
+
+        "subtitles", "subtitles",
+        "spu-subtitles", "subtitles (images)",
+        "lyrics", "lyrics",
+        "K-SPU", "subtitles (images)",
+      };
+      for (int n=0;n<names.length;n+=2) if (names[n].equals(code)) return names[n+1];
+      return "\""+code+"\"";
+    }
+
+    public Locale getLocale(String rfc3066) {
+      rfc3066 = rfc3066.replace('-','_');
+      int sep = rfc3066.indexOf("_");
+      if (sep >= 0) {
+        String language = rfc3066.substring(0, sep);
+        String country = rfc3066.substring(sep+1);
+        return new Locale(language, country);
+      }
+      else {
+        return new Locale(rfc3066);
+      }
+    }
+
+    public void populateMenu() {
+      subtitlesMenu.removeAll();
+      int nstreams = pipeline.getNumKateStreams();
+      if (nstreams > 0) {
+        subtitlesMenu.enable();
+        subtitlesMenu.add("Off");
+        subtitlesMenu.addSeparator();
+        for (int n=0; n<nstreams; ++n) {
+          Locale locale = getLocale(pipeline.getKateStreamLanguage(n));
+          String displayLanguage = locale.getDisplayLanguage();
+          String displayCountry = locale.getDisplayCountry();
+          String displayLC = displayLanguage;
+          if (displayCountry!= null && !displayCountry.equals("")) displayLC += " ("+displayCountry+")";
+          String label = (n+1) + " - " + displayLC+" "+getCategoryName(pipeline.getKateStreamCategory(n));
+          subtitlesMenu.add(label);
+        }
+      }
+      else subtitlesMenu.disable();
     }
 
     public void actionPerformed(ActionEvent e) {
@@ -344,6 +417,27 @@ public class Cortado extends Applet implements Runnable, MouseMotionListener,
         if (command.equals("About...")) {
             AboutFrame about = new AboutFrame(pipeline);
             about.d.setVisible(true);
+        }
+        else if (command.equals("Off")) {
+          Debug.log(Debug.WARNING, "Switching subtitles off");
+          setParam("kateIndex","-1");
+          setParam("kateLanguage","");
+          setParam("kateCategory","");
+          pipeline.enableKateStream(-1, "", "");
+        }
+        else {
+          int idx = Integer.valueOf(command.substring(0, command.indexOf(" "))).intValue();
+          if (idx >= 1 && idx <= pipeline.getNumKateStreams()) {
+            String sidx = new String(""+(idx-1));
+            Debug.log(Debug.WARNING, "Switching to subtitles stream "+sidx);
+            setParam("kateIndex",sidx);
+            setParam("kateLanguage","");
+            setParam("kateCategory","");
+            pipeline.enableKateStream(idx+1, "", "");
+          }
+          else {
+            Debug.log(Debug.WARNING, "Failed to parse subtitle selection command string: "+command);
+          }
         }
     }
 
@@ -531,6 +625,7 @@ public class Cortado extends Applet implements Runnable, MouseMotionListener,
             ((MouseListener) status).mousePressed(e);
         } else {
             if ((e.getModifiers() & InputEvent.BUTTON3_MASK) == InputEvent.BUTTON3_MASK) {
+                populateMenu();
                 menu.show(this, e.getX(), e.getY());
             }
         }
