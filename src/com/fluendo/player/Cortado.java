@@ -352,7 +352,7 @@ public class Cortado extends Applet implements Runnable, MouseMotionListener,
         menu.addActionListener(this);
         this.add(menu);
 
-        populateMenu();
+        populateMenu(subtitlesMenu);
     }
 
     public String getCategoryName(String code) {
@@ -392,7 +392,7 @@ public class Cortado extends Applet implements Runnable, MouseMotionListener,
       }
     }
 
-    public void populateMenu() {
+    public void populateMenu(Menu subtitlesMenu) {
       subtitlesMenu.removeAll();
       int nstreams = pipeline.getNumKateStreams();
       if (nstreams > 0) {
@@ -626,7 +626,7 @@ public class Cortado extends Applet implements Runnable, MouseMotionListener,
             ((MouseListener) status).mousePressed(e);
         } else {
             if ((e.getModifiers() & InputEvent.BUTTON3_MASK) == InputEvent.BUTTON3_MASK) {
-                populateMenu();
+                populateMenu(subtitlesMenu);
                 menu.show(this, e.getX(), e.getY());
             }
         }
@@ -835,7 +835,7 @@ public class Cortado extends Applet implements Runnable, MouseMotionListener,
         return (double) pipeline.getPosition() / Clock.SECOND;
     }
 
-    public void newState(int aState) {
+    public void onState(int aState) {
         switch (aState) {
             case Status.STATE_PAUSED:
                 doPause();
@@ -851,8 +851,21 @@ public class Cortado extends Applet implements Runnable, MouseMotionListener,
         }
     }
 
-    public void newSeek(double aPos) {
+    public void onSeek(double aPos) {
         doSeek(aPos);
+    }
+
+    public void onAudio() {
+      // TODO
+    }
+
+    public void onSubtitles(int x, int y) {
+        Dimension dim = getSize();
+        PopupMenu subtitlesPopupMenu = new PopupMenu();
+        populateMenu(subtitlesPopupMenu);
+        subtitlesPopupMenu.addActionListener(this);
+        this.add(subtitlesPopupMenu);
+        subtitlesPopupMenu.show(this, x, y+dim.height-statusHeight);
     }
 
     public synchronized void start() {

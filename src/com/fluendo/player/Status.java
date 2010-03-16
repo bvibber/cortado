@@ -37,7 +37,7 @@ public class Status extends Component implements MouseListener,
     private Component component;
 
     private Font font = new Font("SansSerif", Font.PLAIN, 10);
-    private Font boldFont = new Font("SansSerif", Font.BOLD, 10);
+    private Font boldFont = null;
 
     private boolean haveAudio;
     private boolean haveSubtitles;
@@ -48,20 +48,21 @@ public class Status extends Component implements MouseListener,
     private boolean showSubtitles;
     private boolean clearedScreen;
 
-    private static final int NONE = 0;
-    private static final int BUTTON1 = 1;
-    private static final int BUTTON2 = 2;
-    private static final int SEEKER = 3;
-    private static final int SEEKBAR = 4;
+    private static final int NONE = -1;
+    private static final int BUTTON1 = 0;
+    private static final int BUTTON2 = 1;
+    private static final int SEEKER = 2;
+    private static final int SEEKBAR = 3;
+    private static final int AUDIO = 4;
+    private static final int SUBTITLES = 5;
     private int clicked = NONE;
 
-    private Color button1Color;
-    private Color button2Color;
-    private Color seekColor;
+    private Color colors[] = {
+      Color.black, Color.black, Color.black, Color.black, Color.black, Color.black
+    };
 
     private static final int SPEAKER_WIDTH = 12;
     private static final int SPEAKER_HEIGHT = 10;
-    private static final int SUBTITLES_WIDTH = 16;
     private static final int TIME_WIDTH = 38;
     private static final int SEEK_TIME_GAP = 10;
     private static final int THUMB_WIDTH = 9;
@@ -109,10 +110,6 @@ public class Status extends Component implements MouseListener,
         component = comp;
 
         speakerImg = createImage(comp, speaker, SPEAKER_WIDTH, SPEAKER_HEIGHT);
-
-        button1Color = Color.black;
-        button2Color = Color.black;
-        seekColor = Color.black;
     }
 
     public void addStatusListener(StatusListener l) {
@@ -125,13 +122,25 @@ public class Status extends Component implements MouseListener,
 
     public void notifyNewState(int newState) {
         for (Enumeration e = listeners.elements(); e.hasMoreElements();) {
-            ((StatusListener) e.nextElement()).newState(newState);
+            ((StatusListener) e.nextElement()).onState(newState);
         }
     }
 
     public void notifySeek(double position) {
         for (Enumeration e = listeners.elements(); e.hasMoreElements();) {
-            ((StatusListener) e.nextElement()).newSeek(position);
+            ((StatusListener) e.nextElement()).onSeek(position);
+        }
+    }
+
+    public void notifyAudio() {
+        for (Enumeration e = listeners.elements(); e.hasMoreElements();) {
+            ((StatusListener) e.nextElement()).onAudio();
+        }
+    }
+
+    public void notifySubtitles(int x, int y) {
+        for (Enumeration e = listeners.elements(); e.hasMoreElements();) {
+            ((StatusListener) e.nextElement()).onSubtitles(x, y);
         }
     }
 
@@ -163,7 +172,7 @@ public class Status extends Component implements MouseListener,
 	h = r.height-2;
         g.setColor(Color.darkGray);
         g.drawRect(x, y, w, h);
-        g.setColor(button1Color);
+        g.setColor(colors[BUTTON1]);
         g.fillRect(x+1, y+1, w-1, h-1);
 
         if (state == STATE_PLAYING) {
@@ -195,7 +204,7 @@ public class Status extends Component implements MouseListener,
 
         g.setColor(Color.darkGray);
         g.drawRect(x, y, w, h);
-        g.setColor(button2Color);
+        g.setColor(colors[BUTTON2]);
         g.fillRect(x+1, y+1, w-1, h-1);
         g.setColor(Color.white);
         g.fillRect(r.height + (int)(w * .4), (int)(w * .4), (int)(w * .5), (int)(w * .5));
@@ -252,7 +261,7 @@ public class Status extends Component implements MouseListener,
         g.drawLine(tr.x + tr.width, tr.y + 1,         tr.x + tr.width,     tr.y + tr.height - 1); // Right
 
         // Thumb interior
-        g.setColor(seekColor);
+        g.setColor(colors[SEEKER]);
         g.fillRect(tr.x + 1, tr.y + 1, tr.width - 1, tr.height - 1);
     }
 
@@ -283,11 +292,31 @@ public class Status extends Component implements MouseListener,
         }
     }
 
+    private Rectangle getSubtitlesBounds() {
+        int x = r.width - subtitlesWidth + 1;
+        int y = 1;
+	int w = r.height * 3 / 2 - 2;
+	int h = r.height - 2;
+        return new Rectangle(x, y, w, h);
+    }
+
     private void paintSubtitles(Graphics g) {
         if (haveSubtitles) {
+            Rectangle sb = getSubtitlesBounds();
+
+            g.setColor(Color.darkGray);
+            g.drawRect(sb.x, sb.y, sb.width, sb.height);
+            g.setColor(colors[SUBTITLES]);
+            g.fillRect(sb.x+1, sb.y+1, sb.width-1, sb.height-1);
+
+            if (boldFont == null) boldFont = new Font("SansSerif", Font.BOLD, r.height-2);
             g.setColor(Color.white);
             g.setFont(boldFont);
-            g.drawString("CC", r.width - SUBTITLES_WIDTH, r.height - 2);
+            java.awt.geom.Rectangle2D ccbounds = g.getFontMetrics().getStringBounds("CC",g);
+            int midx = (int)(ccbounds.getCenterX()+0.5f);
+            int midy = (int)(ccbounds.getCenterY()+0.5f);
+
+            g.drawString("CC", sb.x+1 + (sb.width+1)/2-midx, sb.y+1 + (sb.height+1)/2-midy);
             g.setFont(font);
         }
     }
@@ -419,7 +448,7 @@ public class Status extends Component implements MouseListener,
 
     public void setHaveSubtitles(boolean a) {
         haveSubtitles = a;
-        subtitlesWidth = showSubtitles && haveSubtitles ? SUBTITLES_WIDTH : 0;
+        subtitlesWidth = showSubtitles && haveSubtitles ? r.height * 3 / 2 : 0;
         component.repaint();
     }
 
@@ -446,7 +475,7 @@ public class Status extends Component implements MouseListener,
 
     public void setShowSubtitles(boolean s) {
         showSubtitles = s;
-        subtitlesWidth = showSubtitles && haveSubtitles ? SUBTITLES_WIDTH : 0;
+        subtitlesWidth = showSubtitles && haveSubtitles ? r.height * 3 / 2 : 0;
         component.repaint();
     }
 
@@ -471,6 +500,19 @@ public class Status extends Component implements MouseListener,
         return (e.getX() >= r.height && e.getX() <= r.height + r.height-2 && e.getY() > 0 && e.getY() <= r.height-2);
     }
 
+    private boolean intersectAudio(MouseEvent e) {
+      // TODO
+      return false;
+    }
+
+    private boolean intersectSubtitles(MouseEvent e) {
+        if (r == null)
+            return false;
+
+      Rectangle bounds = getSubtitlesBounds();
+      return (e.getX() >= bounds.x && e.getX() <= bounds.x+bounds.width-2 && e.getY() > 0 && e.getY() <= bounds.height-2);
+    }
+
     private boolean intersectSeeker(MouseEvent e) {
         r = getBounds();
 	Rectangle tr = getThumbRect();
@@ -488,6 +530,10 @@ public class Status extends Component implements MouseListener,
             return BUTTON1;
         else if (intersectButton2(e))
             return BUTTON2;
+        else if (showSpeaker && haveAudio && intersectAudio(e))
+            return AUDIO;
+        else if (showSubtitles && haveSubtitles && intersectSubtitles(e))
+            return SUBTITLES;
         else if (seekable && intersectSeeker(e))
             return SEEKER;
         else if (seekable && intersectSeekbar(e))
@@ -497,9 +543,9 @@ public class Status extends Component implements MouseListener,
     }
 
     public void cancelMouseOperation() {
-      button1Color = Color.black;
-      button2Color = Color.black;
-      seekColor = Color.black;
+      for (int n=0; n<colors.length; ++n) {
+        colors[n] = Color.black;
+      }
       clicked = NONE;
     }
 
@@ -517,7 +563,7 @@ public class Status extends Component implements MouseListener,
         clicked = findComponent(e);
         if (clicked == SEEKBAR && state != STATE_STOPPED) {
           clicked = SEEKER;
-          seekColor = Color.gray;
+          colors[SEEKER] = Color.gray;
 	  mouseDragged (e);
         }
     }
@@ -558,6 +604,12 @@ public class Status extends Component implements MouseListener,
             break;
         case SEEKBAR:
             break;
+        case AUDIO:
+            notifyAudio();
+            break;
+        case SUBTITLES:
+            notifySubtitles(e.getX(), e.getY());
+            break;
         case NONE:
             break;
         }
@@ -590,48 +642,41 @@ public class Status extends Component implements MouseListener,
         }
     }
 
+    private boolean testIntersection(boolean in, int idx) {
+      if (in) {
+        if (colors[idx] != Color.gray) {
+          colors[idx] = Color.gray;
+          return true;
+        }
+      }
+      else {
+        if (colors[idx] != Color.black) {
+          colors[idx] = Color.black;
+          return true;
+        }
+      }
+      return false;
+    }
+
     public void mouseMoved(MouseEvent e) {
         boolean needRepaint = false;
 
         e.translatePoint(-1, -1);
 
 	if (!buffering) {
-            if (intersectButton1(e)) {
-	        if (button1Color != Color.gray) {
-                    button1Color = Color.gray;
-	            needRepaint = true;
-                }
-            } else {
-	        if (button1Color != Color.black) {
-                    button1Color = Color.black;
-	            needRepaint = true;
-	        }
-	    }
-	}
-        if (intersectButton2(e)) {
-            if (button2Color != Color.gray) {
-                button2Color = Color.gray;
-                needRepaint = true;
-            }
-        } else {
-	    if (button2Color != Color.black) {
-                button2Color = Color.black;
-	        needRepaint = true;
-	    }
+            if (testIntersection(intersectButton1(e), BUTTON1)) needRepaint = true;
 	}
 
+        if (testIntersection(intersectButton2(e), BUTTON2)) needRepaint = true;
+
         if (seekable) {
-            if (intersectSeeker(e)) {
-                if (seekColor != Color.gray) {
-                    seekColor = Color.gray;
-                    needRepaint = true;
-		}
-            } else {
-                if (seekColor != Color.black) {
-                    seekColor = Color.black;
-                    needRepaint = true;
-                }
-            }
+            if (testIntersection(intersectSeeker(e), SEEKER)) needRepaint = true;
+        }
+        if (haveAudio && showSpeaker) {
+            if (testIntersection(intersectAudio(e), AUDIO)) needRepaint = true;
+        }
+        if (haveSubtitles && showSubtitles) {
+            if (testIntersection(intersectSubtitles(e), SUBTITLES)) needRepaint = true;
         }
 	if (needRepaint)
           component.repaint();

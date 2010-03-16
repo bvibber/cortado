@@ -20,6 +20,8 @@ package com.fluendo.player;
 
 public interface StatusListener
 {
-  public void newState (int newState);
-  public void newSeek (double position);
+  public void onState (int newState);
+  public void onSeek (double position);
+  public void onAudio ();
+  public void onSubtitles (int x, int y);
 }
