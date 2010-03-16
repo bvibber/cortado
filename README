@@ -240,6 +240,7 @@ The applet parameters can be changed from javascript by calling the
 setParam(key, value) on the applet. After setting the new parameters in the
 applet it needs to be restarted with the restart() method for the changes to
 take effect.
+Likewise, applet parameters may be queried using getParam(key, default).
 
 The following piece of HTML demonstrates switching URLs with an without sound
 using javascript:
