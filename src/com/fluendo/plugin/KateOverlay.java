@@ -125,6 +125,13 @@ public class KateOverlay extends Overlay
       return;
     }
 
+    /* if the renderer is empty and the buffer is not a duplicate, we leave the
+       video alone */
+    if (!buf.duplicate && ret > 0) {
+      Debug.log(Debug.DEBUG, "Video frame is not a dupe and we have nothing to overlay.");
+      return;
+    }
+
     /* if the renderer isn't dirty and the image hasn't changed, we don't need
        to do anything, as the result image would be the same */
     if (buf.duplicate && !tr.isDirty()) {
