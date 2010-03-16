@@ -21,6 +21,7 @@ package com.fluendo.player;
 import java.awt.*;
 import java.awt.image.*;
 import java.awt.event.*;
+import java.awt.font.*;
 import java.util.*;
 
 public class Status extends Component implements MouseListener,
@@ -303,21 +304,27 @@ public class Status extends Component implements MouseListener,
     private void paintSubtitles(Graphics g) {
         if (haveSubtitles) {
             Rectangle sb = getSubtitlesBounds();
+            int font_height = r.height - 2;
 
             g.setColor(Color.darkGray);
             g.drawRect(sb.x, sb.y, sb.width, sb.height);
             g.setColor(colors[SUBTITLES]);
             g.fillRect(sb.x+1, sb.y+1, sb.width-1, sb.height-1);
 
-            if (boldFont == null) boldFont = new Font("SansSerif", Font.BOLD, r.height-2);
+            if (boldFont == null) boldFont = new Font("SansSerif", Font.BOLD, font_height);
             g.setColor(Color.white);
+            Font previousFont = g.getFont();
             g.setFont(boldFont);
-            java.awt.geom.Rectangle2D ccbounds = g.getFontMetrics().getStringBounds("CC",g);
-            int midx = (int)(ccbounds.getCenterX()+0.5f);
-            int midy = (int)(ccbounds.getCenterY()+0.5f);
 
-            g.drawString("CC", sb.x+1 + (sb.width+1)/2-midx, sb.y+1 + (sb.height+1)/2-midy);
-            g.setFont(font);
+            FontMetrics fm = g.getFontMetrics();
+            LineMetrics lm = fm.getLineMetrics("CC", g);
+            float cc_w = fm.stringWidth("CC");
+            float cc_h = lm.getAscent()-lm.getDescent();
+            float button_midx = sb.x + sb.width/2.0f;
+            float button_midy = sb.y + sb.height/2.0f;
+            g.drawString("CC", (int)(button_midx - cc_w/2.0f + 0.5f), (int)(button_midy + cc_h/2.0f + 0.5f));
+
+            g.setFont(previousFont);
         }
     }
 
