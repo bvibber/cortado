@@ -1,0 +1,71 @@
+-injars cortado.jar
+-outjars cortado-proguard.jar
+
+-verbose
+-optimizationpasses 4
+-libraryjars "<java.home>/lib/rt.jar" 
+-target 1.1 
+
+# The mergeinterfacesaggressively option breaks Netscape 4 and possibly other JVMs.
+
+-keep public class com.fluendo.player.Cortado {
+    public void run();
+    public void doPause();
+    public void doPlay();
+    public void doStop();
+    public void doSeek(double);
+    public void newSeek(double);
+    public void setParam(java.lang.String, java.lang.String);
+    public String getParam(java.lang.String, java.lang.String);
+    public void restart();
+    public void init();
+    public void start();
+    public void stop();
+    public void play();
+    public void pause();
+}
+-keep public class com.fluendo.plugin.HTTPSrc
+-keep public class com.fluendo.plugin.FakeSink
+-keep public class com.fluendo.plugin.VideoSink
+-keep public class com.fluendo.plugin.AudioSinkJ2
+-keep public class com.fluendo.plugin.AudioSinkSA
+-keep public class com.fluendo.plugin.Overlay
+-keep public class com.fluendo.plugin.TextOverlay
+-keep public class com.fluendo.plugin.KateOverlay
+-keep public class com.fluendo.plugin.Selector
+-keep public class com.fluendo.plugin.OggDemux
+-keep public class com.fluendo.plugin.TheoraDec
+-keep public class com.fluendo.plugin.VorbisDec
+-keep public class com.fluendo.plugin.KateDec
+-keep public class com.fluendo.plugin.Queue
+-keep public class com.fluendo.plugin.MultipartDemux
+-keep public class com.fluendo.plugin.JPEGDec
+-keep public class com.fluendo.plugin.SmokeDec
+-keep public class com.fluendo.plugin.MulawDec
+-keep public class com.fluendo.jtiger.BasicTextRenderer
+-keep public class com.fluendo.jtiger.FancyTextRenderer
+
+# Remove debugging - Throwable_printStackTrace calls. Remove all invocations of
+# Throwable.printStackTrace().
+-assumenosideeffects public class java.lang.Throwable {
+    public void printStackTrace();
+}
+
+# Remove debugging - Thread_dumpStack calls. Remove all invocations of
+# Thread.dumpStack().
+-assumenosideeffects public class java.lang.Thread {
+    public static void dumpStack();
+}
+
+# Remove debugging - All logging API calls. Remove all invocations of the
+# logging API whose return values are not used.
+-assumenosideeffects public class java.util.logging.* {
+    <methods>;
+}
+
+# Remove debugging - All Log4j API calls. Remove all invocations of the
+# Log4j API whose return values are not used.
+-assumenosideeffects public class org.apache.log4j.** {
+    <methods>;
+}
+
