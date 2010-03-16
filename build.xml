@@ -534,10 +534,21 @@ com/fluendo/plugin/Kate*
   </target>
 
 <!-- applet targets -->
+  <target name="applet-ovtk" depends="compile"
+          description="generate the Ogg/Vorbis+Theora+Kate applet">
+    <antcall target="includes">
+      <param name="exclude" value="Smoke,Jpeg,Multipart,Mulaw" />
+    </antcall>
+    <jar jarfile="${out.dist}/applet/cortado-ovtk-${build.type}-${real_version}.jar"
+         includesfile="${out.buildtyped}/includes"
+         basedir="${out.buildtyped}">
+    </jar>
+  </target>
+
   <target name="applet-ovt" depends="compile"
           description="generate the Ogg/Vorbis+Theora applet">
     <antcall target="includes">
-      <param name="exclude" value="Smoke,Jpeg,Multipart,Mulaw" />
+      <param name="exclude" value="Smoke,Jpeg,Multipart,Mulaw,Kate" />
     </antcall>
     <jar jarfile="${out.dist}/applet/cortado-ovt-${build.type}-${real_version}.jar"
          includesfile="${out.buildtyped}/includes"
@@ -568,7 +579,7 @@ com/fluendo/plugin/Kate*
   </target>
 
 
-  <target name="applet" depends="applet-ovt,applet-ov,applet-mmjs"
+  <target name="applet" depends="applet-ovtk,applet-ovt,applet-ov,applet-mmjs"
            description="generate all applets" />
 
   <target name="jar" depends="jar-jcraft,jar-utils,jar-jheora,jar-jkate,jar-jtiger,jar-jst,jar-codecs,jar-plugin,jar-player"
