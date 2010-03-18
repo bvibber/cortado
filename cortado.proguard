@@ -16,7 +16,7 @@
     public void doSeek(double);
     public void newSeek(double);
     public void setParam(java.lang.String, java.lang.String);
-    public String getParam(java.lang.String, java.lang.String);
+    public java.lang.String getParam(java.lang.String, java.lang.String);
     public void restart();
     public void init();
     public void start();
