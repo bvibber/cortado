@@ -317,9 +317,8 @@ public class Status extends Component implements MouseListener,
             g.setFont(boldFont);
 
             FontMetrics fm = g.getFontMetrics();
-            LineMetrics lm = fm.getLineMetrics("CC", g);
             float cc_w = fm.stringWidth("CC");
-            float cc_h = lm.getAscent()-lm.getDescent();
+            float cc_h = fm.getAscent()-fm.getDescent();
             float button_midx = sb.x + sb.width/2.0f;
             float button_midy = sb.y + sb.height/2.0f;
             g.drawString("CC", (int)(button_midx - cc_w/2.0f + 0.5f), (int)(button_midy + cc_h/2.0f + 0.5f));
