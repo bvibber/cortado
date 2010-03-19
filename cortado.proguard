@@ -9,6 +9,10 @@
 # The mergeinterfacesaggressively option breaks Netscape 4 and possibly other JVMs.
 
 -keep public class com.fluendo.player.Cortado {
+    public double currentTime;
+    public double duration;
+    public boolean paused;
+    public String src;
     public void run();
     public void doPause();
     public void doPlay();
