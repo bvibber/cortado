@@ -1,4 +1,16 @@
-This is Cortado 0.5.2, "Age of universe: A few billion years and counting"
+This is Cortado 0.6.0, "Increasing increase"
+
+Changes since 0.5.2
+      * support for Theora files with 4:4:4 and 4:2:2 sampling
+      * Reinforced compatibility with Java 1.1
+      * Improved support for videos with dropped frames
+      * Much improved support for Kate subtitles (including menu to
+        select subtitle stream)
+      * More robust scanning for stream duration
+      * Fixed Vorbis surround sound
+      * Release binaries should export a subset of the HTML5
+        media API again
+
 
 Changes since 0.5.1
       * make keepAspect ignorable again
