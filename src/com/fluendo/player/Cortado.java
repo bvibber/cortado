@@ -321,8 +321,10 @@ public class Cortado extends Applet implements Runnable, MouseMotionListener,
                 String docurlstring = (urlString.indexOf("://") >= 0) ? urlString : base + "/" + urlString;
                 Debug.log(Debug.INFO, "trying to determine duration for " + docurlstring);
                 URL url = new URL(docurlstring);
-                duration = durationParam = new DurationScanner().getDurationForURL(url, userId, password);
-                Debug.log(Debug.INFO, "Determined stream duration to be approx. " + durationParam);
+                DurationScanner dscanner = new DurationScanner();
+                DurationScanner.TimingInfo tinfo = dscanner.scanURL(url, userId, password);
+                duration = durationParam = tinfo.duration;
+                Debug.log(Debug.INFO, "Determined stream duration to be approx. " + durationParam+", starting at "+tinfo.startTime);
             } catch (Exception ex) {
                 Debug.log(Debug.WARNING, "Couldn't determine duration for stream.");
             }
