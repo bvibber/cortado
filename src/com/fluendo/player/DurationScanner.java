@@ -116,6 +116,14 @@ public class DurationScanner {
         int ret;
         Class c;
 
+        if (info.decoder != null) {
+          ret = info.decoder.takeHeader(packet);
+          if (ret > 0) {
+            info.ready = true;
+          }
+          return;
+        }
+
         // try theora
         try {
           c = Class.forName("com.fluendo.plugin.TheoraDec");
@@ -171,12 +179,15 @@ public class DurationScanner {
             while (info.streamstate.packetout(op) == 1) {
 
                 int type = info.type;
-                if (type == NOTDETECTED) {
+                if (type == NOTDETECTED || !info.ready) {
                     determineType(op, info);
+                }
+                else if (type != NOTDETECTED && type != UNKNOWN && info.ready && info.startgranule < 0) {
                     info.startgranule = og.granulepos();
+                    Debug.info("start granule for stream "+og.serialno()+": "+info.startgranule);
                 }
 
-                switch (type) {
+                if (info.ready) switch (type) {
                     case VORBIS:
                          {
                             com.fluendo.plugin.OggPayload pl = info.decoder;
@@ -204,7 +215,7 @@ public class DurationScanner {
 
     public float getDurationForURL(URL url, String user, String password) {
         try {
-            int headbytes = 24 * 1024;
+            int headbytes = 64 * 1024;
             int tailbytes = 128 * 1024;
 
             float time = 0;
@@ -247,9 +258,9 @@ public class DurationScanner {
 
     private class StreamInfo {
 
-        public com.fluendo.plugin.OggPayload decoder;
+        public com.fluendo.plugin.OggPayload decoder = null;
         public int type = NOTDETECTED;
-        public long startgranule;
+        public long startgranule = -1;
         public StreamState streamstate;
         public boolean ready = false;
     }
