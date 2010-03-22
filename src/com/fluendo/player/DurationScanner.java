@@ -223,8 +223,8 @@ public class DurationScanner {
                 read = is.read(buffer);
             }
             is.close();
-            is = openWithConnection(url, user, password, contentLength - tailbytes);
-            if(responseOffset == 0) {
+            is = openWithConnection(url, user, password, Math.max(0, contentLength - tailbytes));
+            if(responseOffset == 0 && tailbytes<contentLength) {
                 Debug.warning("DurationScanner: Couldn't complete duration scan due to failing range requests!");
                 return -1;
             }
