@@ -54,6 +54,9 @@ public class TheoraDec extends Element implements OggPayload
     int ret;
     byte header;
     ret = ti.decodeHeader(tc, op);
+    if (ret < 0) {
+      return ret;
+    }
     header = op.packet_base[op.packet];
     if (header == -128) {
       haveBOS = true;
