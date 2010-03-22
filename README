@@ -134,7 +134,11 @@ parameters:
 	      Defaults to auto
 
   duration:   int
-              Length of clip in seconds.  Needed when seekable is true,
+              Length of clip in seconds.  Needed when seekable is false,
+              to allow the seek bar to work.
+
+  startTime:  int
+              Start time of clip in seconds.  Needed when seekable is false,
               to allow the seek bar to work.
 
   keepAspect: boolean
