@@ -26,7 +26,7 @@ import com.fluendo.utils.*;
 
 public class Item {
   private Tracker kin = null;
-  private boolean alive = false;
+  private boolean active = false;
   private Font font = null;
   private int font_size = 0;
   private String text = null;
@@ -116,7 +116,7 @@ public class Item {
 
   /**
    * Updates the item at the given time.
-   * returns true for alive, false for dead
+   * returns false if the item should be destroyed, true otherwise.
    */
   public boolean update(Component c, Dimension d, double t) {
     com.fluendo.jkate.Event ev = kin.ev;
@@ -125,13 +125,13 @@ public class Item {
     /* early out if we're not within the lifetime of the event */
     if (t < ev.start_time) return true;
     if (t >= ev.end_time) {
-      alive = false;
+      active = false;
       dirty = true;
       return false; /* we're done, and will get destroyed */
     }
 
-    if (!alive) {
-      alive = true;
+    if (!active) {
+      active = true;
       dirty = true;
     }
 
@@ -161,7 +161,7 @@ public class Item {
    * Renders the item on the given image.
    */
   public void render(Component c, Image img) {
-    if (!alive)
+    if (!active)
       return;
 
     updateCachedData(c, img);
@@ -208,5 +208,8 @@ public class Item {
 
   public boolean isDirty() {
     return dirty;
+  }
+  public boolean isActive() {
+    return active;
   }
 }

@@ -40,20 +40,25 @@ public class Renderer {
    * Returns 1 if there is nothing to draw, as an optimization
    */
   public synchronized int update(Component c, Dimension d, double t) {
+    int nactive = 0;
     for (int n=0; n<items.size(); ++n) {
-      boolean ret = ((Item)items.elementAt(n)).update(c, d, t);
+      Item item = (Item)items.elementAt(n);
+      boolean ret = item.update(c, d, t);
       if (!ret) {
         items.removeElementAt(n);
         dirty = true;
         --n;
       }
       else {
-        if (((Item)items.elementAt(n)).isDirty()) {
+        if (item.isDirty()) {
           dirty = true;
+        }
+        if (item.isActive()) {
+          ++nactive;
         }
       }
     }
-    if (items.size() == 0)
+    if (nactive == 0)
       return 1;
     return 0;
   }
