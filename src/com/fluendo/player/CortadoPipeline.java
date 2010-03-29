@@ -241,6 +241,7 @@ public class CortadoPipeline extends Pipeline implements PadListener, CapsListen
           }
           oksinkpad = fakesink.getPad("sink");
           add(fakesink);
+          fakesink.setState (PAUSE);
         }
 
         kselector = ElementFactory.makeByName("selector", "selector");
