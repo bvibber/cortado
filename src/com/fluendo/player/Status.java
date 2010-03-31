@@ -424,7 +424,7 @@ public class Status extends Component implements MouseListener,
     }
 
     public void setStartTime(double seconds) {
-        startTime = seconds;
+        startTime = seconds >= 0 ? seconds : 0;
         component.repaint();
     }
     
