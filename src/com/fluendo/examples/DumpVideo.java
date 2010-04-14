@@ -35,6 +35,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
@@ -52,16 +53,17 @@ public class DumpVideo {
     public static final Integer ERROR = new Integer(-5);
     private static final byte[] signature = {-128, 0x74, 0x68, 0x65, 0x6f, 0x72, 0x61};
 
-    private class TheoraDecoder {
+    private class TheoraDecoderWrapper {
 
         private Info ti;
         private Comment tc;
         private State ts;
         private YUVBuffer yuv;
         private int packet;
+        private int frame;
         private boolean needKeyframe;
 
-        public TheoraDecoder() {
+        public TheoraDecoderWrapper() {
             super();
             ti = new Info();
             tc = new Comment();
@@ -136,6 +138,9 @@ public class DumpVideo {
                             Debug.log(Debug.ERROR, "Error getting the picture.");
                             return ERROR;
                         }
+
+                        System.out.println("Decoded frame: " + ++frame);
+
                         return yuv.getObject(ti.offset_x, ti.offset_y, ti.frame_width, ti.frame_height);
                     } catch (Exception e) {
                         e.printStackTrace();
@@ -235,6 +240,8 @@ public class DumpVideo {
     public void dumpVideo(File videofile, List outfiles, boolean raw) throws IOException {
         InputStream is = new FileInputStream(videofile);
 
+        boolean onlytime = outfiles.size() == 0;
+
         SyncState oy = new SyncState();
         Page og = new Page();
         Packet op = new Packet();
@@ -244,8 +251,6 @@ public class DumpVideo {
         Map theoradecoders = new HashMap();
         Map yuvwriters = new HashMap();
         Set hasdecoder = new HashSet();
-
-        int frames = 0;
 
         int read = is.read(buf);
         while (read > 0) {
@@ -271,9 +276,9 @@ public class DumpVideo {
 
                     if (!(hasdecoder.contains(serialno)) && isTheora(op)) {
 
-                        TheoraDecoder theoradec = (TheoraDecoder) theoradecoders.get(serialno);
+                        TheoraDecoderWrapper theoradec = (TheoraDecoderWrapper) theoradecoders.get(serialno);
                         if (theoradec == null) {
-                            theoradec = new TheoraDecoder();
+                            theoradec = new TheoraDecoderWrapper();
                             theoradecoders.put(serialno, theoradec);
                             hasdecoder.add(serialno);
                         }
@@ -281,12 +286,11 @@ public class DumpVideo {
                         Debug.info("is Theora: " + serialno);
                     }
 
-                    TheoraDecoder theoradec = (TheoraDecoder) theoradecoders.get(serialno);
+                    TheoraDecoderWrapper theoradec = (TheoraDecoderWrapper) theoradecoders.get(serialno);
 
                     if (theoradec != null) {
                         Object result = theoradec.decode(op);
-                        if (result instanceof YUVBuffer) {
-                            Debug.info("got frame " + ++frames);
+                        if (!onlytime && result instanceof YUVBuffer) {
 
                             YUVWriter yuvwriter = (YUVWriter) yuvwriters.get(serialno);
                             if (yuvwriter == null && !outfiles.isEmpty()) {
@@ -312,8 +316,8 @@ public class DumpVideo {
 
     public static void main(String[] args) throws IOException {
 
-        if (args.length < 2) {
-            System.err.println("usage: DumpVideo <videofile> <outfile_1> ... <outfile_n> [--raw>]");
+        if (args.length < 1) {
+            System.err.println("usage: DumpVideo <videofile> [<outfile_1> ... <outfile_n>} [--raw>]");
             System.exit(1);
         }
 
@@ -329,8 +333,17 @@ public class DumpVideo {
             outfiles.add(new File(args[i]));
         }
 
+        if(outfiles.size() == 0) {
+            System.out.println("no output files given, will only time decode");
+        }
+
         DumpVideo dv = new DumpVideo();
+
+        Date start = new Date();
         dv.dumpVideo(infile, outfiles, raw);
+        Date end = new Date();
+
+        System.out.println("time: " + (end.getTime() - start.getTime()) + " milliseconds");
 
     }
 }
