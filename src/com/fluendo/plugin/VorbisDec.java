@@ -46,7 +46,13 @@ public class VorbisDec extends Element implements OggPayload
   }
   public int takeHeader (Packet op)
   {
-    return vi.synthesis_headerin(vc, op);
+    int ret = vi.synthesis_headerin(vc, op);
+    if (ret < 0)
+      return ret;
+    byte header = op.packet_base[op.packet];
+    if (header == 0x05)
+      return 1;
+    return 0;
   }
   public boolean isHeader (Packet op)
   {

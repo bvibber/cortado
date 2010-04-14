@@ -244,7 +244,7 @@ public class OggDemux extends Element
         }
       }
       /* if we have all the headers we can stream */
-      if (haveHeaders) {
+      if (haveHeaders && !payload.isHeader(op)) {
         /* discontinuous codecs do not need to wait for data to allow playback */
         if (!complete && payload.isDiscontinuous()) {
           complete = true;

@@ -76,6 +76,7 @@ public class Status extends Component implements MouseListener,
 
     private double position = 0;
     private long time;
+    private double startTime = 0;
     private double duration;
     private long byteDuration;
     private long bytePosition;
@@ -402,13 +403,14 @@ public class Status extends Component implements MouseListener,
         if (clicked == NONE) {
             double newPosition;
 	    
-            if (seconds < duration || seekable)
+            if (seconds < duration || seekable) {
                 time = (long) seconds;
+            }
             else
                 time = (long) duration;
 
             if(duration > -1) {
-                newPosition = ((double) time) / duration;
+                newPosition = ((double) time - startTime) / duration;
                 if (newPosition != position) {
                     position = newPosition;
                     component.repaint();
@@ -421,6 +423,11 @@ public class Status extends Component implements MouseListener,
         }
     }
 
+    public void setStartTime(double seconds) {
+        startTime = seconds >= 0 ? seconds : 0;
+        component.repaint();
+    }
+    
     public void setDuration(double seconds) {
         duration = seconds;
         component.repaint();
@@ -641,7 +648,7 @@ public class Status extends Component implements MouseListener,
 
 		if (newPosition != position) {
 	          position = newPosition;
-                  time = (long) (duration * position);
+                  time = (long) (startTime + duration * position);
                   component.repaint();
 		}
             }

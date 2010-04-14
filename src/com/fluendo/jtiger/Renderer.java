@@ -30,7 +30,7 @@ public class Renderer {
   /**
    * Add a new event to the renderer.
    */
-  public void add(com.fluendo.jkate.Event ev) {
+  public synchronized void add(com.fluendo.jkate.Event ev) {
     items.addElement(new Item(ev));
     dirty = true;
   }
@@ -39,21 +39,26 @@ public class Renderer {
    * Update the renderer, and all the events it tracks.
    * Returns 1 if there is nothing to draw, as an optimization
    */
-  public int update(Component c, Dimension d, double t) {
+  public synchronized int update(Component c, Dimension d, double t) {
+    int nactive = 0;
     for (int n=0; n<items.size(); ++n) {
-      boolean ret = ((Item)items.elementAt(n)).update(c, d, t);
+      Item item = (Item)items.elementAt(n);
+      boolean ret = item.update(c, d, t);
       if (!ret) {
         items.removeElementAt(n);
         dirty = true;
         --n;
       }
       else {
-        if (((Item)items.elementAt(n)).isDirty()) {
+        if (item.isDirty()) {
           dirty = true;
+        }
+        if (item.isActive()) {
+          ++nactive;
         }
       }
     }
-    if (items.size() == 0)
+    if (nactive == 0)
       return 1;
     return 0;
   }
@@ -61,7 +66,7 @@ public class Renderer {
   /**
    * Renders onto the given image.
    */
-  public Image render(Component c, Image img) {
+  public synchronized Image render(Component c, Image img) {
     /* there used to be some non copying code using BufferedImage, but that's not in SDK 1.1, so we do it the slow way */
     Image copy = c.createImage(img.getWidth(null), img.getHeight(null));
     Graphics g = copy.getGraphics();
@@ -81,12 +86,12 @@ public class Renderer {
   /**
    * Flushes all events.
    */
-  public void flush() {
+  public synchronized void flush() {
     items.removeAllElements();
     dirty = true;
   }
 
-  public boolean isDirty() {
+  public synchronized boolean isDirty() {
     return dirty;
   }
 }

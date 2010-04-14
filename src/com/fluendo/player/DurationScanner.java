@@ -49,6 +49,13 @@ public class DurationScanner {
     private Page og = new Page();
     private Packet op = new Packet();
 
+    public class TimingInfo {
+      public float startTime = -1;
+      public float duration = -1;
+      TimingInfo(float st, float d) { startTime = st; duration = d; }
+      TimingInfo() { startTime = -1; duration = -1; }
+    };
+
     public DurationScanner() {
         oy.init();
     }
@@ -116,6 +123,14 @@ public class DurationScanner {
         int ret;
         Class c;
 
+        if (info.decoder != null) {
+          ret = info.decoder.takeHeader(packet);
+          if (ret > 0) {
+            info.ready = true;
+          }
+          return;
+        }
+
         // try theora
         try {
           c = Class.forName("com.fluendo.plugin.TheoraDec");
@@ -147,7 +162,8 @@ public class DurationScanner {
         info.type = UNKNOWN;
     }
 
-    public float getDurationForBuffer(byte[] buffer, int bufbytes) {
+    public TimingInfo scanBuffer(byte[] buffer, int bufbytes) {
+        long start = -1;
         long time = -1;
 
         int offset = oy.buffer(bufbytes);
@@ -171,12 +187,19 @@ public class DurationScanner {
             while (info.streamstate.packetout(op) == 1) {
 
                 int type = info.type;
-                if (type == NOTDETECTED) {
+                if (type == NOTDETECTED || !info.ready) {
                     determineType(op, info);
+                }
+                else if (type != NOTDETECTED && type != UNKNOWN && info.ready && info.startgranule < 0) {
                     info.startgranule = og.granulepos();
+                    long thisStartTime = info.decoder.granuleToTime(info.startgranule);
+                    if (start < 0 || thisStartTime < start) {
+                      start = thisStartTime;
+                    }
+                    Debug.info("start granule for stream "+og.serialno()+": "+info.startgranule);
                 }
 
-                switch (type) {
+                if (info.ready) switch (type) {
                     case VORBIS:
                          {
                             com.fluendo.plugin.OggPayload pl = info.decoder;
@@ -199,14 +222,16 @@ public class DurationScanner {
             }
         }
 
-        return time / (float)com.fluendo.jst.Clock.SECOND;
+        return new TimingInfo(start / (float)com.fluendo.jst.Clock.SECOND,
+                              time / (float)com.fluendo.jst.Clock.SECOND);
     }
 
-    public float getDurationForURL(URL url, String user, String password) {
+    public TimingInfo scanURL(URL url, String user, String password) {
         try {
-            int headbytes = 24 * 1024;
+            int headbytes = 64 * 1024;
             int tailbytes = 128 * 1024;
 
+            float start = -1;
             float time = 0;
 
             byte[] buffer = new byte[1024];
@@ -218,38 +243,46 @@ public class DurationScanner {
             // read beginning of the stream
             while (totalbytes < headbytes && read > 0) {
                 totalbytes += read;
-                float t = getDurationForBuffer(buffer, read);
-                time = t > time ? t : time;
+                TimingInfo tinfo = scanBuffer(buffer, read);
+                if (tinfo.duration >= 0) {
+                  float t = tinfo.duration;
+                  time = t > time ? t : time;
+                }
+                if (tinfo.startTime >= 0 && start < 0) {
+                  start = tinfo.startTime;
+                }
                 read = is.read(buffer);
             }
             is.close();
-            is = openWithConnection(url, user, password, contentLength - tailbytes);
-            if(responseOffset == 0) {
+            is = openWithConnection(url, user, password, Math.max(0, contentLength - tailbytes));
+            if(responseOffset == 0 && tailbytes<contentLength) {
                 Debug.warning("DurationScanner: Couldn't complete duration scan due to failing range requests!");
-                return -1;
+                return new TimingInfo();
             }
 
             read = is.read(buffer);
             // read tail until eos, also abort if way too many bytes have been read
             while (read > 0 && totalbytes < (headbytes + tailbytes) * 2) {
                 totalbytes += read;
-                float t = getDurationForBuffer(buffer, read);
-                time = t > time ? t : time;
+                TimingInfo tinfo = scanBuffer(buffer, read);
+                if (tinfo.duration >= 0) {
+                  time = tinfo.duration > time ? tinfo.duration : time;
+                }
                 read = is.read(buffer);
             }
 
-            return time;
+            return new TimingInfo(start, time);
         } catch (IOException e) {
             Debug.error(e.toString());
-            return -1;
+            return new TimingInfo();
         }
     }
 
     private class StreamInfo {
 
-        public com.fluendo.plugin.OggPayload decoder;
+        public com.fluendo.plugin.OggPayload decoder = null;
         public int type = NOTDETECTED;
-        public long startgranule;
+        public long startgranule = -1;
         public StreamState streamstate;
         public boolean ready = false;
     }
@@ -259,8 +292,8 @@ public class DurationScanner {
         URL url;
         url = new URL(args[0]);
 
-
-        System.out.println(new DurationScanner().getDurationForURL(url, null, null));
-
+        DurationScanner ds = new DurationScanner();
+        TimingInfo tinfo = ds.scanURL(url, null, null);
+        System.out.println(tinfo.duration);
     }
 }

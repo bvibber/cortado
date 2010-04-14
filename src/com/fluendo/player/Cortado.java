@@ -49,6 +49,7 @@ public class Cortado extends Applet implements Runnable, MouseMotionListener,
     private int bufferHigh;
     private int debug;
     private double durationParam;
+    private double startTimeParam;
     private boolean statusRunning;
     private Thread statusThread;
     public Status status;
@@ -104,6 +105,8 @@ public class Cortado extends Applet implements Runnable, MouseMotionListener,
                 "Is this a live stream (disabled PAUSE) (auto|true|false) (default auto)"},
             {"duration", "float",
                 "Total duration of the file in seconds (default unknown)"},
+            {"startTime", "float",
+                "Start time of the file in seconds (default unknown)"},
             {"audio", "boolean", "Enable audio playback (default true)"},
             {"video", "boolean", "Enable video playback (default true)"},
             {"kateIndex", "boolean", "Enable playback of a particular Kate stream (default -1 (none))"},
@@ -233,6 +236,7 @@ public class Cortado extends Applet implements Runnable, MouseMotionListener,
         seekable = getEnumParam("seekable", autoBoolVals, "auto");
         live = getEnumParam("live", autoBoolVals, "auto");
         durationParam = getDoubleParam("duration", -1.0);
+        startTimeParam = getDoubleParam("startTime", -1.0);
         audio = getBoolParam("audio", true);
         video = getBoolParam("video", true);
         kateIndex = getIntParam("kateIndex", -1);
@@ -315,19 +319,27 @@ public class Cortado extends Applet implements Runnable, MouseMotionListener,
             status.setSeekable(false);
         }
 
-        if (durationParam < 0) {
+        if (durationParam < 0 || startTimeParam < 0) {
             try {
                 String base = documentBase != null ? documentBase.toString().substring(0, documentBase.toString().lastIndexOf("/")) : "";
                 String docurlstring = (urlString.indexOf("://") >= 0) ? urlString : base + "/" + urlString;
                 Debug.log(Debug.INFO, "trying to determine duration for " + docurlstring);
                 URL url = new URL(docurlstring);
-                duration = durationParam = new DurationScanner().getDurationForURL(url, userId, password);
-                Debug.log(Debug.INFO, "Determined stream duration to be approx. " + durationParam);
+                DurationScanner dscanner = new DurationScanner();
+                DurationScanner.TimingInfo tinfo = dscanner.scanURL(url, userId, password);
+                if (durationParam < 0) {
+                  duration = durationParam = tinfo.duration;
+                }
+                if (startTimeParam < 0) {
+                  startTimeParam = tinfo.startTime;
+                }
+                Debug.log(Debug.INFO, "Determined stream duration to be approx. " + durationParam+", starting at "+startTimeParam);
             } catch (Exception ex) {
                 Debug.log(Debug.WARNING, "Couldn't determine duration for stream.");
             }
         }
 
+        status.setStartTime(startTimeParam);
         status.setDuration(durationParam);
         inStatus = false;
         mayHide = (hideTimeout == 0);
