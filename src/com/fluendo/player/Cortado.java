@@ -41,6 +41,7 @@ public class Cortado extends Applet implements Runnable, MouseMotionListener,
     private boolean showSubtitles;
     private boolean keepAspect;
     private boolean ignoreAspect;
+    private boolean ignoreBasetime;
     private boolean autoPlay;
     private int bufferSize;
     private String userId;
@@ -123,6 +124,8 @@ public class Cortado extends Applet implements Runnable, MouseMotionListener,
                 "Use aspect ratio of video (default true)"},
             {"ignoreAspect", "boolean",
                 "Ignore the aspect ratio as signalled by the video, always assume square pixels (default false)"},
+            {"ignoreBasetime", "boolean", "Ignore the ogg file's basetime, and instead always display time as " + 
+                "starting at zero (default false)"},
             {"bufferSize", "int",
                 "The size of the prebuffer in Kbytes (default 100)"},
             {"bufferLow", "int", "Percent of empty buffer (default 10)"},
@@ -250,6 +253,7 @@ public class Cortado extends Applet implements Runnable, MouseMotionListener,
         showSubtitles = getBoolParam("showSubtitles", true);
         keepAspect = getBoolParam("keepAspect", true);
         ignoreAspect = getBoolParam("ignoreAspect", false);
+        ignoreBasetime = getBoolParam("ignoreBasetime", false);
         bufferSize = getIntParam("bufferSize", 200);
         bufferLow = getIntParam("bufferLow", 10);
         bufferHigh = getIntParam("bufferHigh", 70);
@@ -303,6 +307,7 @@ public class Cortado extends Applet implements Runnable, MouseMotionListener,
         status.setShowSpeaker(showSpeaker);
         status.setShowSubtitles(showSubtitles);
         status.setHaveAudio(audio);
+        status.setIgnoreBasetime(ignoreBasetime);
         status.setHaveSubtitles(false); // by default
         status.setHavePercent(true);
         /* assume live stream unless specified */

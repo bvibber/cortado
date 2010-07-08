@@ -48,6 +48,7 @@ public class Status extends Component implements MouseListener,
     private boolean showSpeaker;
     private boolean showSubtitles;
     private boolean clearedScreen;
+    private boolean ignoreBasetime = false;
 
     private static final int NONE = -1;
     private static final int BUTTON1 = 0;
@@ -268,14 +269,21 @@ public class Status extends Component implements MouseListener,
     }
 
     private void paintTime(Graphics g) {
-        long hour, min, sec;
+        long t=time, hour, min, sec;
         int end;
+        // time is an integer, but startTime is a double.  Subtracting them
+        // will leave some remainder (less than one second) uncorrected. I see
+        // no way to resolve that without changing time to be a double as well.
+        // The remainder means that although the initial time will be 0, it may
+        // change to 1 in less than a second.
+        if (ignoreBasetime)
+            t -= (long)startTime;
 
-        if (time < 0)
+        if (t < 0)
             return;
 
-        sec = time % 60;
-        min = time / 60;
+        sec = t % 60;
+        min = t / 60;
         hour = min / 60;
         min %= 60;
 
@@ -421,6 +429,10 @@ public class Status extends Component implements MouseListener,
                 component.repaint();
             }
         }
+    }
+
+    public void setIgnoreBasetime(boolean ignore) {
+        ignoreBasetime = ignore;
     }
 
     public void setStartTime(double seconds) {
