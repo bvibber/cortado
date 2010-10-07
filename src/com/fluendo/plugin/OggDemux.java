@@ -96,7 +96,8 @@ public class OggDemux extends Element
     }
 
     public boolean isComplete () {
-      return complete;
+      /* discontinuous codecs do not need to wait for data to allow playback */
+      return complete || payload.isDiscontinuous();
     }
     public void activate() {
       if (active)
@@ -245,10 +246,6 @@ public class OggDemux extends Element
       }
       /* if we have all the headers we can stream */
       if (haveHeaders && !payload.isHeader(op)) {
-        /* discontinuous codecs do not need to wait for data to allow playback */
-        if (!complete && payload.isDiscontinuous()) {
-          complete = true;
-        }
         if (complete && started) {
           int ret;
           com.fluendo.jst.Buffer data = bufferFromPacket (op);
