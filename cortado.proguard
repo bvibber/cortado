@@ -27,6 +27,7 @@
     public void stop();
     public void play();
     public void pause();
+    public double getPlayPosition();
 }
 -keep public class com.fluendo.plugin.HTTPSrc
 -keep public class com.fluendo.plugin.FakeSink
