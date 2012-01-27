@@ -60,7 +60,11 @@ public class VideoSink extends Sink
     if(!ignoreAspect) {
       Debug.log(Debug.DEBUG, this+" dimension: "+width+"x"+height+", aspect: "+aspectX+"/"+aspectY);
 
-      if (aspectY > aspectX) {
+      if (aspectX < 0 || aspectY < 0) {
+        Debug.log(Debug.WARNING, "Illegal negative aspect ratio detected; defaulting to 1:1.");
+      } else if (aspectX == 0 || aspectY == 0) {
+        Debug.log(Debug.DEBUG, "Undefined aspect ratio; defaulting to 1:1.");
+      } else if (aspectY > aspectX) {
         height = height * aspectY / aspectX;
       } else {
         width = width * aspectX / aspectY;
